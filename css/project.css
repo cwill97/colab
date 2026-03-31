@@ -593,6 +593,14 @@
     display: none;
   }
 
+  /* Prevent native text selection from firing during
+     hold-to-auto-scroll on the gallery canvas */
+  .project-page {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
   /* --------------------------------------------------------
      M-P2. Canvas area — top portion of viewport
      -------------------------------------------------------- */

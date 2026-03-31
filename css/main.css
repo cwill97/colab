@@ -1310,11 +1310,19 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
   }
 
   /* --------------------------------------------------------
-     M-1. Viewport lock
+     M-1. Viewport lock — fully locked, no scroll, no bounce
      -------------------------------------------------------- */
   html, body {
     height: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  /* Homepage only — full position:fixed kills iOS bounce-scroll.
+     Project page excluded so depth gallery touch-scroll still works. */
+  body:not(.project-page) {
+    position: fixed;
+    width: 100%;
   }
 
   /* --------------------------------------------------------
@@ -1447,8 +1455,7 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
     display: flex !important;
     flex-direction: column;
     height: 100% !important;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     padding-right: 12px;
     scrollbar-width: none;
   }
