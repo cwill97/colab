@@ -1413,21 +1413,138 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
   }
 
   /* --------------------------------------------------------
-     M-8. Projects — completely hidden on mobile
+     M-8. Projects — visible on mobile, scroll-activated
+     Fixed below title, fills to viewport bottom.
+     Each item: thumbnail left + content right (flex row).
+     JS injects thumbnails and toggles .is-scrolled-active.
      -------------------------------------------------------- */
-  .section-projects,
-  .section-project-image,
-  .project-list-wrap,
-  .project-scroll-thumb,
-  .project-image-wrap,
-  .project-image-wrap-mobile,
-  .project-thumb-mobile,
+  .section-projects {
+    position: fixed;
+    inset-block-start: var(--t-projects);
+    inset-block-end: 20px;
+    inset-inline: 0;
+    z-index: 50;
+    padding: 0 !important;
+  }
+
+  .section-projects .container {
+    display: block;
+    height: 100%;
+    padding-inline: var(--m);
+  }
+
+  .project-list-wrap {
+    display: block !important;
+    position: relative;
+    height: 100%;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    grid-column: unset;
+  }
+
+  .project-scroll-thumb { display: block; }
+
+  .project-list {
+    display: flex !important;
+    flex-direction: column;
+    height: 100% !important;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 12px;
+    scrollbar-width: none;
+  }
+
+  .project-list::-webkit-scrollbar { display: none; }
+
+  .project-item:nth-child(n+5) { display: flex; }
+
+  .project-item {
+    display: flex !important;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+    overflow: visible;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .project-item + .project-item {
+    margin-block-start: 30px;
+  }
+
+  /* Reset desktop hover — mobile uses scroll activation */
+  .project-item,
+  .project-item:hover {
+    opacity: 0.15;
+    padding-inline-start: 0;
+  }
+
+  .project-item:hover::before {
+    transform: scaleY(0);
+  }
+
+  .project-item:hover .project-title {
+    letter-spacing: 0.02em;
+  }
+
+  .project-item:hover .project-cta {
+    opacity: 0;
+  }
+
+  .project-list:hover .project-item:not(:hover) {
+    opacity: 0.15;
+  }
+
+  /* Scroll-activated state — mirrors desktop hover */
+  .project-list .project-item.is-scrolled-active,
+  .project-list .project-item.is-scrolled-active:hover {
+    opacity: 1;
+    padding-inline-start: 8px;
+  }
+
+  .project-item.is-scrolled-active::before {
+    transform: scaleY(1);
+  }
+
+  .project-item.is-scrolled-active .project-title {
+    letter-spacing: 0.06em;
+  }
+
+  .project-item.is-scrolled-active .project-cta {
+    opacity: 1;
+  }
+
+  /* Thumbnail injected by JS */
+  .project-thumb-mobile {
+    width: calc(2 * var(--cw));
+    height: 100px;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+  }
+
+  /* Wrapper for text content (injected by JS) */
   .project-content-mobile {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    height: 0 !important;
-    overflow: hidden !important;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .project-title   { font-size: 9px; }
+  .project-detail  {
+    font-size: 8px;
+    max-width: none;
+    margin-block-start: 6px;
+    display: block;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+  .project-cta {
+    font-size: 8px;
+    margin-block-start: 8px;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out);
   }
 
   /* --------------------------------------------------------
@@ -1476,8 +1593,10 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
   }
 
   /* --------------------------------------------------------
-     M-10. (Merged into M-8 above)
+     M-10. Project Image — hidden on mobile
      -------------------------------------------------------- */
+  .section-project-image { display: none; }
+  .project-image-wrap-mobile { display: none !important; }
 
   /* --------------------------------------------------------
      M-11. Hidden on mobile — visualiser & services
