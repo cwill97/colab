@@ -568,22 +568,14 @@
 
   /* --------------------------------------------------------
      M-P0. Mobile tokens
-     Mirrors homepage: globe → title → gap → projects
-     Here:  canvas → title → about → 90px gap → projects
+     Gallery dominates the viewport; title + about sit below.
      -------------------------------------------------------- */
   :root {
-    --mp-canvas-h:      36vh;
-    --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 25px);
-    --mp-about-gap:     14px;
+    --mp-canvas-h:      68vh;
+    --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 16px);
+    --mp-about-gap:     10px;
     --mp-title-h:       16px;
-    --mp-about-h:       18vh;
-    --mp-t-projects:    calc(
-      var(--mp-info-top)
-      + var(--mp-title-h)
-      + var(--mp-about-gap)
-      + var(--mp-about-h)
-      + var(--title-proj-gap)      /* 90px — same gap as homepage */
-    );
+    --mp-about-h:       calc(100vh - var(--mp-info-top) - var(--mp-title-h) - var(--mp-about-gap) - 20px);
   }
 
   /* --------------------------------------------------------

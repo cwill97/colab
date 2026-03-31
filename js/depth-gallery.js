@@ -81,10 +81,26 @@
     /* Touch */
     this.touchY = 0;
 
+    /* Hold-to-auto-scroll */
+    this._holdTimer      = null;
+    this._autoScrolling  = false;
+    this._autoScrollSpeed = 4.0;    /* px-equivalent per frame */
+    this._holdDelay      = 400;     /* ms before auto-scroll kicks in */
+    this._touchStartX    = 0;
+    this._touchStartY    = 0;
+    this._touchMoved     = false;
+
+    /* End-of-gallery overscroll detection */
+    this.onReachEnd      = null;    /* callback fired once when scrolling past end */
+    this._endFired       = false;   /* guard: only fire once per image set */
+    this._overscrollAccum = 0;      /* accumulated overscroll past the end */
+    this._overscrollThreshold = 80; /* px of extra scroll needed to trigger */
+
     /* Bound handlers */
     this._onWheel       = this._onWheel.bind(this);
     this._onTouchStart  = this._onTouchStart.bind(this);
     this._onTouchMove   = this._onTouchMove.bind(this);
+    this._onTouchEnd    = this._onTouchEnd.bind(this);
     this._onPointerMove = this._onPointerMove.bind(this);
     this._onPointerLeave= this._onPointerLeave.bind(this);
     this._onResize      = this._onResize.bind(this);
@@ -220,6 +236,8 @@
       this.scrollCurrent = 0;
       this.prevScrollCurrent = 0;
       this.camera.position.z = this.cameraStartZ;
+      this._endFired       = false;
+      this._overscrollAccum = 0;
     }
   };
 
@@ -230,6 +248,22 @@
     /* Clamp scroll target to bounds */
     var minScroll = (this.cameraStartZ - this.maxCameraZ) / this.scrollToWorldFactor;
     var maxScroll = (this.cameraStartZ - this.minCameraZ) / this.scrollToWorldFactor;
+
+    /* ── End-of-gallery overscroll detection ── */
+    if (this.scrollTarget > maxScroll && !this._endFired) {
+      /* User is trying to scroll past the last image */
+      this._overscrollAccum += (this.scrollTarget - maxScroll);
+      if (this._overscrollAccum >= this._overscrollThreshold) {
+        this._endFired = true;
+        if (typeof this.onReachEnd === 'function') {
+          this.onReachEnd();
+        }
+      }
+    } else if (this.scrollTarget <= maxScroll) {
+      /* Reset accumulator if user scrolls back */
+      this._overscrollAccum = 0;
+    }
+
     this.scrollTarget  = Math.max(minScroll, Math.min(maxScroll, this.scrollTarget));
 
     /* Lerp scroll */
@@ -327,6 +361,11 @@
 
     var time = performance.now();
 
+    /* Auto-scroll: advance scrollTarget while holding */
+    if (this._autoScrolling) {
+      this.scrollTarget += this._autoScrollSpeed;
+    }
+
     this._updateScroll();
     var visData = this._updatePlaneVisibility();
     this._updatePlaneMotion();
@@ -353,6 +392,8 @@
   DepthGallery.prototype.destroy = function () {
     this.stop();
     this._unbindEvents();
+    clearTimeout(this._holdTimer);
+    this._autoScrolling = false;
 
     this.planes.forEach(function (p) {
       p.geometry.dispose();
@@ -399,6 +440,8 @@
     this.canvas.addEventListener('wheel',       this._onWheel,       { passive: false });
     this.canvas.addEventListener('touchstart',  this._onTouchStart,  { passive: true  });
     this.canvas.addEventListener('touchmove',   this._onTouchMove,   { passive: false });
+    this.canvas.addEventListener('touchend',    this._onTouchEnd,    { passive: true  });
+    this.canvas.addEventListener('touchcancel', this._onTouchEnd,    { passive: true  });
     window.addEventListener('pointermove', this._onPointerMove, { passive: true });
     window.addEventListener('pointerleave',this._onPointerLeave,{ passive: true });
     window.addEventListener('resize',      this._onResize);
@@ -409,6 +452,8 @@
       this.canvas.removeEventListener('wheel',      this._onWheel);
       this.canvas.removeEventListener('touchstart', this._onTouchStart);
       this.canvas.removeEventListener('touchmove',  this._onTouchMove);
+      this.canvas.removeEventListener('touchend',   this._onTouchEnd);
+      this.canvas.removeEventListener('touchcancel',this._onTouchEnd);
     }
     window.removeEventListener('pointermove', this._onPointerMove);
     window.removeEventListener('pointerleave',this._onPointerLeave);
@@ -424,15 +469,56 @@
   };
 
   DepthGallery.prototype._onTouchStart = function (e) {
-    this.touchY = e.touches[0] ? e.touches[0].clientY : 0;
+    var touch = e.touches[0];
+    if (!touch) return;
+
+    this.touchY       = touch.clientY;
+    this._touchStartX = touch.clientX;
+    this._touchStartY = touch.clientY;
+    this._touchMoved  = false;
+
+    /* Stop any existing auto-scroll */
+    this._autoScrolling = false;
+    clearTimeout(this._holdTimer);
+
+    /* Start hold timer — if finger doesn't move significantly,
+       begin auto-scrolling through images */
+    var self = this;
+    this._holdTimer = setTimeout(function () {
+      if (!self._touchMoved) {
+        self._autoScrolling = true;
+      }
+    }, this._holdDelay);
   };
 
   DepthGallery.prototype._onTouchMove = function (e) {
     e.preventDefault();
-    var currentY = e.touches[0] ? e.touches[0].clientY : this.touchY;
+    var touch = e.touches[0];
+    if (!touch) return;
+
+    /* Check if finger has moved enough to count as a swipe (>10px) */
+    var dx = Math.abs(touch.clientX - this._touchStartX);
+    var dy = Math.abs(touch.clientY - this._touchStartY);
+    if (dx > 10 || dy > 10) {
+      this._touchMoved = true;
+      /* Cancel hold timer — this is a swipe, not a hold */
+      clearTimeout(this._holdTimer);
+      /* Stop auto-scroll if it already started */
+      this._autoScrolling = false;
+    }
+
+    /* Normal swipe-to-scroll (always active during move) */
+    var currentY = touch.clientY;
     var delta    = this.touchY - currentY;
     this.scrollTarget += delta * 1.8;
     this.touchY = currentY;
+  };
+
+  DepthGallery.prototype._onTouchEnd = function () {
+    /* Stop auto-scroll */
+    this._autoScrolling = false;
+    clearTimeout(this._holdTimer);
+    this._touchMoved = false;
   };
 
   DepthGallery.prototype._onPointerMove = function (e) {

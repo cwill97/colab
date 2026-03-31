@@ -272,6 +272,29 @@
     /* Create and start the gallery */
     gallery = new DepthGallery();
     gallery.init(canvas, canvasWrap, project.images);
+
+    /* End-of-gallery → shader reveal → next project */
+    gallery.onReachEnd = function () {
+      var nextIdx = (currentIndex + 1) % PROJECTS.length;
+
+      /* Store next project index for session restore */
+      try { sessionStorage.setItem('colab_activeProject', String(nextIdx)); } catch (e) {}
+
+      /* Flag so destination page starts covered by shader */
+      try { sessionStorage.setItem('colab_shaderNav', '1'); } catch (e) {}
+
+      var ST = window.ShaderTransition;
+      if (ST) {
+        ST.resetLock();
+        ST.wipeOut(function () {
+          window.location.href = 'project.html';
+        });
+      } else {
+        /* Fallback: no shader system — hard navigate */
+        window.location.href = 'project.html';
+      }
+    };
+
     gallery.start();
 
     /* Scroll activation after gallery is ready (mobile only) */
