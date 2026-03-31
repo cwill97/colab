@@ -1,0 +1,843 @@
+/* ============================================================
+   co:lab — Project Page Stylesheet
+   Extends main.css. All tokens inherited.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Project page body state
+   Hides homepage-only elements, adjusts layout for full canvas.
+   ------------------------------------------------------------ */
+
+/* On project.html the globe is not used — hide it */
+.project-page .globe-wrap {
+  display: none;
+}
+
+/* Services + contact blocks replaced by related-projects */
+.project-page .services-block,
+.project-page .contact-block {
+  display: none;
+}
+
+/* Body enters with fade — content fades in after nav stays fixed */
+.project-page main,
+.project-page .about-text,
+.project-page .audio-visualizer,
+.project-page .related-projects {
+  opacity: 0;
+}
+
+.project-page.is-ready main,
+.project-page.is-ready .about-text,
+.project-page.is-ready .audio-visualizer,
+.project-page.is-ready .related-projects {
+  opacity: 1;
+  /* No CSS transition — the shader overlay handles the visual reveal */
+}
+
+/* No staggered delays needed — shader reveal is the transition */
+.project-page.is-ready .audio-visualizer   { }
+.project-page.is-ready .about-text         { }
+.project-page.is-ready .related-projects   { }
+.project-page.is-ready main                { }
+
+/* ------------------------------------------------------------
+   Main layout — full-height, no overflow
+   ------------------------------------------------------------ */
+.project-main {
+  position: fixed;
+  inset-block-start: var(--nav-height);
+  inset-block-end: 0;
+  inset-inline-start: 0;
+  /* Stop at col 7: leave room for right rail (cols 8–10) */
+  /* Right edge = grid-margin + 3 col-widths + 3 gutters + viz-width */
+  inset-inline-end: calc(var(--viz-width) + var(--grid-margin) * 2 + var(--grid-gutter));
+  z-index: 20;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------
+   Canvas wrap — fills the main panel
+   Position relative so meta overlay sits inside it
+   ------------------------------------------------------------ */
+.project-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* UI overlays inside canvas wrap must sit above canvas & receive pointer events */
+.project-canvas-wrap .project-scroll-hint,
+.project-canvas-wrap .project-meta {
+  pointer-events: auto;
+}
+
+/* ------------------------------------------------------------
+   Project metadata — pinned bottom-left of canvas panel
+   ------------------------------------------------------------ */
+.project-meta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding-inline-start: 30px;
+  padding-block-end: 40px;
+  z-index: 10;
+  pointer-events: none;
+  max-width: 380px;
+}
+
+.project-meta-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--color-fg);
+  opacity: 0.45;
+  margin-block-end: 10px;
+}
+
+.project-meta-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 200;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--color-fg);
+  margin-block-end: 12px;
+  text-transform: uppercase;
+}
+
+.project-meta-services {
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  opacity: 0.5;
+  line-height: 1.6;
+  text-transform: uppercase;
+  margin-block-end: 20px;
+}
+
+/* Progress track + counter */
+.project-meta-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.project-meta-track {
+  width: 120px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.project-meta-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 0%;
+  background: var(--color-fg);
+  transition: width 0.4s var(--ease-out);
+}
+
+.project-meta-count {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--color-fg);
+  opacity: 0.4;
+}
+
+/* ------------------------------------------------------------
+   Scroll hint — fades out after first interaction
+   ------------------------------------------------------------ */
+.project-scroll-hint {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding-inline-end: 30px;
+  padding-block-end: 42px;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  opacity: 1;
+  transition: opacity 0.6s var(--ease-out);
+}
+
+.project-scroll-hint.is-hidden {
+  opacity: 0;
+}
+
+.project-scroll-hint span {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--color-fg);
+  opacity: 0.35;
+  text-transform: uppercase;
+}
+
+.scroll-hint-line {
+  width: 40px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-hint-line::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -100%;
+  width: 100%;
+  background: var(--color-fg);
+  animation: hint-sweep 1.8s var(--ease-out) infinite;
+}
+
+@keyframes hint-sweep {
+  0%   { transform: translateX(0%); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateX(200%); opacity: 0; }
+}
+
+/* ------------------------------------------------------------
+   Related Projects — right rail
+   Positioned below about-text, mirrors services-block position.
+   ------------------------------------------------------------ */
+.related-projects {
+  position: fixed;
+  inset-block-start: calc(
+    var(--nav-height)
+    + var(--title-gap)
+    + var(--viz-height)
+    + var(--about-gap)
+    + var(--about-height)
+    + var(--services-gap)
+  );
+  inset-inline-end: var(--grid-margin);
+  width: var(--viz-width);
+  z-index: 50;
+}
+
+.related-project-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Individual related project entry */
+.related-project-item {
+  padding-block: 20px 0;
+  padding-inline-start: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  /* All items dimmed — none selected by default */
+  opacity: 0.25;
+  cursor: pointer;
+  transition:
+    opacity              0.3s var(--ease-out),
+    padding-inline-start 0.3s var(--ease-out);
+}
+
+/* Drawn line — pseudo-element paints top→bottom on hover */
+.related-project-item::before {
+  content: '';
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 1px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scaleY(0);
+  transform-origin: top center;
+  transition: transform 0.55s var(--ease-out);
+}
+
+/* Hover: line draws, item nudges, opacity lifts */
+.related-project-item:hover {
+  opacity: 1;
+  padding-inline-start: 8px;
+}
+
+.related-project-item:hover::before {
+  transform: scaleY(1);
+}
+
+/* When list is hovered, dim all non-hovered items further */
+.related-project-list:hover .related-project-item:not(:hover) {
+  opacity: 0.1;
+}
+
+/* is-active no longer promotes — treated same as rest (dimmed) */
+/* Click/active state only affects canvas content, not visual selection */
+
+.related-project-item:last-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-block-end: 20px;
+}
+
+.related-project-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--color-fg);
+  opacity: 0.4;
+  margin-block-end: 6px;
+}
+
+.related-project-title {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  line-height: 1;
+  margin-block-end: 7px;
+  transition: letter-spacing 0.3s var(--ease-out);
+}
+
+.related-project-item:hover .related-project-title {
+  letter-spacing: 0.06em;
+}
+
+.related-project-detail {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-fg);
+  max-width: 36ch;
+  margin-block-end: 10px;
+}
+
+.related-project-cta {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  text-transform: uppercase;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+/* CTA reveals on hover only */
+.related-project-item:hover .related-project-cta {
+  opacity: 1;
+}
+
+.related-project-cta:hover {
+  opacity: 0.55;
+}
+
+/* No persistent active state styling — all items equal at rest */
+
+/* ------------------------------------------------------------
+   About text override for project page
+   Same position, same width — no changes needed.
+   ------------------------------------------------------------ */
+
+/* ------------------------------------------------------------
+   Thin vertical rule separating canvas from right rail
+   ------------------------------------------------------------ */
+.project-main::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -1px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------
+   Image index ticker — top-left corner of canvas
+   Shows current image number as you scroll
+   ------------------------------------------------------------ */
+.project-ticker {
+  position: absolute;
+  inset-block-start: 30px;
+  inset-inline-start: 30px;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.project-ticker-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--color-fg);
+  opacity: 0.3;
+  text-transform: uppercase;
+}
+
+.project-ticker-year {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  opacity: 0.25;
+}
+
+/* ============================================================
+   DEPTH GALLERY CANVAS
+   The only gallery view. Transparent background — site BG shows.
+   ============================================================ */
+.project-depth-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  pointer-events: auto;
+}
+
+/* ============================================================
+   PROJECT VIDEO PREVIEW
+   Replaces audio-visualizer on project page.
+   Exact same position + size as .audio-visualizer in main.css:
+     fixed, top = nav-height + title-gap, right = grid-margin
+     width = --viz-width (255px), height = --viz-height (115px)
+   ============================================================ */
+.project-video-preview {
+  position: fixed;
+  inset-block-start: calc(var(--nav-height) + var(--title-gap));
+  inset-inline-end: var(--grid-margin);
+  width: var(--viz-width);
+  height: var(--viz-height);
+  z-index: 50;
+  cursor: pointer;
+  overflow: hidden;
+  outline: 1px solid rgba(255, 255, 255, 0.15);
+  transition: outline-color 0.2s ease;
+}
+
+.project-video-preview:hover {
+  outline-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Vimeo background player iframe */
+.project-video-thumb {
+  position: absolute;
+  /* Vimeo iframes have a fixed 16:9 aspect — we need to crop to fill
+     the 255×115 container (aspect ~2.22:1, wider than 16:9 ~1.78:1)
+     Scale up the iframe so its width fills, then centre vertically */
+  width: 100%;
+  height: 200%;         /* oversized height so 16:9 content fills width */
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  border: none;
+  pointer-events: none; /* clicks pass through to the preview div */
+}
+
+/* Play cue overlay */
+.project-video-cue {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 8px 10px;
+  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.project-video-preview:hover .project-video-cue {
+  opacity: 1;
+}
+
+.project-video-cue-label {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
+}
+
+/* Fade the preview in with the rest of the page */
+.project-page .project-video-preview {
+  opacity: 0;
+}
+
+.project-page.is-ready .project-video-preview {
+  opacity: 1;
+}
+
+/* ============================================================
+   PROJECT VIDEO LIGHTBOX
+   Full-screen overlay. Hidden until preview is clicked.
+   ============================================================ */
+.project-video-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.project-video-lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Inner wrapper — max 90vw × 90vh, 16:9 */
+.project-video-lightbox-inner {
+  position: relative;
+  width: min(90vw, 160vh);   /* 16:9 at 90vh = 160vh wide */
+  aspect-ratio: 16 / 9;
+  max-width: 90vw;
+  max-height: 90vh;
+  transform: scale(0.96);
+  transition: transform 0.35s var(--ease-out);
+}
+
+.project-video-lightbox.is-open .project-video-lightbox-inner {
+  transform: scale(1);
+}
+
+/* Full Vimeo iframe inside lightbox */
+.project-video-lightbox-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Close button — top-right, Space Mono */
+.project-video-close {
+  position: absolute;
+  inset-block-start: 24px;
+  inset-inline-end: 24px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  transition: color 0.15s ease;
+  text-transform: uppercase;
+}
+
+.project-video-close:hover {
+  color: rgba(255, 255, 255, 1);
+}
+
+/* ============================================================
+   MOBILE PROJECT TITLE — hidden on desktop
+   ============================================================ */
+.project-mobile-title {
+  display: none;
+}
+
+/* ============================================================
+   MOBILE — Project Page Layout (viewport-locked)
+   Canvas top → Title + About mid → Related Projects bottom
+   ============================================================ */
+@media (max-width: 767px) {
+
+  /* --------------------------------------------------------
+     M-P0. Mobile tokens
+     Mirrors homepage: globe → title → gap → projects
+     Here:  canvas → title → about → 90px gap → projects
+     -------------------------------------------------------- */
+  :root {
+    --mp-canvas-h:      36vh;
+    --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 25px);
+    --mp-about-gap:     14px;
+    --mp-title-h:       16px;
+    --mp-about-h:       18vh;
+    --mp-t-projects:    calc(
+      var(--mp-info-top)
+      + var(--mp-title-h)
+      + var(--mp-about-gap)
+      + var(--mp-about-h)
+      + var(--title-proj-gap)      /* 90px — same gap as homepage */
+    );
+  }
+
+  /* --------------------------------------------------------
+     M-P1. Hide desktop-only elements
+     -------------------------------------------------------- */
+  .project-page .project-video-preview,
+  .project-page .project-video-lightbox,
+  .project-page .project-scroll-hint,
+  .project-page .audio-visualizer {
+    display: none !important;
+  }
+
+  /* Hide the project-meta overlay on canvas */
+  .project-page .project-meta {
+    display: none;
+  }
+
+  /* --------------------------------------------------------
+     M-P2. Canvas area — top portion of viewport
+     -------------------------------------------------------- */
+  .project-page .project-main {
+    position: fixed;
+    inset-block-start: var(--nav-height);
+    inset-block-end: auto;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    height: var(--mp-canvas-h);
+    z-index: 20;
+    overflow: hidden;
+  }
+
+  /* Remove the vertical divider line on mobile */
+  .project-page .project-main::after {
+    display: none;
+  }
+
+  /* --------------------------------------------------------
+     M-P3. Mobile project title — below canvas
+     -------------------------------------------------------- */
+  .project-page .project-mobile-title {
+    display: block;
+    position: fixed;
+    inset-block-start: var(--mp-info-top);
+    inset-inline-start: var(--m);
+    inset-inline-end: var(--m);
+    z-index: 50;
+
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    line-height: 1;
+    margin: 0;
+  }
+
+  /* Fade with page */
+  .project-page .project-mobile-title {
+    opacity: 0;
+  }
+  .project-page.is-ready .project-mobile-title {
+    opacity: 1;
+  }
+
+  /* --------------------------------------------------------
+     M-P4. About text — visible on mobile project page
+     Overrides main.css `display:none` for .about-text
+     -------------------------------------------------------- */
+  .project-page .about-text {
+    display: block !important;
+    position: fixed;
+    inset-block-start: calc(
+      var(--mp-info-top) + var(--mp-title-h) + var(--mp-about-gap)
+    );
+    inset-inline-start: var(--m);
+    inset-inline-end: calc(100vw * 0.28);
+    width: auto;
+    height: var(--mp-about-h);
+    overflow: hidden;
+    z-index: 50;
+
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1.55;
+    letter-spacing: 0.02em;
+    text-align: justify;
+    color: var(--color-fg);
+  }
+
+  /* --------------------------------------------------------
+     M-P5. Related projects — mirror homepage mobile projects
+     Same positioning pattern: inset-block-start → inset-block-end
+     with list-wrap filling 100% of that space.
+     -------------------------------------------------------- */
+  .project-page .related-projects {
+    position: fixed !important;
+    inset-block-start: var(--mp-t-projects) !important;
+    inset-block-end: 20px;
+    inset-inline: 0;
+    width: auto !important;
+    z-index: 50;
+    padding: 0 !important;
+    padding-inline: var(--m) !important;
+  }
+
+  .project-page .related-project-list {
+    display: flex !important;
+    flex-direction: column;
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 12px;
+    scrollbar-width: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .project-page .related-project-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* --------------------------------------------------------
+     M-P6. Related project items — identical to homepage items
+     -------------------------------------------------------- */
+  .project-page .related-project-item {
+    display: flex !important;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+    overflow: visible;
+    flex-shrink: 0;
+    position: relative;
+    padding-block: 0;
+    padding-inline-start: 0;
+    border-top: none;
+    border-bottom: none;
+  }
+
+  .project-page .related-project-item:last-child {
+    border-bottom: none;
+    padding-block-end: 0;
+  }
+
+  .project-page .related-project-item + .related-project-item {
+    margin-block-start: 30px;
+  }
+
+  /* Reset desktop hover — mobile uses scroll activation */
+  .project-page .related-project-item,
+  .project-page .related-project-item:hover {
+    opacity: 0.15;
+    padding-inline-start: 0;
+  }
+
+  .project-page .related-project-item::before {
+    content: '';
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    width: 1px;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: scaleY(0);
+    transform-origin: top center;
+    transition: transform 0.55s var(--ease-out);
+    display: block;
+  }
+
+  .project-page .related-project-item:hover::before {
+    transform: scaleY(0);
+  }
+
+  .project-page .related-project-item:hover .related-project-title {
+    letter-spacing: 0.02em;
+  }
+
+  .project-page .related-project-item:hover .related-project-cta {
+    opacity: 0;
+  }
+
+  .project-page .related-project-list:hover .related-project-item:not(:hover) {
+    opacity: 0.15;
+  }
+
+  /* Scroll-activated state — mirrors homepage exactly */
+  .project-page .related-project-item.is-scrolled-active,
+  .project-page .related-project-item.is-scrolled-active:hover {
+    opacity: 1;
+    padding-inline-start: 8px;
+  }
+
+  .project-page .related-project-item.is-scrolled-active::before {
+    transform: scaleY(1);
+  }
+
+  .project-page .related-project-item.is-scrolled-active .related-project-title {
+    letter-spacing: 0.06em;
+  }
+
+  .project-page .related-project-item.is-scrolled-active .related-project-cta {
+    opacity: 1;
+  }
+
+  /* Thumbnail — same class & size as homepage */
+  .project-thumb-mobile {
+    width: calc(2 * var(--cw));
+    height: 100px;
+    object-fit: cover;
+    flex-shrink: 0;
+    display: block;
+  }
+
+  /* Text wrapper — same class as homepage */
+  .project-content-mobile {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Typography — match homepage mobile exactly */
+  .project-page .related-project-num {
+    display: none;
+  }
+
+  .project-page .related-project-title {
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 400;
+    line-height: 1;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    letter-spacing: 0.02em;
+    transition: letter-spacing 0.3s var(--ease-out);
+    margin-block-end: 0;
+  }
+
+  .project-page .related-project-detail {
+    font-size: 8px;
+    max-width: none;
+    margin-block-start: 6px;
+    margin-block-end: 0;
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+
+  .project-page .related-project-cta {
+    font-size: 8px;
+    margin-block-start: 8px;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out);
+  }
+
+} /* end @media (max-width: 767px) — project page */

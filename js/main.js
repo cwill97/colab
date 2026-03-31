@@ -1,0 +1,454 @@
+/**
+ * co:lab — Navigation & UI Behaviour
+ */
+
+(function () {
+  'use strict';
+
+  /* ----------------------------------------------------------
+     Nav toggle — shader-reveal menu transitions
+     Open:  wipe out → show menu → reveal in
+     Close: wipe out → hide menu → reveal in
+     ---------------------------------------------------------- */
+  function initNavToggle() {
+    var toggle = document.querySelector('[data-nav-toggle]');
+    var menu   = document.querySelector('[data-nav-menu]');
+    if (!toggle || !menu) return;
+
+    var menuTransitioning = false;
+
+    function showMenu() {
+      toggle.setAttribute('aria-expanded', 'true');
+      menu.setAttribute('aria-hidden', 'false');
+      document.body.setAttribute('data-menu-open', '');
+    }
+
+    function hideMenu() {
+      toggle.setAttribute('aria-expanded', 'false');
+      menu.setAttribute('aria-hidden', 'true');
+      document.body.removeAttribute('data-menu-open');
+    }
+
+    function doTransition(showOrHide) {
+      if (menuTransitioning) return;
+      menuTransitioning = true;
+
+      var ST = window.ShaderTransition;
+      if (!ST) {
+        /* Fallback if shader system not ready — instant swap */
+        showOrHide();
+        menuTransitioning = false;
+        return;
+      }
+
+      /* Reset the shader lock so we can fire a new wipe */
+      ST.resetLock();
+
+      ST.wipeOut(function () {
+        /* Screen is fully black — swap state */
+        showOrHide();
+
+        /* Small delay then reveal the new state */
+        setTimeout(function () {
+          ST.revealIn(0.0);
+          /* Unlock after reveal finishes (~2s) */
+          setTimeout(function () { menuTransitioning = false; }, 2200);
+        }, 120);
+      });
+    }
+
+    toggle.addEventListener('click', function () {
+      var isOpen = toggle.getAttribute('aria-expanded') === 'true';
+      if (isOpen) {
+        doTransition(hideMenu);
+      } else {
+        doTransition(showMenu);
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        doTransition(hideMenu);
+      }
+    });
+  }
+
+  /* ----------------------------------------------------------
+     Project list — custom scroll thumb
+     ---------------------------------------------------------- */
+  function initScrollThumb() {
+    var list  = document.querySelector('[data-scroll-list]');
+    var thumb = document.querySelector('.project-scroll-thumb');
+    if (!list || !thumb) return;
+
+    function updateThumb() {
+      var trackH    = list.clientHeight;
+      var scrollH   = list.scrollHeight;
+      var scrollTop = list.scrollTop;
+      var thumbH    = Math.max((trackH / scrollH) * trackH, 24);
+      var maxTravel = trackH - thumbH;
+      var progress  = scrollTop / (scrollH - trackH);
+      var thumbY    = progress * maxTravel;
+      thumb.style.height    = thumbH + 'px';
+      thumb.style.transform = 'translateY(' + thumbY + 'px)';
+    }
+
+    updateThumb();
+    list.addEventListener('scroll', updateThumb, { passive: true });
+  }
+
+  /* ----------------------------------------------------------
+     Square button glitch
+     ---------------------------------------------------------- */
+  function initButtonGlitch() {
+    var icon = document.querySelector('.nav-toggle-icon');
+    if (!icon) return;
+
+    function triggerGlitch() {
+      var toggle = document.querySelector('[data-nav-toggle]');
+      if (toggle && toggle.getAttribute('aria-expanded') === 'true') return;
+      icon.classList.add('is-glitching');
+      setTimeout(function () { icon.classList.remove('is-glitching'); }, 600);
+    }
+
+    setInterval(triggerGlitch, 3000);
+  }
+
+  /* ----------------------------------------------------------
+     About text — swap between full and mobile versions
+     ---------------------------------------------------------- */
+  function initAboutText() {
+    var el = document.querySelector('[data-full-text]');
+    if (!el) return;
+
+    var fullText   = el.getAttribute('data-full-text')   || el.textContent;
+    var mobileText = el.getAttribute('data-mobile-text') || fullText;
+
+    function applyText() {
+      var isMobile = window.innerWidth < 768;
+      var desired  = isMobile ? mobileText : fullText;
+      if (el.textContent.trim() !== desired) el.textContent = desired;
+    }
+
+    applyText();
+
+    var resizePending = false;
+    window.addEventListener('resize', function () {
+      if (resizePending) return;
+      resizePending = true;
+      requestAnimationFrame(function () { applyText(); resizePending = false; });
+    }, { passive: true });
+  }
+
+  /* ----------------------------------------------------------
+     Project CTA handoff — store active project index before
+     navigating to project.html
+     ---------------------------------------------------------- */
+  function initProjectLinks() {
+    var links = document.querySelectorAll('[data-project-link]');
+    links.forEach(function (link) {
+      link.addEventListener('click', function () {
+        var idx = link.getAttribute('data-project-link');
+        if (idx !== null) {
+          try { sessionStorage.setItem('colab_activeProject', idx); } catch (err) {}
+        }
+      });
+    });
+  }
+
+  /* ----------------------------------------------------------
+     Project image mask reveal
+     ---------------------------------------------------------- */
+  function initProjectImageReveal() {
+    var imgA  = document.querySelector('[data-image-current]');
+    var imgB  = document.querySelector('[data-image-incoming]');
+    var items = document.querySelectorAll('[data-preview-image]');
+
+    if (!imgA || !imgB || !items.length) return;
+
+    var OPEN   = 'inset(0 0% 0 0)';
+    var CLOSED = 'inset(0 100% 0 0)';
+    var EASE   = 'clip-path 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+    /* Set initial states — imgA fully visible, imgB fully hidden */
+    imgA.style.transition = 'none';
+    imgA.style.clipPath   = OPEN;
+    imgB.style.transition = 'none';
+    imgB.style.clipPath   = CLOSED;
+    var hovered    = null;
+    var currentSrc = imgA.src; /* track what imgA is actually showing */
+
+    /* Hard-set clip with no animation — two rAF frames to guarantee
+       the browser paints the no-transition state before re-enabling */
+    function snapClip(el, clip, thenAnimate) {
+      el.style.transition = 'none';
+      el.style.clipPath   = clip;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          el.style.transition = EASE;
+          if (thenAnimate) thenAnimate();
+        });
+      });
+    }
+
+    function onEnter(item) {
+      var src = item.getAttribute('data-preview-image');
+      if (!src) return;
+
+      var isNew = (item !== hovered);
+      hovered   = item;
+
+      /* Resolve to absolute URL the same way the browser does,
+         so we can compare against imgA.src (which is always absolute) */
+      var tmpA = document.createElement('a');
+      tmpA.href = src;
+      var absSrc = tmpA.href;
+
+      if (isNew) {
+        /* If imgA is already showing this image, silently swap imgA
+           so imgB can animate over it from scratch */
+        if (absSrc === currentSrc) {
+          /* Give imgA a transparent placeholder so imgB's reveal is visible */
+          imgA.style.transition = 'none';
+          imgA.style.clipPath   = CLOSED;
+        }
+
+        imgB.src = src;
+        /* Snap to closed, then animate open once transition is restored */
+        snapClip(imgB, CLOSED, function () {
+          if (hovered === item) {
+            imgB.style.clipPath = OPEN;
+          }
+        });
+      } else {
+        /* Same item re-entered mid-retract — just open it */
+        imgB.style.transition = EASE;
+        imgB.style.clipPath   = OPEN;
+      }
+    }
+
+    function onLeave(item) {
+      if (item !== hovered) return;
+      hovered = null;
+      /* Restore imgA visibility in case it was hidden for same-src reveal */
+      imgA.style.transition = 'none';
+      imgA.style.clipPath   = OPEN;
+      imgB.style.transition = EASE;
+      imgB.style.clipPath   = CLOSED;
+    }
+
+    /* Promote imgB → imgA when fully open */
+    imgB.addEventListener('transitionend', function (e) {
+      if (e.propertyName !== 'clip-path') return;
+      if (imgB.style.clipPath !== OPEN || !hovered) return;
+
+      /* Swap silently */
+      imgA.style.transition = 'none';
+      imgA.src = imgB.src;
+      imgA.style.clipPath = OPEN;
+      currentSrc = imgA.src; /* keep our tracker in sync */
+
+      imgB.style.transition = 'none';
+      imgB.style.clipPath   = CLOSED;
+    });
+
+    items.forEach(function (item) {
+      item.addEventListener('mouseenter', function () { onEnter(item); });
+      item.addEventListener('mouseleave', function () { onLeave(item); });
+    });
+  }
+
+  /* ----------------------------------------------------------
+     Project list — hover tick sound via Web Audio API
+     Frequency is derived from the machine's actual clock:
+       performance.now() → fractional ms → maps to 800–2400 Hz
+     Each project item gets its own pitch offset so they feel
+     distinct while remaining in the same tonal family.
+     ---------------------------------------------------------- */
+  function initProjectHoverSound() {
+    var items = document.querySelectorAll('.project-item');
+    if (!items.length) return;
+
+    /* Lazy-create a single AudioContext on first interaction
+       (browsers block AudioContext until a user gesture) */
+    var ctx = null;
+
+    function getCtx() {
+      if (ctx) return ctx;
+      try {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {}
+      return ctx;
+    }
+
+    /* Core tick synthesiser
+       Uses performance.now() sub-millisecond fraction as the
+       "computer frequency" seed — genuinely machine-derived. */
+    function playTick(pitchOffset) {
+      var ac = getCtx();
+      if (!ac) return;
+
+      /* Derive base freq from current CPU clock tick fraction
+         performance.now() is high-resolution; its fractional part
+         oscillates with the machine's timer resolution. */
+      var now       = performance.now();
+      var fraction  = (now % 1);                     // 0–1 sub-ms fraction
+      var baseFreq  = 900;         // 900–2100 Hz machine-seeded
+      var freq      = baseFreq + pitchOffset;        // per-item offset
+
+      var t = ac.currentTime;
+
+      /* --- Click body: very short sine burst --- */
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.9, t + 0.19);
+
+      gain.gain.setValueAtTime(0.0, t);
+      gain.gain.linearRampToValueAtTime(0.1, t + 0.002);   // sharp attack
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.01); // fast decay
+
+      osc.connect(gain);
+      gain.connect(ac.destination);
+
+      osc.start(t);
+      osc.stop(t + 0.06);
+
+      /* --- Transient click: noise burst for tactile feel --- */
+      var bufLen  = Math.ceil(ac.sampleRate * 0.006); // 8ms of noise
+      var buf     = ac.createBuffer(1, bufLen, ac.sampleRate);
+      var data    = buf.getChannelData(0);
+      for (var i = 0; i < bufLen; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.6;
+      }
+
+      var noiseNode  = ac.createBufferSource();
+      var noiseGain  = ac.createGain();
+      var noiseFilter = ac.createBiquadFilter();
+
+      noiseNode.buffer = buf;
+      noiseFilter.type = 'lowpass';
+      noiseFilter.frequency.value = freq * 9.5;     // band it to the same register
+
+      noiseGain.gain.setValueAtTime(0.12, t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.008);
+
+      noiseNode.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(ac.destination);
+
+      noiseNode.start(t);
+      noiseNode.stop(t + 0.01);
+    }
+
+    /* Deduplicate: only fire when crossing into a new item */
+    var lastHovered = null;
+
+    items.forEach(function (item) {
+      item.addEventListener('mouseenter', function () {
+        if (item === lastHovered) return;
+        lastHovered = item;
+        playTick(0);
+      });
+
+      item.addEventListener('mouseleave', function () {
+        if (lastHovered === item) lastHovered = null;
+      });
+    });
+  }
+
+  /* ----------------------------------------------------------
+     Mobile project list — thumbnails + scroll activation
+     On mobile (<768px), injects preview thumbnails into each
+     project item and activates whichever item is nearest the
+     top of the scroll area (mirrors desktop hover behaviour).
+     ---------------------------------------------------------- */
+  function initMobileProjects() {
+    if (window.innerWidth >= 768) return;
+
+    var items = document.querySelectorAll('.project-item');
+    var list  = document.querySelector('[data-scroll-list]');
+    if (!items.length || !list) return;
+
+    /* ── Inject thumbnails + wrap text content ── */
+    items.forEach(function (item) {
+      var src = item.getAttribute('data-preview-image');
+      if (!src || item.querySelector('.project-thumb-mobile')) return;
+
+      /* Create thumbnail */
+      var img = document.createElement('img');
+      img.className = 'project-thumb-mobile';
+      img.src = src;
+      img.alt = '';
+      img.setAttribute('aria-hidden', 'true');
+
+      /* Wrap existing children in a content div */
+      var wrapper = document.createElement('div');
+      wrapper.className = 'project-content-mobile';
+      while (item.firstChild) {
+        wrapper.appendChild(item.firstChild);
+      }
+
+      item.appendChild(img);
+      item.appendChild(wrapper);
+    });
+
+    /* ── Scroll-based activation ── */
+    var activeItem = null;
+
+    function updateActive() {
+      var listRect = list.getBoundingClientRect();
+      var best     = null;
+      var bestDist = Infinity;
+
+      for (var i = 0; i < items.length; i++) {
+        var rect = items[i].getBoundingClientRect();
+        /* Must be at least partially inside the list viewport */
+        if (rect.bottom < listRect.top || rect.top > listRect.bottom) continue;
+        var dist = Math.abs(rect.top - listRect.top);
+        if (dist < bestDist) {
+          bestDist = dist;
+          best = items[i];
+        }
+      }
+
+      if (best && best !== activeItem) {
+        if (activeItem) activeItem.classList.remove('is-scrolled-active');
+        best.classList.add('is-scrolled-active');
+        activeItem = best;
+      }
+    }
+
+    /* Initial activation */
+    requestAnimationFrame(updateActive);
+
+    /* Update on scroll */
+    list.addEventListener('scroll', function () {
+      requestAnimationFrame(updateActive);
+    }, { passive: true });
+  }
+
+  /* ----------------------------------------------------------
+     Bootstrap — works whether DOM is ready or not yet
+     ---------------------------------------------------------- */
+  function boot() {
+    initNavToggle();
+    initScrollThumb();
+    initButtonGlitch();
+    initAboutText();
+    initProjectLinks();
+    initProjectImageReveal();
+    initMobileProjects();
+    initProjectHoverSound();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    /* DOM already ready (defer script ran after parse) */
+    boot();
+  }
+
+}());

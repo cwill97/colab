@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="co:lab — a creative studio." />
+  <title>co:lab</title>
+
+  <!-- Space Mono — project CTAs and loader terminal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet" />
+
+  <!-- Helvetica Neue via CDNFonts — cross-browser fallback (all weights) -->
+  <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
+  <link href="https://fonts.cdnfonts.com/css/helvetica-neue-5?styles=15273,15271,15270,17624" rel="stylesheet" />
+
+  <!-- Stylesheet — all presentation lives here, never inline -->
+  <link rel="stylesheet" href="css/main.css" />
+
+  <!--
+    Viewport scale — applied synchronously before first paint.
+    Maps the 1440px master layout to any desktop/tablet viewport
+    via CSS zoom, so all fixed-position elements scale uniformly.
+    Must run before body renders to prevent layout flash.
+  -->
+  <script src="js/scale.js"></script>
+</head>
+<body>
+
+  <!-- Cursor-reveal background layer -->
+  <div class="bg-hover-layer" aria-hidden="true"></div>
+
+  <!-- ========================================================
+       PRELOADER
+       Full-screen terminal boot sequence.
+       Dismissed on progress complete + "Enter With Audio" click.
+       ======================================================== -->
+  <div class="loader" id="loader" aria-live="polite" aria-label="Loading co:lab">
+
+    <!-- Terminal log — left side, cols 1–2, 150px from top -->
+    <div class="loader-terminal" aria-hidden="true">
+      <p class="loader-terminal-intro">INITIALIZING EXPERIMENTAL INTERFACE...</p>
+      <ul class="loader-log" id="loaderLog"></ul>
+      <div class="loader-terminal-footer" id="loaderFooter"></div>
+    </div>
+
+    <!-- Centred progress bar + CTA -->
+    <div class="loader-center">
+      <div class="loader-bar-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="loaderBar">
+        <div class="loader-bar-fill" id="loaderFill"></div>
+      </div>
+      <button class="loader-cta" id="loaderCta" type="button" disabled>
+        [ ENTER SITE ]
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ========================================================
+       GRID OVERLAY
+       Development utility. Visualises the 10-column grid.
+       Toggled via JS data attribute on <body>.
+       ======================================================== -->
+  <div class="grid-overlay" aria-hidden="true">
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div>
+  </div>
+
+  <!-- ========================================================
+       SITE NAVIGATION
+       Fixed to viewport top. Logo left, toggle right.
+       ======================================================== -->
+  <header role="banner">
+    <nav class="site-nav" aria-label="Primary navigation">
+      <div class="nav-inner">
+
+        <!-- Logo -->
+        <a class="nav-logo" href="/" aria-label="co:lab — go to homepage">
+          <img
+            src="assets/logo.svg"
+            alt="co:lab"
+            width="102"
+            height="25"
+          />
+        </a>
+
+        <!-- Menu toggle -->
+        <button
+          class="nav-toggle"
+          type="button"
+          aria-controls="site-menu"
+          aria-expanded="false"
+          aria-label="Open navigation menu"
+          data-nav-toggle
+        >
+          <span class="nav-toggle-icon" aria-hidden="true"></span>
+        </button>
+
+      </div>
+    </nav>
+  </header>
+
+  <!-- ========================================================
+       AUDIO VISUALIZER
+       Fixed top-right. Click to mute/unmute.
+       Three.js + Web Audio API rendered to canvas.
+       ======================================================== -->
+  <div
+    class="audio-visualizer"
+    role="button"
+    tabindex="0"
+    aria-label="Audio visualizer — click to mute"
+    aria-pressed="false"
+    data-muted="false"
+    data-visualizer
+  >
+    <canvas data-viz-canvas></canvas>
+  </div>
+
+  <!-- ========================================================
+       ABOUT TEXT
+       Fixed top-right, 30px below audio visualizer. Cols 9–10.
+       ======================================================== -->
+  <p class="about-text" data-full-text="co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose. Through order, we find freedom Culture is the context we design within, drawing from music, fashion, technology, and modern society to shape movements rather than follow them. We never stop iterating." data-mobile-text="co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose.">co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose. Through order, we find freedom Culture is the context we design within, drawing from music, fashion, technology, and modern society to shape movements rather than follow them. We never stop iterating.</p>
+
+  <!-- ========================================================
+       OUR SERVICES
+       Fixed top-right, 30px below about text. Two columns.
+       List 1 → col 9, List 2 → col 10.
+       ======================================================== -->
+  <nav class="services-block" aria-label="Our services">
+
+    <ul class="services-list">
+      <li>Art</li>
+      <li>Architecture</li>
+      <li>Technology</li>
+      <li>Health</li>
+      <li>Sport</li>
+      <li>Fashion</li>
+      <li>Beauty</li>
+      <li>Sustainability</li>
+      <li>Wellness</li>
+    </ul>
+
+    <ul class="services-list">
+      <li>Creative Direction</li>
+      <li>Strategy</li>
+      <li>Visual Identity</li>
+      <li>UI Design</li>
+      <li>Graphic Design</li>
+      <li>Website &amp; App</li>
+      <li>Full-Stack Development</li>
+      <li>CMS Implementation</li>
+      <li>Technical Architecture</li>
+    </ul>
+
+  </nav>
+
+  <!-- ========================================================
+       CONTACT DETAILS
+       Fixed top-right, 90px below services. Two columns.
+       Reuses services-list typography.
+       ======================================================== -->
+  <nav class="contact-block" aria-label="Contact details">
+
+    <ul class="services-list">
+      <li>Info@colab47.com</li>
+      <li>+27 83 987 7654</li>
+      <li>Johannesburg</li>
+      <li>South Africa</li>
+      <li>Rate Card</li>
+    </ul>
+
+    <ul class="services-list">
+      <li>Awwwards</li>
+      <li>Instagram</li>
+      <li>LinkedIn</li>
+      <li>Youtube</li>
+      <li>X</li>
+    </ul>
+
+  </nav>
+
+  <!-- ========================================================
+       OVERLAY MENU
+       Hidden by default. Revealed by JS toggling aria-hidden.
+       ======================================================== -->
+  <div
+    id="site-menu"
+    class="site-menu"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Navigation menu"
+    aria-hidden="true"
+    data-nav-menu
+  >
+    <!-- Cursor-reveal background layer -->
+    <div class="bg-hover-layer" aria-hidden="true"></div>
+
+    <!-- About text — centred on page -->
+    <div class="menu-about">
+      <p>co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose. Through order, we find freedom  Culture is the context we design within, drawing from music, fashion, technology, and modern society to shape movements rather than follow them. We never stop iterating. Curiosity doesn't end when the project does. Our work evolves with culture itself adapting, reframing, and reflecting  what's next. In a world built on speed and distraction, clarity is radical. co:lab approaches every project as a process of refinement reducing, editing, questioning until the message becomes pure. co:lab is not confined to walls or screens. It's a living framework for experimentation, a collective of designers, engineers, and thinkers building the visual world we experience.</p>
+    </div>
+
+    <!-- Contact + Socials footer -->
+    <div class="menu-footer">
+      <div class="menu-footer-col">
+        <span class="menu-footer-label">Contact</span>
+        <ul>
+          <li>Info@colab47.com</li>
+          <li>+27 83 987 7654</li>
+          <li>South Africa</li>
+          <li>Rate Card</li>
+        </ul>
+      </div>
+      <div class="menu-footer-col">
+        <span class="menu-footer-label">Socials</span>
+        <ul>
+          <li>Awwwards</li>
+          <li>Instagram</li>
+          <li>LinkedIn</li>
+          <li>Youtube</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================================
+       PARTICLE GLOBE — fixed, independent of main overflow
+       ======================================================== -->
+  <div class="globe-wrap" aria-hidden="true" data-globe></div>
+
+  <!-- ========================================================
+       MAIN CONTENT
+       ======================================================== -->
+  <main id="main-content">
+
+    <!-- Display title — 25px below logo, cols 1–3 -->
+    <section class="section-hero">
+      <div class="container">
+
+        <h1 class="display-title">
+          <span class="title-line">Research / Experiment</span>
+          <span class="title-line">Form / Culture / Light</span>
+          <span class="title-line">26.2056&deg; S, 28.0337&deg; E</span>
+        </h1>
+
+      </div>
+    </section>
+
+    <!-- Project list — 70px below display title, cols 1–2.5 -->
+    <section class="section-projects" aria-label="Projects">
+      <div class="container">
+
+        <div class="project-list-wrap">
+
+          <!-- Custom scroll indicator: thumb moves along the 1px track -->
+          <div class="project-scroll-thumb" aria-hidden="true"></div>
+
+          <ul class="project-list" data-scroll-list>
+
+            <li class="project-item" data-preview-image="assets/Project_Img_01.webp">
+              <h2 class="project-title">Viking Gear</h2>
+              <p class="project-detail">End-to-end brand development, web design &amp; development, e-commerce, 3D modeling, and animation.</p>
+              <a class="project-cta" href="project.html" data-project-link="0">[ View Project ]</a>
+            </li>
+
+            <li class="project-item" data-preview-image="assets/Project_Img_02.webp">
+              <h2 class="project-title">Rebel Kids Club</h2>
+              <p class="project-detail">Spatial identity systems, architectural photography direction, and immersive digital experience design.</p>
+              <a class="project-cta" href="project.html" data-project-link="1">[ View Project ]</a>
+            </li>
+
+            <li class="project-item" data-preview-image="assets/Project_Img_03.webp">
+              <h2 class="project-title">Mannequin Films</h2>
+              <p class="project-detail">Performance brand strategy, motion design, campaign art direction, and global e-commerce rollout.</p>
+              <a class="project-cta" href="project.html" data-project-link="2">[ View Project ]</a>
+            </li>
+
+            <li class="project-item" data-preview-image="assets/Project_Img_01.webp">
+              <h2 class="project-title">Viking Gear</h2>
+              <p class="project-detail">End-to-end brand development, web design &amp; development, e-commerce, 3D modeling, and animation.</p>
+              <a class="project-cta" href="project.html" data-project-link="0">[ View Project ]</a>
+            </li>
+
+            <li class="project-item" data-preview-image="assets/Project_Img_02.webp">
+              <h2 class="project-title">Rebel Kids Club</h2>
+              <p class="project-detail">Spatial identity systems, architectural photography direction, and immersive digital experience design.</p>
+              <a class="project-cta" href="project.html" data-project-link="1">[ View Project ]</a>
+            </li>
+
+          </ul>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Project image — 80px below project list, cols 1–2, 190px height -->
+    <section class="section-project-image" aria-label="Project preview">
+      <div class="container">
+
+        <figure class="project-image-wrap" data-project-image-wrap>
+          <!-- Current image — sits behind, masks out upward on swap -->
+          <img
+            class="project-image-current"
+            data-image-current
+            src="assets/Project_Img_01.webp"
+            alt="Project preview"
+            width="240"
+            height="190"
+          />
+          <!-- Incoming image — rises up from bottom on hover -->
+          <img
+            class="project-image-incoming"
+            data-image-incoming
+            src="assets/Project_Img_01.webp"
+            alt=""
+            aria-hidden="true"
+            width="240"
+            height="190"
+          />
+        </figure>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================
+       MOBILE PROJECT IMAGE — fixed bottom-right (cols 4-5)
+       Hidden on desktop via CSS; shown only on mobile.
+       ======================================================== -->
+  <figure class="project-image-wrap-mobile" aria-hidden="true">
+    <img
+      src="assets/Project_Img_01.webp"
+      alt=""
+      width="200"
+      height="180"
+    />
+  </figure>
+
+  <!-- Loader — runs immediately, no defer -->
+  <script src="js/loader.js"></script>
+
+<!-- Three.js + GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <!-- Shader reveal overlay — must load after Three/GSAP, before main -->
+  <script src="js/shader-reveal.js"></script>
+
+  <!-- Behaviour — deferred, non-blocking -->
+  <script src="js/main.js" defer></script>
+  <script src="js/visualizer.js" defer></script>
+  <script src="js/globe.js" defer></script>
+  <script src="js/bg-reveal.js" defer></script>
+
+</body>
+</html>
