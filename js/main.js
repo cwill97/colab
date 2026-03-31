@@ -366,68 +366,8 @@
      top of the scroll area (mirrors desktop hover behaviour).
      ---------------------------------------------------------- */
   function initMobileProjects() {
-    if (window.innerWidth >= 768) return;
-
-    var items = document.querySelectorAll('.project-item');
-    var list  = document.querySelector('[data-scroll-list]');
-    if (!items.length || !list) return;
-
-    /* ── Inject thumbnails + wrap text content ── */
-    items.forEach(function (item) {
-      var src = item.getAttribute('data-preview-image');
-      if (!src || item.querySelector('.project-thumb-mobile')) return;
-
-      /* Create thumbnail */
-      var img = document.createElement('img');
-      img.className = 'project-thumb-mobile';
-      img.src = src;
-      img.alt = '';
-      img.setAttribute('aria-hidden', 'true');
-
-      /* Wrap existing children in a content div */
-      var wrapper = document.createElement('div');
-      wrapper.className = 'project-content-mobile';
-      while (item.firstChild) {
-        wrapper.appendChild(item.firstChild);
-      }
-
-      item.appendChild(img);
-      item.appendChild(wrapper);
-    });
-
-    /* ── Scroll-based activation ── */
-    var activeItem = null;
-
-    function updateActive() {
-      var listRect = list.getBoundingClientRect();
-      var best     = null;
-      var bestDist = Infinity;
-
-      for (var i = 0; i < items.length; i++) {
-        var rect = items[i].getBoundingClientRect();
-        /* Must be at least partially inside the list viewport */
-        if (rect.bottom < listRect.top || rect.top > listRect.bottom) continue;
-        var dist = Math.abs(rect.top - listRect.top);
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = items[i];
-        }
-      }
-
-      if (best && best !== activeItem) {
-        if (activeItem) activeItem.classList.remove('is-scrolled-active');
-        best.classList.add('is-scrolled-active');
-        activeItem = best;
-      }
-    }
-
-    /* Initial activation */
-    requestAnimationFrame(updateActive);
-
-    /* Update on scroll */
-    list.addEventListener('scroll', function () {
-      requestAnimationFrame(updateActive);
-    }, { passive: true });
+    /* Projects are hidden on mobile — nothing to inject */
+    return;
   }
 
   /* ----------------------------------------------------------

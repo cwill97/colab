@@ -40,9 +40,9 @@
     }
   }
 
-  function onMouseMove(e) {
-    targetX = e.clientX;
-    targetY = e.clientY;
+  function activate(x, y) {
+    targetX = x;
+    targetY = y;
 
     if (!active) {
       active = true;
@@ -55,11 +55,29 @@
     }
   }
 
-  function onMouseLeave() {
+  function deactivate() {
     active = false;
     document.body.classList.remove('cursor-active');
   }
 
-  document.addEventListener('mousemove', onMouseMove, { passive: true });
-  document.addEventListener('mouseleave', onMouseLeave, { passive: true });
+  /* ── Desktop: mouse ── */
+  document.addEventListener('mousemove', function (e) {
+    activate(e.clientX, e.clientY);
+  }, { passive: true });
+
+  document.addEventListener('mouseleave', deactivate, { passive: true });
+
+  /* ── Mobile: press + hold / drag ── */
+  document.addEventListener('touchstart', function (e) {
+    var touch = e.touches[0];
+    if (touch) activate(touch.clientX, touch.clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function (e) {
+    var touch = e.touches[0];
+    if (touch) activate(touch.clientX, touch.clientY);
+  }, { passive: true });
+
+  document.addEventListener('touchend', deactivate, { passive: true });
+  document.addEventListener('touchcancel', deactivate, { passive: true });
 })();

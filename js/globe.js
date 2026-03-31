@@ -443,8 +443,11 @@
     bindProjectHovers();
 
 
-    /* ── Drag ── */
+    /* ── Drag — with momentum / inertia ── */
     var isDragging = false, prevX = 0, prevY = 0, velX = 0, velY = 0;
+    var IDLE_SPEED_Y = 0.0020;   // neutral auto-rotate speed
+    var FRICTION     = 0.96;     // per-frame decay (higher = heavier, longer coast)
+    var SETTLE_LERP  = 0.008;    // how fast momentum blends back toward idle speed
     wrap.style.cursor = 'grab';
 
     var mouseNDC = new THREE.Vector2(9, 9);
@@ -477,6 +480,7 @@
 
     wrap.addEventListener('touchstart', function (e) {
       isDragging = true;
+      velX = 0; velY = 0;
       prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
     }, { passive: true });
     window.addEventListener('touchmove', function (e) {
@@ -509,12 +513,27 @@
           while (diffY < -Math.PI) diffY += Math.PI * 2;
           globe.rotation.y += diffY * LERP_SPEED;
           globe.rotation.x += (targetRotX - globe.rotation.x) * LERP_SPEED;
+          // Kill any residual momentum when locked to a project
+          velX *= 0.85;
+          velY *= 0.85;
         } else {
-          // idle auto-rotate
-          globe.rotation.y += 0.0020;
+          // ── Momentum phase: apply velocity then decay toward idle ──
+          // Apply current velocity
+          globe.rotation.y += velY;
+          globe.rotation.x += velX;
+
+          // Friction: decay velocity each frame
+          velX *= FRICTION;
+          velY *= FRICTION;
+
+          // Gradually blend Y velocity toward idle speed
+          // This creates the "settling" feel — the globe coasts, slows,
+          // then smoothly resumes its neutral drift
+          velY += (IDLE_SPEED_Y - velY) * SETTLE_LERP;
+
+          // Blend X velocity toward 0 (no permanent tilt drift)
+          velX += (0 - velX) * SETTLE_LERP;
         }
-        velX *= 0.88;
-        velY *= 0.88;
       }
 
       // Camera zoom
