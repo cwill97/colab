@@ -571,7 +571,7 @@
      Gallery dominates the viewport; title + about sit below.
      -------------------------------------------------------- */
   :root {
-    --mp-canvas-h:      68vh;
+    --mp-canvas-h:      50vh;
     --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 16px);
     --mp-about-gap:     10px;
     --mp-title-h:       16px;
