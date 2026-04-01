@@ -458,7 +458,7 @@
 
     /* ── Drag — with momentum / inertia ── */
     var isDragging = false, prevX = 0, prevY = 0, velX = 0, velY = 0;
-    var IDLE_SPEED_Y = 0.0060;   // neutral auto-rotate speed
+    var IDLE_SPEED_Y = 0.0090;   // neutral auto-rotate speed
     var FRICTION     = 0.96;     // per-frame decay (higher = heavier, longer coast)
     var SETTLE_LERP  = 0.008;    // how fast momentum blends back toward idle speed
     wrap.style.cursor = 'grab';
