@@ -170,16 +170,49 @@
 
 
   /* ── Scene builder ───────────────────────────────────────── */
+  var _globeBuilt   = false;   /* prevents double-build */
+  var _globeCanvas   = null;   /* reference to the renderer's canvas */
+  var _globeRenderer = null;   /* reference for context-lost recovery */
+
   function buildScene(wrap, posArr, sizeArr, alpArr) {
+    /* Prevent double-build — if already built, just ensure visibility */
+    if (_globeBuilt && _globeCanvas) {
+      if (!_globeCanvas.parentNode) wrap.appendChild(_globeCanvas);
+      if (window.colabGlobe) window.colabGlobe.resume();
+      return;
+    }
+
+    /* Ensure wrap has dimensions — if hidden, defer until visible */
     var rect = wrap.getBoundingClientRect();
     var W = rect.width  || (window.innerWidth  * 0.4);
     var H = rect.height || (window.innerHeight - 64);
+    if (W < 10 || H < 10) {
+      /* Wrap not visible yet — retry in 200ms */
+      setTimeout(function () { buildScene(wrap, posArr, sizeArr, alpArr); }, 200);
+      return;
+    }
 
     var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(W, H);
     renderer.setClearColor(0x000000, 0);
     wrap.appendChild(renderer.domElement);
+
+    _globeBuilt   = true;
+    _globeCanvas   = renderer.domElement;
+    _globeRenderer = renderer;
+
+    /* WebGL context-lost recovery */
+    _globeCanvas.addEventListener('webglcontextlost', function (e) {
+      e.preventDefault();
+      if (window.colabGlobe) window.colabGlobe.pause();
+    }, false);
+
+    _globeCanvas.addEventListener('webglcontextrestored', function () {
+      /* Re-init the renderer state and resume */
+      renderer.setSize(wrap.offsetWidth || W, wrap.offsetHeight || H);
+      if (window.colabGlobe) window.colabGlobe.resume();
+    }, false);
 
     var scene  = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(42, W / H, 0.1, 1000);
@@ -458,7 +491,7 @@
 
     /* ── Drag — with momentum / inertia ── */
     var isDragging = false, prevX = 0, prevY = 0, velX = 0, velY = 0;
-    var IDLE_SPEED_Y = 0.0090;   // neutral auto-rotate speed
+    var IDLE_SPEED_Y = 0.0020;   // neutral auto-rotate speed
     var FRICTION     = 0.96;     // per-frame decay (higher = heavier, longer coast)
     var SETTLE_LERP  = 0.008;    // how fast momentum blends back toward idle speed
     wrap.style.cursor = 'grab';
@@ -623,28 +656,84 @@
 
 
   /* ── Init ─────────────────────────────────────────────────── */
+  var _topoCache    = null;    /* cached topology data */
+  var _initPending  = false;   /* fetch in flight */
+  var MAX_RETRIES   = 3;
+  var TOPO_URL      = 'https://unpkg.com/world-atlas@2/land-110m.json';
+
+  function fetchTopoWithRetry(retries, delay) {
+    return fetch(TOPO_URL)
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .catch(function (err) {
+        if (retries > 0) {
+          return new Promise(function (resolve) {
+            setTimeout(function () {
+              resolve(fetchTopoWithRetry(retries - 1, delay * 2));
+            }, delay);
+          });
+        }
+        throw err;
+      });
+  }
+
   function init() {
     var wrap = document.querySelector('[data-globe]');
     if (!wrap) return;
 
-    fetch('https://unpkg.com/world-atlas@2/land-110m.json')
-      .then(function (r) { return r.json(); })
+    /* Already built — just ensure it's running */
+    if (_globeBuilt) {
+      if (window.colabGlobe) window.colabGlobe.resume();
+      return;
+    }
+
+    /* Already fetching — don't stack requests */
+    if (_initPending) return;
+
+    /* If we have cached topo, skip fetch */
+    if (_topoCache) {
+      _buildFromTopo(wrap, _topoCache);
+      return;
+    }
+
+    _initPending = true;
+
+    fetchTopoWithRetry(MAX_RETRIES, 500)
       .then(function (topo) {
-        var worker;
-        try { worker = new Worker('js/globe.worker.js'); } catch(e) { computeInline(wrap, topo); return; }
-        worker.postMessage({ topo: topo, landTarget: 42000, oceanTarget: 2500 });
-        worker.onmessage = function (e) {
-          worker.terminate();
-          buildScene(wrap, e.data.positions, e.data.sizes, e.data.alphas);
-        };
-        worker.onerror = function (err) {
-          worker.terminate();
-          computeInline(wrap, topo);
-        };
+        _topoCache = topo;
+        _initPending = false;
+        _buildFromTopo(wrap, topo);
       })
       .catch(function () {
+        _initPending = false;
+        /* All retries failed — build with empty data so scene exists,
+           then schedule another attempt in 5s */
         buildScene(wrap, new Float32Array(0), new Float32Array(0), new Float32Array(0));
+        setTimeout(function () { _retryInit(); }, 5000);
       });
+  }
+
+  function _buildFromTopo(wrap, topo) {
+    var worker;
+    try { worker = new Worker('js/globe.worker.js'); } catch(e) { computeInline(wrap, topo); return; }
+    worker.postMessage({ topo: topo, landTarget: 42000, oceanTarget: 2500 });
+    worker.onmessage = function (e) {
+      worker.terminate();
+      buildScene(wrap, e.data.positions, e.data.sizes, e.data.alphas);
+    };
+    worker.onerror = function () {
+      worker.terminate();
+      computeInline(wrap, topo);
+    };
+  }
+
+  /* Retry init if initial fetch failed but we later get connectivity */
+  function _retryInit() {
+    if (_globeBuilt || _initPending) return;
+    _topoCache = null; /* clear so we re-fetch */
+    init();
   }
 
   /* ── Inline fallback ─────────────────────────────────────── */
@@ -705,10 +794,17 @@
 
   /* Allow Barba transitions to re-init globe if needed */
   window.colabGlobeInit = function () {
-    if (window.colabGlobe && window.colabGlobe.isInit) {
+    /* Already built and running — just make sure it's visible */
+    if (_globeBuilt && window.colabGlobe && window.colabGlobe.isInit) {
+      var wrap = document.querySelector('[data-globe]');
+      /* Re-attach canvas if it was somehow detached */
+      if (wrap && _globeCanvas && !_globeCanvas.parentNode) {
+        wrap.appendChild(_globeCanvas);
+      }
       window.colabGlobe.resume();
       return;
     }
+    /* Not built yet — trigger full init */
     waitForThree(init);
   };
 }());

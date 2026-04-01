@@ -49,8 +49,12 @@
         viz.setAttribute('aria-hidden', 'false');
       }
 
-      /* Resume globe animation */
-      if (window.colabGlobe) window.colabGlobe.resume();
+      /* Resume or re-init globe */
+      if (window.colabGlobeInit) {
+        window.colabGlobeInit();
+      } else if (window.colabGlobe) {
+        window.colabGlobe.resume();
+      }
 
       /* Re-init homepage JS (scroll thumb, project hovers, etc.) */
       if (window.colabMainBoot) window.colabMainBoot();
