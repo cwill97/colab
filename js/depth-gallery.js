@@ -42,13 +42,13 @@
     /* Scroll state — from Scroll.js */
     this.scrollTarget  = 0;
     this.scrollCurrent = 0;
-    this.scrollSmoothing      = 0.12;
-    this.scrollToWorldFactor  = 0.02;
+    this.scrollSmoothing      = 0.08;
+    this.scrollToWorldFactor  = 0.01;
     this.prevScrollCurrent    = 0;
     this.rawVelocity   = 0;
     this.velocity      = 0;
     this.velocityDamping     = 0.12;
-    this.velocityMax         = 2.5;
+    this.velocityMax         = 1.5;
     this.cameraStartZ  = 0;
     this.minCameraZ    = -Infinity;
     this.maxCameraZ    =  Infinity;
@@ -84,11 +84,17 @@
     /* Hold-to-auto-scroll */
     this._holdTimer      = null;
     this._autoScrolling  = false;
-    this._autoScrollSpeed = 8.0;    /* px-equivalent per frame */
-    this._holdDelay      = 200;     /* ms before auto-scroll kicks in */
+    this._autoScrollSpeed = 4.0;    /* px-equivalent per frame */
+    this._holdDelay      = 400;     /* ms before auto-scroll kicks in */
     this._touchStartX    = 0;
     this._touchStartY    = 0;
     this._touchMoved     = false;
+
+    /* Idle auto-scroll — advances without touch */
+    this._idleSpeed       = 0.8;    /* px per frame — slow ambient drift */
+    this._idlePaused      = false;  /* paused during user interaction */
+    this._idleResumeTimer = null;
+    this._idleResumeDelay = 3000;   /* ms before idle resumes after interaction */
 
     /* End-of-gallery overscroll detection */
     this.onReachEnd      = null;    /* callback fired once when scrolling past end */
@@ -361,9 +367,13 @@
 
     var time = performance.now();
 
-    /* Auto-scroll: advance scrollTarget while holding */
+    /* Hold-to-auto-scroll: advance while holding */
     if (this._autoScrolling) {
       this.scrollTarget += this._autoScrollSpeed;
+    }
+    /* Idle auto-scroll: slow ambient advance when not interacting */
+    else if (!this._idlePaused) {
+      this.scrollTarget += this._idleSpeed;
     }
 
     this._updateScroll();
@@ -393,7 +403,9 @@
     this.stop();
     this._unbindEvents();
     clearTimeout(this._holdTimer);
+    clearTimeout(this._idleResumeTimer);
     this._autoScrolling = false;
+    this._idlePaused    = false;
 
     this.planes.forEach(function (p) {
       p.geometry.dispose();
@@ -466,6 +478,17 @@
     if (e.deltaMode === 1) delta *= 16;
     if (e.deltaMode === 2) delta *= window.innerHeight;
     this.scrollTarget += delta;
+    this._pauseIdle();
+  };
+
+  /* Pause idle auto-scroll during interaction, resume after delay */
+  DepthGallery.prototype._pauseIdle = function () {
+    this._idlePaused = true;
+    clearTimeout(this._idleResumeTimer);
+    var self = this;
+    this._idleResumeTimer = setTimeout(function () {
+      self._idlePaused = false;
+    }, self._idleResumeDelay);
   };
 
   DepthGallery.prototype._onTouchStart = function (e) {
@@ -477,7 +500,10 @@
     this._touchStartY = touch.clientY;
     this._touchMoved  = false;
 
-    /* Stop any existing auto-scroll */
+    /* Pause idle auto-scroll */
+    this._pauseIdle();
+
+    /* Stop any existing hold-auto-scroll */
     this._autoScrolling = false;
     clearTimeout(this._holdTimer);
 
