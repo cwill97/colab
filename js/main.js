@@ -421,16 +421,28 @@
     function updateActive() {
       var listRect = list.getBoundingClientRect();
       var best     = null;
-      var bestDist = Infinity;
 
+      /* With scroll-snap-align: start, the snapped item's top edge
+         sits at (or within a few px of) the list container's top.
+         Find the first visible item whose top is at or just below
+         the list top — that's always the snapped one. */
       for (var i = 0; i < items.length; i++) {
         var rect = items[i].getBoundingClientRect();
-        /* Must be at least partially inside the list viewport */
-        if (rect.bottom < listRect.top || rect.top > listRect.bottom) continue;
-        var dist = Math.abs(rect.top - listRect.top);
-        if (dist < bestDist) {
-          bestDist = dist;
+        /* Skip items fully above the viewport */
+        if (rect.bottom <= listRect.top) continue;
+        /* Skip items fully below the viewport */
+        if (rect.top > listRect.bottom) continue;
+        /* First item that starts at or below the list top edge
+           (allow a small tolerance for sub-pixel rounding) */
+        if (rect.top >= listRect.top - 10) {
           best = items[i];
+          break;
+        }
+        /* If the item straddles the top edge (partially scrolled up),
+           it's still the snapped one if mostly visible */
+        if (rect.bottom - listRect.top > rect.height * 0.4) {
+          best = items[i];
+          break;
         }
       }
 
@@ -461,7 +473,7 @@
       /* Debounced fallback: re-check 120ms after scroll stops
          in case scroll-snap repositioned after the last scroll event */
       clearTimeout(snapTimer);
-      snapTimer = setTimeout(updateActive, 120);
+      snapTimer = setTimeout(updateActive, 200);
     }, { passive: true });
 
     /* scrollend fires after scroll-snap settles (modern browsers) */
