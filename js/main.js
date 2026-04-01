@@ -453,9 +453,20 @@
     /* Initial activation */
     requestAnimationFrame(updateActive);
 
-    /* Update on scroll */
+    /* Update on scroll — fires during momentum */
+    var snapTimer = null;
     list.addEventListener('scroll', function () {
       requestAnimationFrame(updateActive);
+
+      /* Debounced fallback: re-check 120ms after scroll stops
+         in case scroll-snap repositioned after the last scroll event */
+      clearTimeout(snapTimer);
+      snapTimer = setTimeout(updateActive, 120);
+    }, { passive: true });
+
+    /* scrollend fires after scroll-snap settles (modern browsers) */
+    list.addEventListener('scrollend', function () {
+      updateActive();
     }, { passive: true });
   }
 
