@@ -285,6 +285,7 @@
     var analyser  = null;
     var dataArray = null;
     var gainNode  = null;
+    var lpFilter  = null;
     var audioEl   = null;
     var muted     = false;
     var started   = false;
@@ -297,14 +298,42 @@
       dataArray = new Uint8Array(analyser.frequencyBinCount);
       gainNode = audioCtx.createGain();
       gainNode.gain.value = 1;
+
+      /* Underwater low-pass filter — sits between gain and analyser.
+         Normal: 22kHz (fully open). Submerged: ~400Hz (muffled). */
+      lpFilter = audioCtx.createBiquadFilter();
+      lpFilter.type = 'lowpass';
+      lpFilter.frequency.value = 22000;
+      lpFilter.Q.value = 0.7;
+
       audioEl = new Audio();
       audioEl.src = AUDIO_SRC;
       audioEl.loop = true;
       audioEl.crossOrigin = 'anonymous';
       var source = audioCtx.createMediaElementSource(audioEl);
+      /* Chain: source → gain → lowpass → analyser → destination */
       source.connect(gainNode);
-      gainNode.connect(analyser);
+      gainNode.connect(lpFilter);
+      lpFilter.connect(analyser);
       analyser.connect(audioCtx.destination);
+
+      /* Expose global API for underwater effect */
+      window.colabAudio = {
+        /** Muffle audio — lowpass drops to ~400Hz with resonance bump */
+        submerge: function (dur) {
+          if (!lpFilter) return;
+          var d = dur || 0.8;
+          gsap.to(lpFilter.frequency, { duration: d, value: 400, ease: 'power2.in' });
+          gsap.to(lpFilter.Q, { duration: d, value: 3.5, ease: 'power2.in' });
+        },
+        /** Restore full audio — filter opens back to 22kHz */
+        surface: function (dur) {
+          if (!lpFilter) return;
+          var d = dur || 0.6;
+          gsap.to(lpFilter.frequency, { duration: d, value: 22000, ease: 'power2.out' });
+          gsap.to(lpFilter.Q, { duration: d, value: 0.7, ease: 'power2.out' });
+        }
+      };
     }
 
     function startPlayback() {

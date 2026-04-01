@@ -283,6 +283,9 @@
       /* Flag so destination page starts covered by shader */
       try { sessionStorage.setItem('colab_shaderNav', '1'); } catch (e) {}
 
+      /* Submerge audio during transition */
+      if (window.colabAudio) window.colabAudio.submerge(0.6);
+
       var ST = window.ShaderTransition;
       if (ST) {
         ST.resetLock();

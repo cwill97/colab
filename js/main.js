@@ -21,12 +21,16 @@
       toggle.setAttribute('aria-expanded', 'true');
       menu.setAttribute('aria-hidden', 'false');
       document.body.setAttribute('data-menu-open', '');
+      /* Submerge audio — underwater muffle */
+      if (window.colabAudio) window.colabAudio.submerge();
     }
 
     function hideMenu() {
       toggle.setAttribute('aria-expanded', 'false');
       menu.setAttribute('aria-hidden', 'true');
       document.body.removeAttribute('data-menu-open');
+      /* Surface audio — restore full clarity */
+      if (window.colabAudio) window.colabAudio.surface();
     }
 
     function doTransition(showOrHide) {

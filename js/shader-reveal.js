@@ -252,6 +252,9 @@
     e.preventDefault();
     transitioning = true;
 
+    /* Submerge audio — underwater muffle during page transition */
+    if (window.colabAudio) window.colabAudio.submerge(0.6);
+
     /* Flag so the destination page starts covered */
     try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (err) {}
 
