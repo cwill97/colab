@@ -27,6 +27,8 @@
       document.body.setAttribute('data-menu-open', '');
       /* Submerge audio — underwater muffle */
       if (window.colabAudio) window.colabAudio.submerge();
+      /* Start liquid ripple overlay */
+      if (window.colabMenuRipple) window.colabMenuRipple.start();
     }
 
     function hideMenu() {
@@ -35,6 +37,8 @@
       document.body.removeAttribute('data-menu-open');
       /* Surface audio — restore full clarity */
       if (window.colabAudio) window.colabAudio.surface();
+      /* Stop liquid ripple overlay */
+      if (window.colabMenuRipple) window.colabMenuRipple.stop();
     }
 
     function doTransition(showOrHide) {
