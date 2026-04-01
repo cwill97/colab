@@ -516,9 +516,12 @@
     var clock = new THREE.Clock();
     // Smoothing rate for globe rotation lerp
     var LERP_SPEED = 0.04;
+    var globeRafId = null;
+    var globeRunning = true;
 
     function animate() {
-      requestAnimationFrame(animate);
+      if (!globeRunning) return;
+      globeRafId = requestAnimationFrame(animate);
       var t = clock.getElapsedTime();
 
       // --- Globe rotation ---
@@ -595,12 +598,27 @@
     }
     animate();
 
-    window.addEventListener('resize', function () {
+    function onGlobeResize() {
       var nW = wrap.offsetWidth, nH = wrap.offsetHeight;
-      camera.aspect = nW / nH;
-      camera.updateProjectionMatrix();
-      renderer.setSize(nW, nH);
-    });
+      if (nW && nH) {
+        camera.aspect = nW / nH;
+        camera.updateProjectionMatrix();
+        renderer.setSize(nW, nH);
+      }
+    }
+    window.addEventListener('resize', onGlobeResize);
+
+    /* ── Globe lifecycle — exposed globally for Barba transitions ── */
+    window.colabGlobe = {
+      pause: function () {
+        globeRunning = false;
+        if (globeRafId) { cancelAnimationFrame(globeRafId); globeRafId = null; }
+      },
+      resume: function () {
+        if (!globeRunning) { globeRunning = true; animate(); }
+      },
+      isInit: true
+    };
   }
 
 
@@ -684,4 +702,13 @@
   document.addEventListener('DOMContentLoaded', function () {
     requestAnimationFrame(function () { waitForThree(init); });
   });
+
+  /* Allow Barba transitions to re-init globe if needed */
+  window.colabGlobeInit = function () {
+    if (window.colabGlobe && window.colabGlobe.isInit) {
+      window.colabGlobe.resume();
+      return;
+    }
+    waitForThree(init);
+  };
 }());

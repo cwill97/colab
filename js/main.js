@@ -15,6 +15,10 @@
     var menu   = document.querySelector('[data-nav-menu]');
     if (!toggle || !menu) return;
 
+    /* Guard: only bind once — nav is persistent across Barba swaps */
+    if (toggle._colabBound) return;
+    toggle._colabBound = true;
+
     var menuTransitioning = false;
 
     function showMenu() {
@@ -107,6 +111,10 @@
   function initButtonGlitch() {
     var icon = document.querySelector('.nav-toggle-icon');
     if (!icon) return;
+
+    /* Guard: only start one interval */
+    if (icon._colabGlitch) return;
+    icon._colabGlitch = true;
 
     function triggerGlitch() {
       var toggle = document.querySelector('[data-nav-toggle]');
@@ -363,9 +371,12 @@
     });
 
     /* Mobile: play tick on scroll-activated project change */
-    document.addEventListener('colab:mobileProjectActivate', function () {
-      playTick(0);
-    });
+    if (!initProjectHoverSound._mobileBound) {
+      initProjectHoverSound._mobileBound = true;
+      document.addEventListener('colab:mobileProjectActivate', function () {
+        playTick(0);
+      });
+    }
   }
 
   /* ----------------------------------------------------------
@@ -468,5 +479,8 @@
     /* DOM already ready (defer script ran after parse) */
     boot();
   }
+
+  /* Expose for Barba re-init after content swap */
+  window.colabMainBoot = boot;
 
 }());

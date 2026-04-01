@@ -229,47 +229,9 @@
   }
 
   /* ── Link interception ──────────────────────────────────── */
+  /* Disabled — Barba.js handles page transitions.
+     ShaderTransition.wipeOut / revealIn are called from barba-init.js */
   var transitioning = false;
-
-  function interceptLink(e) {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || (e.button && e.button !== 0)) return;
-
-    var link = e.target.closest('a[href]');
-    if (!link) return;
-
-    var href = link.getAttribute('href');
-    if (!href) return;
-
-    /* Skip external, anchor-only, and javascript links */
-    if (/^(https?:|javascript:|#)/.test(href)) return;
-
-    /* Skip same-page anchors like index.html#work */
-    var currentPath = window.location.pathname.split('/').pop() || 'index.html';
-    var hrefBase    = href.split('#')[0];
-    if (hrefBase === currentPath || (hrefBase === '' && href.indexOf('#') === 0)) return;
-
-    if (transitioning) { e.preventDefault(); return; }
-    e.preventDefault();
-    transitioning = true;
-
-    /* Submerge audio — underwater muffle during page transition */
-    if (window.colabAudio) window.colabAudio.submerge(0.6);
-
-    /* Flag so the destination page starts covered */
-    try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (err) {}
-
-    /* Preserve project index */
-    var pIdx = link.getAttribute('data-project-link');
-    if (pIdx !== null) {
-      try { sessionStorage.setItem('colab_activeProject', pIdx); } catch (err) {}
-    }
-
-    wipeOut(function () {
-      window.location.href = href;
-    });
-  }
-
-  document.addEventListener('click', interceptLink);
 
   /* ── Page-load boot ─────────────────────────────────────── */
   function boot() {

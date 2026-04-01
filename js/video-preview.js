@@ -46,13 +46,15 @@
   /* ============================================================
      DOM REFS
      ============================================================ */
-  var preview   = document.querySelector('[data-video-preview]');
-  var lightbox  = document.querySelector('[data-video-lightbox]');
-  var frameWrap = document.querySelector('[data-lightbox-frame]');
-  var closeBtn  = document.querySelector('[data-video-close]');
-  var thumbEl   = document.querySelector('[data-video-thumb]');
 
-  if (!preview || !lightbox || !frameWrap) return;
+  function initVideoPreview() {
+    var preview   = document.querySelector('[data-video-preview]');
+    var lightbox  = document.querySelector('[data-video-lightbox]');
+    var frameWrap = document.querySelector('[data-lightbox-frame]');
+    var closeBtn  = document.querySelector('[data-video-close]');
+    var thumbEl   = document.querySelector('[data-video-thumb]');
+
+    if (!preview || !lightbox || !frameWrap) return;
 
   /* ============================================================
      INIT PREVIEW PLAYER
@@ -167,5 +169,13 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') closeLightbox();
   });
+
+  } /* end initVideoPreview */
+
+  /* Auto-init if elements exist */
+  initVideoPreview();
+
+  /* Expose for Barba re-init */
+  window.colabVideoPreview = { init: initVideoPreview };
 
 }());

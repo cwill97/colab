@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet" />
-
   <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
   <link href="https://fonts.cdnfonts.com/css/helvetica-neue-5?styles=15273,15271,15270,17624" rel="stylesheet" />
 
@@ -20,221 +19,134 @@
 </head>
 <body class="project-page">
 
-  <!-- ========================================================
-       GRID OVERLAY
-       ======================================================== -->
+  <!-- ============ PERSISTENT ELEMENTS — identical to index.html ============ -->
+
+  <div class="bg-hover-layer" aria-hidden="true"></div>
+
   <div class="grid-overlay" aria-hidden="true">
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
-    <div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div>
+    <div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div>
   </div>
 
-  <!-- ========================================================
-       SITE NAVIGATION — identical to homepage
-       ======================================================== -->
   <header role="banner">
     <nav class="site-nav" aria-label="Primary navigation">
       <div class="nav-inner">
         <a class="nav-logo" href="index.html" aria-label="co:lab — go to homepage">
           <img src="assets/logo.svg" alt="co:lab" width="102" height="25" />
         </a>
-        <button
-          class="nav-toggle"
-          type="button"
-          aria-controls="site-menu"
-          aria-expanded="false"
-          aria-label="Open navigation menu"
-          data-nav-toggle
-        >
+        <button class="nav-toggle" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="Open navigation menu" data-nav-toggle>
           <span class="nav-toggle-icon" aria-hidden="true"></span>
         </button>
       </div>
     </nav>
   </header>
 
-  <!-- ========================================================
-       AUDIO VISUALIZER — hidden on project page, replaced by video
-       ======================================================== -->
-  <div
-    class="audio-visualizer"
-    role="button"
-    tabindex="0"
-    aria-label="Audio visualizer — click to mute"
-    aria-pressed="false"
-    data-muted="false"
-    data-visualizer
-    aria-hidden="true"
-    style="display:none;"
-  >
+  <div class="audio-visualizer" role="button" tabindex="0" aria-label="Audio visualizer — click to mute" aria-pressed="false" data-muted="false" data-visualizer aria-hidden="true" style="display:none;">
     <canvas data-viz-canvas></canvas>
   </div>
 
-  <!-- ========================================================
-       VIDEO PREVIEW — replaces visualizer, same size + position
-       Autoplays muted as a live thumbnail.
-       Click → full-screen lightbox with sound + controls.
-       ======================================================== -->
-  <div class="project-video-preview" data-video-preview aria-label="Play project video">
-
-    <!-- Muted autoplay iframe (Vimeo background player) -->
-    <iframe
-      class="project-video-thumb"
-      data-video-thumb
-      src="https://player.vimeo.com/video/1171733635?background=1&autoplay=1&loop=1&muted=1&byline=0&title=0&portrait=0"
-      frameborder="0"
-      allow="autoplay; fullscreen"
-      aria-hidden="true"
-    ></iframe>
-
-    <!-- Play cue — subtle overlay to signal clickability -->
-    <div class="project-video-cue" aria-hidden="true">
-      <span class="project-video-cue-label">[ PLAY ]</span>
+  <div id="site-menu" class="site-menu" role="dialog" aria-modal="true" aria-label="Navigation menu" aria-hidden="true" data-nav-menu>
+    <div class="bg-hover-layer" aria-hidden="true"></div>
+    <div class="menu-about">
+      <p>co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose. Through order, we find freedom  Culture is the context we design within, drawing from music, fashion, technology, and modern society to shape movements rather than follow them. We never stop iterating. Curiosity doesn't end when the project does. Our work evolves with culture itself adapting, reframing, and reflecting  what's next. In a world built on speed and distraction, clarity is radical. co:lab approaches every project as a process of refinement reducing, editing, questioning until the message becomes pure. co:lab is not confined to walls or screens. It's a living framework for experimentation, a collective of designers, engineers, and thinkers building the visual world we experience.</p>
     </div>
-
-  </div>
-
-  <!-- ========================================================
-       VIDEO LIGHTBOX — hidden until preview clicked
-       ======================================================== -->
-  <div class="project-video-lightbox" data-video-lightbox aria-modal="true" aria-label="Video player" aria-hidden="true">
-
-    <div class="project-video-lightbox-inner" data-lightbox-inner>
-      <!-- Full Vimeo player injected by JS on open -->
-      <div class="project-video-lightbox-frame" data-lightbox-frame></div>
+    <div class="menu-footer">
+      <div class="menu-footer-col">
+        <span class="menu-footer-label">Contact</span>
+        <ul><li>Info@colab47.com</li><li>+27 83 987 7654</li><li>South Africa</li><li>Rate Card</li></ul>
+      </div>
+      <div class="menu-footer-col">
+        <span class="menu-footer-label">Socials</span>
+        <ul><li>Awwwards</li><li>Instagram</li><li>LinkedIn</li><li>Youtube</li></ul>
+      </div>
     </div>
-
-    <!-- Close button -->
-    <button class="project-video-close" data-video-close type="button" aria-label="Close video">
-      <span aria-hidden="true">[ CLOSE ]</span>
-    </button>
-
   </div>
 
-  <!-- ========================================================
-       MOBILE PROJECT TITLE — visible only on mobile
-       ======================================================== -->
-  <h2 class="project-mobile-title" data-mobile-title>Viking Gear</h2>
+  <div class="globe-wrap" aria-hidden="true" data-globe></div>
 
-  <!-- ========================================================
-       ABOUT TEXT — fixed right rail
-       ======================================================== -->
-  <p class="about-text"
-    data-full-text="co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose. Through order, we find freedom Culture is the context we design within, drawing from music, fashion, technology, and modern society to shape movements rather than follow them. We never stop iterating.">co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose. Through order, we find freedom Culture is the context we design within, drawing from music, fashion, technology, and modern society to shape movements rather than follow them. We never stop iterating.</p>
+  <!-- ============ BARBA — swappable content ============ -->
+  <div data-barba="wrapper">
+    <div data-barba="container" data-barba-namespace="project">
 
-  <!-- ========================================================
-       RELATED PROJECTS — right rail, below about text
-       Replaces services/contact on this page.
-       ======================================================== -->
-  <nav class="related-projects" aria-label="More projects" data-related-projects>
-
-    <ul class="related-project-list">
-
-      <li class="related-project-item is-active" data-project-index="0">
-        <span class="related-project-num">001</span>
-        <h3 class="related-project-title">Viking Gear</h3>
-        <p class="related-project-detail">Brand Development · Web Design · E-Commerce · 3D · Animation</p>
-        <button class="related-project-cta" data-project-switch="0">[ View Project ]</button>
-      </li>
-
-      <li class="related-project-item" data-project-index="1">
-        <span class="related-project-num">002</span>
-        <h3 class="related-project-title">Rebel Kids Club</h3>
-        <p class="related-project-detail">Brand Development · Photography · E-Commerce · Web Design</p>
-        <button class="related-project-cta" data-project-switch="1">[ View Project ]</button>
-      </li>
-
-      <li class="related-project-item" data-project-index="2">
-        <span class="related-project-num">003</span>
-        <h3 class="related-project-title">Mannequin Films</h3>
-        <p class="related-project-detail">Brand Development · Web Design · Motion</p>
-        <button class="related-project-cta" data-project-switch="2">[ View Project ]</button>
-      </li>
-
-    </ul>
-
-  </nav>
-
-  <!-- ========================================================
-       OVERLAY MENU
-       ======================================================== -->
-  <div
-    id="site-menu"
-    class="site-menu"
-    role="dialog"
-    aria-modal="true"
-    aria-label="Navigation menu"
-    aria-hidden="true"
-    data-nav-menu
-  >
-    <nav aria-label="Menu">
-      <ul class="menu-list">
-        <li><a href="index.html#work">Work</a></li>
-        <li><a href="index.html#studio">Studio</a></li>
-        <li><a href="index.html#approach">Approach</a></li>
-        <li><a href="index.html#contact">Contact</a></li>
-      </ul>
-    </nav>
-  </div>
-
-  <!-- ========================================================
-       MAIN CONTENT — project detail
-       ======================================================== -->
-  <main id="main-content" class="project-main" data-project-main>
-
-    <!-- --------------------------------------------------------
-         LEFT PANEL — Depth Gallery
-         Cols 1–7. Scroll to move through images in depth.
-         -------------------------------------------------------- -->
-    <div class="project-canvas-wrap" data-project-canvas-wrap>
-
-      <!-- Depth gallery canvas — the only gallery view -->
-      <canvas class="project-depth-canvas" data-depth-canvas aria-label="Project depth gallery — scroll to explore"></canvas>
-
-      <!-- Project metadata overlay — bottom-left of canvas -->
-      <div class="project-meta" data-project-meta>
-        <span class="project-meta-num" data-meta-num>001</span>
-        <h1 class="project-meta-title" data-meta-title>Viking Gear</h1>
-        <p class="project-meta-services" data-meta-services>Brand Development · Web Design · E-Commerce · 3D · Animation</p>
-        <div class="project-meta-progress">
-          <div class="project-meta-track" aria-hidden="true">
-            <div class="project-meta-fill" data-meta-fill></div>
-          </div>
-          <span class="project-meta-count" data-meta-count>01 / 06</span>
+      <div class="project-video-preview" data-video-preview aria-label="Play project video">
+        <iframe class="project-video-thumb" data-video-thumb src="https://player.vimeo.com/video/1171733635?background=1&autoplay=1&loop=1&muted=1&byline=0&title=0&portrait=0" frameborder="0" allow="autoplay; fullscreen" aria-hidden="true"></iframe>
+        <div class="project-video-cue" aria-hidden="true">
+          <span class="project-video-cue-label">[ PLAY ]</span>
         </div>
       </div>
 
-      <!-- Scroll hint — fades out after first scroll -->
-      <div class="project-scroll-hint" data-scroll-hint aria-hidden="true">
-        <span>scroll to explore</span>
-        <div class="scroll-hint-line"></div>
+      <div class="project-video-lightbox" data-video-lightbox aria-modal="true" aria-label="Video player" aria-hidden="true">
+        <div class="project-video-lightbox-inner" data-lightbox-inner>
+          <div class="project-video-lightbox-frame" data-lightbox-frame></div>
+        </div>
+        <button class="project-video-close" data-video-close type="button" aria-label="Close video">
+          <span aria-hidden="true">[ CLOSE ]</span>
+        </button>
       </div>
 
+      <h2 class="project-mobile-title" data-mobile-title>Viking Gear</h2>
+
+      <p class="about-text" data-full-text="co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose. Through order, we find freedom Culture is the context we design within, drawing from music, fashion, technology, and modern society to shape movements rather than follow them. We never stop iterating.">co:lab is a space for exploration, built for those who question, experiment, and create. A study in progress, always connecting, always evolving. Light is the pursuit of truth, emotion, and clarity, illuminating ideas and crafting meaning through atmosphere and experience. We distill complexity into pure form. The grid is our foundation, but the human experience is our purpose. Through order, we find freedom Culture is the context we design within, drawing from music, fashion, technology, and modern society to shape movements rather than follow them. We never stop iterating.</p>
+
+      <nav class="related-projects" aria-label="More projects" data-related-projects>
+        <ul class="related-project-list">
+          <li class="related-project-item is-active" data-project-index="0">
+            <span class="related-project-num">001</span>
+            <h3 class="related-project-title">Viking Gear</h3>
+            <p class="related-project-detail">Brand Development · Web Design · E-Commerce · 3D · Animation</p>
+            <button class="related-project-cta" data-project-switch="0">[ View Project ]</button>
+          </li>
+          <li class="related-project-item" data-project-index="1">
+            <span class="related-project-num">002</span>
+            <h3 class="related-project-title">Rebel Kids Club</h3>
+            <p class="related-project-detail">Brand Development · Photography · E-Commerce · Web Design</p>
+            <button class="related-project-cta" data-project-switch="1">[ View Project ]</button>
+          </li>
+          <li class="related-project-item" data-project-index="2">
+            <span class="related-project-num">003</span>
+            <h3 class="related-project-title">Mannequin Films</h3>
+            <p class="related-project-detail">Brand Development · Web Design · Motion</p>
+            <button class="related-project-cta" data-project-switch="2">[ View Project ]</button>
+          </li>
+        </ul>
+      </nav>
+
+      <main id="main-content" class="project-main" data-project-main>
+        <div class="project-canvas-wrap" data-project-canvas-wrap>
+          <canvas class="project-depth-canvas" data-depth-canvas aria-label="Project depth gallery — scroll to explore"></canvas>
+          <div class="project-meta" data-project-meta>
+            <span class="project-meta-num" data-meta-num>001</span>
+            <h1 class="project-meta-title" data-meta-title>Viking Gear</h1>
+            <p class="project-meta-services" data-meta-services>Brand Development · Web Design · E-Commerce · 3D · Animation</p>
+            <div class="project-meta-progress">
+              <div class="project-meta-track" aria-hidden="true">
+                <div class="project-meta-fill" data-meta-fill></div>
+              </div>
+              <span class="project-meta-count" data-meta-count>01 / 06</span>
+            </div>
+          </div>
+          <div class="project-scroll-hint" data-scroll-hint aria-hidden="true">
+            <span>scroll to explore</span>
+            <div class="scroll-hint-line"></div>
+          </div>
+        </div>
+      </main>
+
     </div>
+  </div>
 
-  </main>
-
-  <!-- Three.js + GSAP -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-
-  <!-- Shader page transitions — shared across all pages -->
   <script src="js/shader-reveal.js"></script>
-
-  <!-- Shared behaviour -->
+  <script src="js/barba.umd.js"></script>
   <script src="js/main.js" defer></script>
   <script src="js/visualizer.js" defer></script>
-
-  <!-- Project-specific behaviour -->
+  <script src="js/globe.js" defer></script>
+  <script src="js/bg-reveal.js" defer></script>
   <script src="js/video-preview.js" defer></script>
   <script src="js/depth-gallery.js" defer></script>
   <script src="js/project-boot.js" defer></script>
+  <script src="js/barba-init.js" defer></script>
 
 </body>
 </html>

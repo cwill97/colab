@@ -73,8 +73,6 @@
   var metaCount    = document.querySelector('[data-meta-count]');
   var scrollHint   = document.querySelector('[data-scroll-hint]');
 
-  if (!canvas || !canvasWrap) return;
-
   /* ============================================================
      META OVERLAY
      ============================================================ */
@@ -273,27 +271,28 @@
     gallery = new DepthGallery();
     gallery.init(canvas, canvasWrap, project.images);
 
-    /* End-of-gallery → shader reveal → next project */
+    /* End-of-gallery → next project */
     gallery.onReachEnd = function () {
       var nextIdx = (currentIndex + 1) % PROJECTS.length;
 
       /* Store next project index for session restore */
       try { sessionStorage.setItem('colab_activeProject', String(nextIdx)); } catch (e) {}
 
-      /* Flag so destination page starts covered by shader */
-      try { sessionStorage.setItem('colab_shaderNav', '1'); } catch (e) {}
+      /* Use Barba if available for seamless transition */
+      if (typeof barba !== 'undefined') {
+        barba.go('project.html');
+        return;
+      }
 
-      /* Submerge audio during transition */
+      /* Fallback: manual shader wipe + hard navigate */
+      try { sessionStorage.setItem('colab_shaderNav', '1'); } catch (e) {}
       if (window.colabAudio) window.colabAudio.submerge(0.6);
 
       var ST = window.ShaderTransition;
       if (ST) {
         ST.resetLock();
-        ST.wipeOut(function () {
-          window.location.href = 'project.html';
-        });
+        ST.wipeOut(function () { window.location.href = 'project.html'; });
       } else {
-        /* Fallback: no shader system — hard navigate */
         window.location.href = 'project.html';
       }
     };
@@ -313,10 +312,43 @@
     });
   }
 
-  /* Wait for THREE + DepthGallery */
-  (function waitForLibs() {
-    if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') init();
-    else setTimeout(waitForLibs, 50);
-  })();
+  function destroy() {
+    if (gallery) {
+      gallery.destroy();
+      gallery = null;
+    }
+    currentIndex = 0;
+    document.body.classList.remove('is-ready');
+  }
+
+  /* Auto-init only if we're on the project page at load time */
+  if (document.body.classList.contains('project-page')) {
+    (function waitForLibs() {
+      if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') init();
+      else setTimeout(waitForLibs, 50);
+    })();
+  }
+
+  /* Expose for Barba transitions */
+  window.colabProject = {
+    init: function () {
+      isMobile = window.matchMedia('(max-width: 767px)').matches;
+      mobileTitle = document.querySelector('[data-mobile-title]');
+      canvas = document.querySelector('[data-depth-canvas]');
+      canvasWrap = document.querySelector('[data-project-canvas-wrap]');
+      metaNum = document.querySelector('[data-meta-num]');
+      metaTitle = document.querySelector('[data-meta-title]');
+      metaServices = document.querySelector('[data-meta-services]');
+      metaFill = document.querySelector('[data-meta-fill]');
+      metaCount = document.querySelector('[data-meta-count]');
+      scrollHint = document.querySelector('[data-scroll-hint]');
+      if (!canvas || !canvasWrap) return;
+      (function waitForLibs() {
+        if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') init();
+        else setTimeout(waitForLibs, 50);
+      })();
+    },
+    destroy: destroy
+  };
 
 }());
