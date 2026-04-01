@@ -90,11 +90,8 @@
     this._touchStartY    = 0;
     this._touchMoved     = false;
 
-    /* Idle auto-scroll — advances without touch */
-    this._idleSpeed       = 0.8;    /* px per frame — slow ambient drift */
-    this._idlePaused      = false;  /* paused during user interaction */
-    this._idleResumeTimer = null;
-    this._idleResumeDelay = 3000;   /* ms before idle resumes after interaction */
+    /* Idle auto-scroll — always running, direction syncs with user */
+    this._idleSpeed       = 0.8;    /* px per frame — positive = forward */
 
     /* End-of-gallery overscroll detection */
     this.onReachEnd      = null;    /* callback fired once when scrolling past end */
@@ -371,8 +368,8 @@
     if (this._autoScrolling) {
       this.scrollTarget += this._autoScrollSpeed;
     }
-    /* Idle auto-scroll: slow ambient advance when not interacting */
-    else if (!this._idlePaused) {
+    /* Idle auto-scroll: always running */
+    else {
       this.scrollTarget += this._idleSpeed;
     }
 
@@ -403,9 +400,7 @@
     this.stop();
     this._unbindEvents();
     clearTimeout(this._holdTimer);
-    clearTimeout(this._idleResumeTimer);
     this._autoScrolling = false;
-    this._idlePaused    = false;
 
     this.planes.forEach(function (p) {
       p.geometry.dispose();
@@ -478,17 +473,10 @@
     if (e.deltaMode === 1) delta *= 16;
     if (e.deltaMode === 2) delta *= window.innerHeight;
     this.scrollTarget += delta;
-    this._pauseIdle();
-  };
 
-  /* Pause idle auto-scroll during interaction, resume after delay */
-  DepthGallery.prototype._pauseIdle = function () {
-    this._idlePaused = true;
-    clearTimeout(this._idleResumeTimer);
-    var self = this;
-    this._idleResumeTimer = setTimeout(function () {
-      self._idlePaused = false;
-    }, self._idleResumeDelay);
+    /* Sync idle direction with user scroll */
+    if (delta > 0) this._idleSpeed = Math.abs(this._idleSpeed);
+    else if (delta < 0) this._idleSpeed = -Math.abs(this._idleSpeed);
   };
 
   DepthGallery.prototype._onTouchStart = function (e) {
@@ -499,9 +487,6 @@
     this._touchStartX = touch.clientX;
     this._touchStartY = touch.clientY;
     this._touchMoved  = false;
-
-    /* Pause idle auto-scroll */
-    this._pauseIdle();
 
     /* Stop any existing hold-auto-scroll */
     this._autoScrolling = false;
@@ -538,6 +523,10 @@
     var delta    = this.touchY - currentY;
     this.scrollTarget += delta * 1.8;
     this.touchY = currentY;
+
+    /* Sync idle direction with swipe */
+    if (delta > 0) this._idleSpeed = Math.abs(this._idleSpeed);
+    else if (delta < 0) this._idleSpeed = -Math.abs(this._idleSpeed);
   };
 
   DepthGallery.prototype._onTouchEnd = function () {
