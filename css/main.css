@@ -1305,7 +1305,7 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
     --h-globe:     38vh;
     --t-title:     calc(var(--t-globe) + var(--h-globe) + 10px);
     --h-title:     80px;
-    --title-proj-gap: 90px;
+    --title-proj-gap: 40px;
     --t-projects:  calc(var(--t-title) + var(--h-title) + var(--title-proj-gap));
   }
 
