@@ -38,7 +38,10 @@
         'assets/Project_Img_Viking_05.webp',
         'assets/Project_Img_Viking_06.webp',
         'assets/Project_Img_Viking_07.webp',
-        'assets/Project_Img_Viking_08.webp'
+        'assets/Project_Img_Viking_08.webp',
+        'assets/Project_Img_Viking_09.webp',
+        'assets/Project_Img_Viking_10.webp',
+        'assets/Project_Img_Viking_11.webp'
       ],
       /* aspect ratios matching manifest dims: width/height per image slot */
       aspects: [1.529, 0.567, 0.714, 1.358, 1.333, 1.000,
