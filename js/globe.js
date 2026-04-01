@@ -499,6 +499,10 @@
     var mouseNDC = new THREE.Vector2(9, 9);
     var mouseInside = false;
 
+    /* Cursor spotlight strength: 0.4 = 60% reduction from full, 0 = off */
+    var isMobileGlobe = window.matchMedia('(max-width: 767px)').matches;
+    var GLOW_STRENGTH = isMobileGlobe ? 0.0 : 0.4;
+
     wrap.addEventListener('mouseenter', function () { mouseInside = true; });
     wrap.addEventListener('mouseleave', function () { mouseInside = false; });
 
@@ -604,7 +608,7 @@
       // --- Update earth uniforms ---
       earthMat.uniforms.uTime.value = t;
       earthMat.uniforms.uMouse.value.copy(mouseNDC);
-      earthMat.uniforms.uMouseIn.value += ((mouseInside ? 1.0 : 0.0) - earthMat.uniforms.uMouseIn.value) * 0.08;
+      earthMat.uniforms.uMouseIn.value += ((mouseInside ? GLOW_STRENGTH : 0.0) - earthMat.uniforms.uMouseIn.value) * 0.08;
 
       haloMat.uniforms.uTime.value = t;
 
