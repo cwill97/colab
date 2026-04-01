@@ -478,6 +478,9 @@
     wrap.addEventListener('mousedown', function (e) {
       isDragging = true; prevX = e.clientX; prevY = e.clientY;
       velX = 0; velY = 0; wrap.style.cursor = 'grabbing';
+      /* Release city lock so user can freely rotate */
+      activeProject = -1;
+      targetCamZ = DEFAULT_CAM_Z;
     });
     window.addEventListener('mousemove', function (e) {
       if (!isDragging) return;
@@ -495,6 +498,9 @@
       isDragging = true;
       velX = 0; velY = 0;
       prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+      /* Release city lock so user can freely rotate */
+      activeProject = -1;
+      targetCamZ = DEFAULT_CAM_Z;
     }, { passive: true });
     window.addEventListener('touchmove', function (e) {
       if (!isDragging) return;
