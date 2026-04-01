@@ -357,6 +357,11 @@
         if (lastHovered === item) lastHovered = null;
       });
     });
+
+    /* Mobile: play tick on scroll-activated project change */
+    document.addEventListener('colab:mobileProjectActivate', function () {
+      playTick(0);
+    });
   }
 
   /* ----------------------------------------------------------
@@ -418,6 +423,15 @@
         if (activeItem) activeItem.classList.remove('is-scrolled-active');
         best.classList.add('is-scrolled-active');
         activeItem = best;
+
+        /* Extract the project index from the link inside this item */
+        var linkEl = best.querySelector('[data-project-link]');
+        var projIdx = linkEl ? parseInt(linkEl.getAttribute('data-project-link'), 10) : -1;
+
+        /* Fire event so globe + sound respond */
+        document.dispatchEvent(new CustomEvent('colab:mobileProjectActivate', {
+          detail: { index: projIdx }
+        }));
       }
     }
 

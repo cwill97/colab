@@ -442,6 +442,19 @@
 
     bindProjectHovers();
 
+    /* ── Mobile: respond to scroll-activated project changes ── */
+    document.addEventListener('colab:mobileProjectActivate', function (e) {
+      var idx = e.detail && e.detail.index;
+      if (idx == null || idx < 0) return;
+      var tgt = projectTargets[idx];
+      if (tgt) {
+        activeProject = idx;
+        targetRotY = tgt.rotY;
+        targetRotX = tgt.rotX;
+        targetCamZ = tgt.camZ;
+      }
+    });
+
 
     /* ── Drag — with momentum / inertia ── */
     var isDragging = false, prevX = 0, prevY = 0, velX = 0, velY = 0;
