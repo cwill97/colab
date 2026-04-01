@@ -42,8 +42,8 @@
     /* Scroll state — from Scroll.js */
     this.scrollTarget  = 0;
     this.scrollCurrent = 0;
-    this.scrollSmoothing      = 0.11;
-    this.scrollToWorldFactor  = 0.03;
+    this.scrollSmoothing      = 0.12;
+    this.scrollToWorldFactor  = 0.02;
     this.prevScrollCurrent    = 0;
     this.rawVelocity   = 0;
     this.velocity      = 0;
