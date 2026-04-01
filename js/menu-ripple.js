@@ -1,214 +1,264 @@
 /**
- * co:lab — Menu Liquid Text Displacement (Option B)
+ * co:lab — Menu Fluid Ripple (GPU Wave Simulation)
  *
- * Full text displacement: menu text is split into individual words,
- * each word receives per-element CSS transforms based on proximity
- * to cursor/touch. A wave equation propagates outward from the
- * interaction point, physically warping the letterforms like
- * they're submerged in liquid.
+ * Physically-based 2D water simulation using ping-pong FBOs.
+ * Each frame the GPU propagates waves via the discrete wave equation.
+ * Cursor/touch drops "splats" into the heightmap.
+ * A display shader refracts the menu background + content through
+ * the resulting displacement map — text and everything underneath
+ * warps like it's behind a sheet of water.
  *
- * Layered with a WebGL caustic overlay for the bright refraction
- * lines between the displaced text.
- *
- * Start on menu open, stop on menu close.
+ * Technique: Lusion Labs / sirxemic jquery.ripples style.
  */
 
 (function () {
   'use strict';
 
   /* ── Config ── */
-  var WAVE_SPEED    = 600;     /* px/s — how fast the ripple expands */
-  var WAVE_DECAY    = 0.92;    /* per-frame amplitude falloff */
-  var WAVE_LIFE     = 2.5;     /* seconds before ripple dies */
-  var MAX_DISPLACE  = 18;      /* max px translation */
-  var MAX_ROTATE    = 8;       /* max degrees rotation */
-  var MAX_SCALE     = 0.06;    /* max scale deviation from 1.0 */
-  var RING_FREQ     = 0.012;   /* wave density (lower = wider rings) */
-  var LERP_SPEED    = 0.08;    /* how fast elements chase their target */
-  var MIN_SPAWN_DIST = 50;     /* px between auto-spawned ripples on drag */
-  var MAX_RIPPLES   = 6;
-
-  /* ── WebGL overlay config ── */
-  var GL_RING_COUNT  = 10.0;
-  var GL_RIPPLE_LIFE = 2.5;
-  var GL_SPEED       = 1.5;
+  var SIM_RESOLUTION = 256;    /* heightmap resolution (power of 2) */
+  var DAMPING        = 0.985;  /* wave energy loss per step */
+  var WAVE_SPEED     = 0.45;   /* propagation speed (delta in wave eq) */
+  var DROP_RADIUS    = 0.04;   /* normalised radius of cursor drop */
+  var PERTURBANCE    = 0.025;  /* refraction strength */
+  var DROP_STRENGTH  = 0.15;   /* amplitude of each cursor drop */
+  var MOVE_THRESHOLD = 4;      /* px of cursor movement to spawn drop */
 
   /* ── State ── */
-  var menuEl       = null;
-  var wordSpans    = [];       /* { el, cx, cy, tx, ty, rx, ry, sx, sy } */
-  var ripples      = [];       /* { x, y, time, amplitude } in px */
-  var running      = false;
-  var rafId        = null;
-  var startTime    = 0;
-  var lastSpawnX   = -1;
-  var lastSpawnY   = -1;
-  var textSplit    = false;
+  var menuEl    = null;
+  var canvas    = null;
+  var gl        = null;
+  var running   = false;
+  var rafId     = null;
+  var inited    = false;
 
-  /* WebGL */
-  var canvas, renderer, scene, camera, glMesh, glUniforms, glClock;
-  var glInited = false;
+  /* WebGL resources */
+  var simProgram, displayProgram, dropProgram;
+  var fboA, fboB;     /* ping-pong framebuffers */
+  var quadVAO;
+  var texBackground;  /* rasterised menu snapshot */
+  var bgCanvas;       /* offscreen canvas for text rasterisation */
 
-  /* ── Text splitting ── */
-  function splitTextNodes(container) {
-    var targets = container.querySelectorAll(
-      '.menu-about p, .menu-footer-label, .menu-footer-col li'
-    );
-    wordSpans = [];
+  var prevMouseX = -1, prevMouseY = -1;
+  var mouseX = -1, mouseY = -1;
+  var menuRect = { left: 0, top: 0, width: 1, height: 1 };
 
-    targets.forEach(function (el) {
-      /* Skip if already split */
-      if (el.dataset.rippleSplit) return;
+  /* ── Shader sources ── */
 
-      var text = el.textContent;
-      var words = text.split(/(\s+)/); /* preserve whitespace */
-      el.innerHTML = '';
-      el.dataset.rippleSplit = '1';
-
-      words.forEach(function (word) {
-        if (/^\s+$/.test(word)) {
-          el.appendChild(document.createTextNode(word));
-          return;
-        }
-        var span = document.createElement('span');
-        span.textContent = word;
-        span.style.cssText =
-          'display:inline-block;will-change:transform;transition:none;';
-        el.appendChild(span);
-        wordSpans.push({
-          el: span,
-          cx: 0, cy: 0,    /* element center (updated on activate) */
-          /* Current animated values */
-          curTx: 0, curTy: 0, curR: 0, curS: 1
-        });
-      });
-    });
-
-    textSplit = true;
-  }
-
-  function updateElementPositions() {
-    wordSpans.forEach(function (w) {
-      var rect = w.el.getBoundingClientRect();
-      w.cx = rect.left + rect.width / 2;
-      w.cy = rect.top + rect.height / 2;
-    });
-  }
-
-  function resetTransforms() {
-    wordSpans.forEach(function (w) {
-      w.el.style.transform = '';
-      w.curTx = 0; w.curTy = 0; w.curR = 0; w.curS = 1;
-    });
-  }
-
-  /* ── Ripple spawning ── */
-  function spawnRipple(px, py, amp) {
-    var t = (performance.now() - startTime) / 1000;
-    ripples.push({ x: px, y: py, time: t, amplitude: amp || 0.8 });
-    while (ripples.length > MAX_RIPPLES) ripples.shift();
-  }
-
-  /* ── Per-frame displacement calculation ── */
-  function computeDisplacement(cx, cy, now) {
-    var totalTx = 0, totalTy = 0, totalR = 0, totalS = 0;
-
-    for (var i = 0; i < ripples.length; i++) {
-      var r   = ripples[i];
-      var age = now - r.time;
-      if (age < 0 || r.amplitude < 0.001) continue;
-
-      var dx  = cx - r.x;
-      var dy  = cy - r.y;
-      var dist = Math.sqrt(dx * dx + dy * dy);
-
-      /* Wave radius at current time */
-      var waveRadius = age * WAVE_SPEED;
-
-      /* How far this element is from the wavefront */
-      var delta = dist - waveRadius;
-
-      /* Sine wave — creates concentric rings of displacement */
-      var wave = Math.sin(delta * RING_FREQ * Math.PI * 2);
-
-      /* Proximity to wavefront — strongest right at the ring edge */
-      var proximity = Math.max(0, 1 - Math.abs(delta) / 200);
-      proximity = proximity * proximity; /* sharpen falloff */
-
-      /* Age decay */
-      var life = Math.max(0, 1 - age / WAVE_LIFE);
-      life = life * life;
-
-      var strength = wave * proximity * life * r.amplitude;
-
-      /* Direction: push outward from ripple center */
-      var dirX = dist > 1 ? dx / dist : 0;
-      var dirY = dist > 1 ? dy / dist : 0;
-
-      totalTx += dirX * strength * MAX_DISPLACE;
-      totalTy += dirY * strength * MAX_DISPLACE;
-      totalR  += strength * MAX_ROTATE * (dirX > 0 ? 1 : -1);
-      totalS  += Math.abs(strength) * MAX_SCALE;
-    }
-
-    return {
-      tx: Math.max(-MAX_DISPLACE, Math.min(MAX_DISPLACE, totalTx)),
-      ty: Math.max(-MAX_DISPLACE, Math.min(MAX_DISPLACE, totalTy)),
-      r:  Math.max(-MAX_ROTATE, Math.min(MAX_ROTATE, totalR)),
-      s:  1 + Math.max(-MAX_SCALE, Math.min(MAX_SCALE, totalS))
-    };
-  }
-
-  /* ── WebGL caustic overlay ── */
-  var glVertSrc = [
+  /* Shared fullscreen-quad vertex shader */
+  var VERT = [
+    'attribute vec2 aPosition;',
     'varying vec2 vUv;',
     'void main() {',
-    '  vUv = uv;',
-    '  gl_Position = vec4(position, 1.0);',
+    '  vUv = aPosition * 0.5 + 0.5;',
+    '  gl_Position = vec4(aPosition, 0.0, 1.0);',
     '}'
   ].join('\n');
 
-  var glFragSrc = [
+  /* Wave simulation — reads previous 2 states from RG channels,
+     propagates via discrete Laplacian, writes new state */
+  var SIM_FRAG = [
     'precision highp float;',
     'varying vec2 vUv;',
-    'uniform float uTime;',
-    'uniform vec2  uResolution;',
-    'uniform vec3  uRipples[' + MAX_RIPPLES + '];',
-    'uniform float uAmplitudes[' + MAX_RIPPLES + '];',
-    'uniform int   uRippleCount;',
+    'uniform sampler2D uTexture;',
+    'uniform vec2 uDelta;',  /* 1/resolution */
     '',
     'void main() {',
-    '  vec2 uv = vUv;',
-    '  vec2 aspect = vec2(uResolution.x / uResolution.y, 1.0);',
-    '  vec2 uvA = uv * aspect;',
-    '  float totalDisp = 0.0;',
+    '  vec4 info = texture2D(uTexture, vUv);',
     '',
-    '  for (int i = 0; i < ' + MAX_RIPPLES + '; i++) {',
-    '    if (i >= uRippleCount) break;',
-    '    vec2  center = uRipples[i].xy * aspect;',
-    '    float birth  = uRipples[i].z;',
-    '    float amp    = uAmplitudes[i];',
-    '    float age    = uTime - birth;',
-    '    if (age < 0.0 || amp < 0.001) continue;',
+    '  /* Sample 4 neighbours */',
+    '  float t = texture2D(uTexture, vUv + vec2(0.0, uDelta.y)).r;',
+    '  float b = texture2D(uTexture, vUv - vec2(0.0, uDelta.y)).r;',
+    '  float l = texture2D(uTexture, vUv - vec2(uDelta.x, 0.0)).r;',
+    '  float r = texture2D(uTexture, vUv + vec2(uDelta.x, 0.0)).r;',
     '',
-    '    float dist = length(uvA - center);',
-    '    float radius = age * ' + GL_SPEED.toFixed(1) + ';',
-    '    float wave = sin((dist - radius) * ' + GL_RING_COUNT.toFixed(1) + ' * 6.2832);',
-    '    float proximity = 1.0 - smoothstep(0.0, 0.3, abs(dist - radius));',
-    '    float life = 1.0 - clamp(age / ' + GL_RIPPLE_LIFE.toFixed(1) + ', 0.0, 1.0);',
-    '    life = life * life;',
-    '    totalDisp += wave * proximity * life * amp;',
-    '  }',
+    '  /* Wave equation: new = (avg_neighbours * 2 - previous) * damping */',
+    '  float avg = (t + b + l + r) * 0.5 - info.g;',
+    '  avg *= ' + DAMPING.toFixed(4) + ';',
     '',
-    '  float caustic = abs(totalDisp) * 0.8;',
-    '  float highlight = smoothstep(0.03, 0.2, caustic);',
-    '  vec3 col = vec3(0.7, 0.85, 1.0) * highlight * 0.3;',
-    '  float alpha = highlight * 0.2 + caustic * 0.08;',
-    '  gl_FragColor = vec4(col, alpha);',
+    '  /* Store: R = current height, G = previous height */',
+    '  gl_FragColor = vec4(avg, info.r, 0.0, 1.0);',
     '}'
   ].join('\n');
 
+  /* Drop shader — adds a circular splat to the heightmap */
+  var DROP_FRAG = [
+    'precision highp float;',
+    'varying vec2 vUv;',
+    'uniform sampler2D uTexture;',
+    'uniform vec2 uCenter;',
+    'uniform float uRadius;',
+    'uniform float uStrength;',
+    '',
+    'void main() {',
+    '  vec4 info = texture2D(uTexture, vUv);',
+    '  float dist = length(vUv - uCenter);',
+    '  /* Smooth circular drop */',
+    '  float drop = max(0.0, 1.0 - dist / uRadius);',
+    '  drop = 0.5 - cos(drop * 3.14159) * 0.5;',
+    '  info.r += drop * uStrength;',
+    '  gl_FragColor = info;',
+    '}'
+  ].join('\n');
+
+  /* Display shader — refracts background using heightmap normals */
+  var DISPLAY_FRAG = [
+    'precision highp float;',
+    'varying vec2 vUv;',
+    'uniform sampler2D uTexture;',  /* heightmap */
+    'uniform sampler2D uBackground;',
+    'uniform vec2 uDelta;',
+    '',
+    'void main() {',
+    '  vec4 info = texture2D(uTexture, vUv);',
+    '',
+    '  /* Compute normal from heightmap gradient */',
+    '  float dx = texture2D(uTexture, vUv + vec2(uDelta.x, 0.0)).r',
+    '           - texture2D(uTexture, vUv - vec2(uDelta.x, 0.0)).r;',
+    '  float dy = texture2D(uTexture, vUv + vec2(0.0, uDelta.y)).r',
+    '           - texture2D(uTexture, vUv - vec2(0.0, uDelta.y)).r;',
+    '',
+    '  /* Refract UV */',
+    '  vec2 refractedUV = vUv + vec2(dx, dy) * ' + PERTURBANCE.toFixed(4) + ';',
+    '',
+    '  /* Sample background with refracted coordinates */',
+    '  vec4 bg = texture2D(uBackground, refractedUV);',
+    '',
+    '  /* Subtle specular highlight on wave crests */',
+    '  float specular = max(0.0, pow(max(abs(dx), abs(dy)) * 8.0, 3.0));',
+    '  bg.rgb += vec3(0.6, 0.75, 1.0) * specular * 0.4;',
+    '',
+    '  gl_FragColor = bg;',
+    '}'
+  ].join('\n');
+
+  /* ── WebGL helpers ── */
+
+  function compileShader(src, type) {
+    var shader = gl.createShader(type);
+    gl.shaderSource(shader, src);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      console.error('Shader error:', gl.getShaderInfoLog(shader));
+      return null;
+    }
+    return shader;
+  }
+
+  function createProgram(vert, frag) {
+    var vs = compileShader(vert, gl.VERTEX_SHADER);
+    var fs = compileShader(frag, gl.FRAGMENT_SHADER);
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.bindAttribLocation(prog, 0, 'aPosition');
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      console.error('Program link error:', gl.getProgramInfoLog(prog));
+    }
+    return prog;
+  }
+
+  function createFBO(w, h) {
+    var tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    /* Try float textures first, fall back to half-float, then UNSIGNED_BYTE */
+    var type = gl.FLOAT;
+    var ext = gl.getExtension('OES_texture_float');
+    if (!ext) {
+      ext = gl.getExtension('OES_texture_half_float');
+      type = ext ? ext.HALF_FLOAT_OES : gl.UNSIGNED_BYTE;
+    }
+    gl.getExtension('OES_texture_float_linear');
+
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, type, null);
+
+    var fbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+
+    return { fbo: fbo, tex: tex };
+  }
+
+  function drawQuad() {
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadVAO);
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+
+  /* ── Rasterise menu to texture ── */
+  function rasteriseMenu() {
+    if (!menuEl || !bgCanvas) return;
+    menuRect = menuEl.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio, 2);
+    var w = Math.round(menuRect.width * dpr);
+    var h = Math.round(menuRect.height * dpr);
+    if (w < 1 || h < 1) return;
+
+    bgCanvas.width  = w;
+    bgCanvas.height = h;
+    var ctx = bgCanvas.getContext('2d');
+
+    /* Dark background matching menu */
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, w, h);
+
+    /* Render the DOM text content via html2canvas-lite approach:
+       We paint text manually since we can't use html2canvas without a dep.
+       Walk visible text nodes and draw them at their computed positions. */
+
+    ctx.scale(dpr, dpr);
+
+    var textEls = menuEl.querySelectorAll(
+      '.menu-about p, .menu-footer-label, .menu-footer-col li'
+    );
+
+    textEls.forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      var style = getComputedStyle(el);
+      var x = r.left - menuRect.left;
+      var y = r.top  - menuRect.top;
+
+      ctx.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
+      ctx.fillStyle = style.color;
+      ctx.textBaseline = 'top';
+
+      /* Handle text wrapping — split by lines based on element width */
+      var words = el.textContent.split(' ');
+      var line = '';
+      var lineH = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.5;
+      var maxW  = r.width;
+      var curY  = y;
+
+      for (var i = 0; i < words.length; i++) {
+        var test = line + (line ? ' ' : '') + words[i];
+        var metrics = ctx.measureText(test);
+        if (metrics.width > maxW && line) {
+          ctx.fillText(line, x, curY);
+          line = words[i];
+          curY += lineH;
+        } else {
+          line = test;
+        }
+      }
+      if (line) ctx.fillText(line, x, curY);
+    });
+
+    /* Upload to WebGL texture */
+    gl.bindTexture(gl.TEXTURE_2D, texBackground);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bgCanvas);
+  }
+
+  /* ── Init WebGL ── */
   function initGL() {
-    if (glInited || typeof THREE === 'undefined') return;
+    if (inited) return;
+    menuEl = document.querySelector('[data-nav-menu]');
+    if (!menuEl) return;
 
     canvas = document.createElement('canvas');
     canvas.className = 'menu-ripple-canvas';
@@ -218,174 +268,182 @@
       'width:100%;height:100%;display:none;';
     document.body.appendChild(canvas);
 
-    var W = window.innerWidth, H = window.innerHeight;
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(W, H);
-    renderer.setClearColor(0x000000, 0);
-
-    scene  = new THREE.Scene();
-    camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-    var rArr = [], aArr = [];
-    for (var i = 0; i < MAX_RIPPLES; i++) {
-      rArr.push(new THREE.Vector3(0, 0, -999));
-      aArr.push(0.0);
-    }
-
-    glUniforms = {
-      uTime:        { value: 0 },
-      uResolution:  { value: new THREE.Vector2(W, H) },
-      uRipples:     { value: rArr },
-      uAmplitudes:  { value: aArr },
-      uRippleCount: { value: 0 }
-    };
-
-    var mat = new THREE.ShaderMaterial({
-      vertexShader: glVertSrc, fragmentShader: glFragSrc,
-      uniforms: glUniforms, transparent: true, depthWrite: false
+    gl = canvas.getContext('webgl', {
+      alpha: true, premultipliedAlpha: false, antialias: false
     });
-    glMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
-    scene.add(glMesh);
-    glClock = new THREE.Clock();
-    glInited = true;
+    if (!gl) { console.warn('menu-ripple: WebGL not available'); return; }
 
-    window.addEventListener('resize', function () {
-      var nW = window.innerWidth, nH = window.innerHeight;
-      renderer.setSize(nW, nH);
-      glUniforms.uResolution.value.set(nW, nH);
-    });
+    /* Quad buffer */
+    quadVAO = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quadVAO);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+
+    /* Programs */
+    simProgram     = createProgram(VERT, SIM_FRAG);
+    dropProgram    = createProgram(VERT, DROP_FRAG);
+    displayProgram = createProgram(VERT, DISPLAY_FRAG);
+
+    /* FBOs — ping-pong pair */
+    fboA = createFBO(SIM_RESOLUTION, SIM_RESOLUTION);
+    fboB = createFBO(SIM_RESOLUTION, SIM_RESOLUTION);
+
+    /* Background texture */
+    texBackground = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texBackground);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+    /* Offscreen canvas for text rasterisation */
+    bgCanvas = document.createElement('canvas');
+
+    /* Input */
+    menuEl.addEventListener('mousemove', onPointer, { passive: true });
+    menuEl.addEventListener('touchstart', onTouch, { passive: true });
+    menuEl.addEventListener('touchmove', onTouch, { passive: true });
+    menuEl.addEventListener('click', onClickDrop);
+
+    inited = true;
   }
 
-  function syncGLUniforms() {
-    if (!glUniforms) return;
-    var now = (performance.now() - startTime) / 1000;
-    for (var i = 0; i < MAX_RIPPLES; i++) {
-      if (i < ripples.length) {
-        var r = ripples[i];
-        /* Convert px to 0–1 UV */
-        glUniforms.uRipples.value[i].set(
-          r.x / window.innerWidth,
-          1 - r.y / window.innerHeight,
-          r.time
-        );
-        glUniforms.uAmplitudes.value[i] = r.amplitude;
-      } else {
-        glUniforms.uRipples.value[i].set(0, 0, -999);
-        glUniforms.uAmplitudes.value[i] = 0;
-      }
-    }
-    glUniforms.uRippleCount.value = ripples.length;
+  /* ── Drop a splat into the heightmap ── */
+  function addDrop(x, y, radius, strength) {
+    if (!gl) return;
+
+    gl.useProgram(dropProgram);
+
+    gl.uniform1i(gl.getUniformLocation(dropProgram, 'uTexture'), 0);
+    gl.uniform2f(gl.getUniformLocation(dropProgram, 'uCenter'), x, y);
+    gl.uniform1f(gl.getUniformLocation(dropProgram, 'uRadius'), radius);
+    gl.uniform1f(gl.getUniformLocation(dropProgram, 'uStrength'), strength);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fboB.fbo);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, fboA.tex);
+    drawQuad();
+
+    /* Swap */
+    var tmp = fboA; fboA = fboB; fboB = tmp;
   }
 
-  /* ── Main loop ── */
-  function tick() {
-    if (!running) return;
-    rafId = requestAnimationFrame(tick);
+  /* ── Step simulation ── */
+  function stepSim() {
+    gl.useProgram(simProgram);
 
-    var now = (performance.now() - startTime) / 1000;
+    gl.uniform1i(gl.getUniformLocation(simProgram, 'uTexture'), 0);
+    gl.uniform2f(gl.getUniformLocation(simProgram, 'uDelta'),
+      1.0 / SIM_RESOLUTION, 1.0 / SIM_RESOLUTION);
 
-    /* Decay & prune ripples */
-    for (var i = ripples.length - 1; i >= 0; i--) {
-      ripples[i].amplitude *= WAVE_DECAY;
-      if (now - ripples[i].time > WAVE_LIFE || ripples[i].amplitude < 0.001) {
-        ripples.splice(i, 1);
-      }
-    }
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fboB.fbo);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, fboA.tex);
+    drawQuad();
 
-    /* Displace each word */
-    for (var j = 0; j < wordSpans.length; j++) {
-      var w = wordSpans[j];
-      var d = computeDisplacement(w.cx, w.cy, now);
-
-      /* Lerp toward target for smooth organic motion */
-      w.curTx += (d.tx - w.curTx) * LERP_SPEED;
-      w.curTy += (d.ty - w.curTy) * LERP_SPEED;
-      w.curR  += (d.r  - w.curR)  * LERP_SPEED;
-      w.curS  += (d.s  - w.curS)  * LERP_SPEED;
-
-      w.el.style.transform =
-        'translate(' + w.curTx.toFixed(2) + 'px,' + w.curTy.toFixed(2) + 'px) ' +
-        'rotate(' + w.curR.toFixed(2) + 'deg) ' +
-        'scale(' + w.curS.toFixed(4) + ')';
-    }
-
-    /* WebGL overlay */
-    if (glInited && renderer) {
-      glUniforms.uTime.value = now;
-      syncGLUniforms();
-      renderer.render(scene, camera);
-    }
+    var tmp = fboA; fboA = fboB; fboB = tmp;
   }
 
-  /* ── Input ── */
+  /* ── Render display ── */
+  function renderDisplay() {
+    var W = canvas.width;
+    var H = canvas.height;
+
+    gl.useProgram(displayProgram);
+
+    gl.uniform1i(gl.getUniformLocation(displayProgram, 'uTexture'), 0);
+    gl.uniform1i(gl.getUniformLocation(displayProgram, 'uBackground'), 1);
+    gl.uniform2f(gl.getUniformLocation(displayProgram, 'uDelta'),
+      1.0 / SIM_RESOLUTION, 1.0 / SIM_RESOLUTION);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, W, H);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, fboA.tex);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texBackground);
+
+    drawQuad();
+  }
+
+  /* ── Input handlers ── */
   function onPointer(e) {
-    var dx = e.clientX - lastSpawnX;
-    var dy = e.clientY - lastSpawnY;
-    if (Math.sqrt(dx * dx + dy * dy) > MIN_SPAWN_DIST) {
-      spawnRipple(e.clientX, e.clientY, 0.6);
-      lastSpawnX = e.clientX; lastSpawnY = e.clientY;
+    menuRect = menuEl.getBoundingClientRect();
+    var nx = (e.clientX - menuRect.left) / menuRect.width;
+    var ny = 1.0 - (e.clientY - menuRect.top) / menuRect.height;
+
+    var dx = e.clientX - prevMouseX;
+    var dy = e.clientY - prevMouseY;
+    if (Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) {
+      addDrop(nx, ny, DROP_RADIUS, DROP_STRENGTH);
+      prevMouseX = e.clientX;
+      prevMouseY = e.clientY;
     }
+    mouseX = nx; mouseY = ny;
   }
 
   function onTouch(e) {
     var t = e.touches[0];
     if (!t) return;
-    var dx = t.clientX - lastSpawnX;
-    var dy = t.clientY - lastSpawnY;
-    if (Math.sqrt(dx * dx + dy * dy) > MIN_SPAWN_DIST) {
-      spawnRipple(t.clientX, t.clientY, 0.8);
-      lastSpawnX = t.clientX; lastSpawnY = t.clientY;
+    menuRect = menuEl.getBoundingClientRect();
+    var nx = (t.clientX - menuRect.left) / menuRect.width;
+    var ny = 1.0 - (t.clientY - menuRect.top) / menuRect.height;
+
+    var dx = t.clientX - prevMouseX;
+    var dy = t.clientY - prevMouseY;
+    if (Math.sqrt(dx*dx + dy*dy) > MOVE_THRESHOLD) {
+      addDrop(nx, ny, DROP_RADIUS * 1.2, DROP_STRENGTH * 1.5);
+      prevMouseX = t.clientX;
+      prevMouseY = t.clientY;
     }
   }
 
-  function onClick(e) {
-    spawnRipple(e.clientX, e.clientY, 1.0);
+  function onClickDrop(e) {
+    menuRect = menuEl.getBoundingClientRect();
+    var nx = (e.clientX - menuRect.left) / menuRect.width;
+    var ny = 1.0 - (e.clientY - menuRect.top) / menuRect.height;
+    addDrop(nx, ny, DROP_RADIUS * 2.5, DROP_STRENGTH * 3);
   }
 
-  function bindInput() {
-    if (!menuEl) return;
-    menuEl.addEventListener('mousemove', onPointer, { passive: true });
-    menuEl.addEventListener('touchstart', onTouch, { passive: true });
-    menuEl.addEventListener('touchmove', onTouch, { passive: true });
-    menuEl.addEventListener('click', onClick);
+  /* ── Render loop ── */
+  function tick() {
+    if (!running) return;
+    rafId = requestAnimationFrame(tick);
+
+    /* Run 2 simulation steps per frame for faster propagation */
+    stepSim();
+    stepSim();
+
+    renderDisplay();
   }
 
   /* ── Public API ── */
   function start() {
-    menuEl = document.querySelector('[data-nav-menu]');
-    if (!menuEl) return;
+    if (!inited) initGL();
+    if (!gl || !canvas) return;
 
-    /* Split text on first open */
-    if (!textSplit) {
-      splitTextNodes(menuEl);
-      bindInput();
-    }
+    /* Resize canvas to window */
+    var dpr = Math.min(window.devicePixelRatio, 2);
+    canvas.width  = Math.round(window.innerWidth * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
 
-    initGL();
+    /* Rasterise menu text after it's visible */
+    canvas.style.display = 'block';
 
-    startTime = performance.now();
-    ripples = [];
-    lastSpawnX = -1; lastSpawnY = -1;
-
-    /* Measure positions after menu is visible */
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        updateElementPositions();
+        rasteriseMenu();
+        prevMouseX = -99; prevMouseY = -99;
+        running = true;
+        tick();
       });
     });
-
-    if (canvas) canvas.style.display = 'block';
-    if (glClock) glClock.start();
-    running = true;
-    tick();
   }
 
   function stop() {
     running = false;
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     if (canvas) canvas.style.display = 'none';
-    resetTransforms();
   }
 
   window.colabMenuRipple = { start: start, stop: stop };
