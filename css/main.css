@@ -1455,7 +1455,10 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
     display: flex !important;
     flex-direction: column;
     height: 100% !important;
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
     padding-right: 12px;
     scrollbar-width: none;
   }
