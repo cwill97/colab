@@ -665,6 +665,11 @@
   var MAX_RETRIES   = 3;
   var TOPO_URL      = 'https://unpkg.com/world-atlas@2/land-110m.json';
 
+  /* Pre-computed particle data — filled by prefetch pipeline */
+  var _particleCache = null;   /* { positions, sizes, alphas } Float32Arrays */
+  var _particleReady = false;
+  var _pendingWrap   = null;   /* wrap element waiting for particle data */
+
   function fetchTopoWithRetry(retries, delay) {
     return fetch(TOPO_URL)
       .then(function (r) {
@@ -683,65 +688,57 @@
       });
   }
 
-  function init() {
-    var wrap = document.querySelector('[data-globe]');
-    if (!wrap) return;
-
-    /* Already built — just ensure it's running */
-    if (_globeBuilt) {
-      if (window.colabGlobe) window.colabGlobe.resume();
-      return;
-    }
-
-    /* Already fetching — don't stack requests */
-    if (_initPending) return;
-
-    /* If we have cached topo, skip fetch */
-    if (_topoCache) {
-      _buildFromTopo(wrap, _topoCache);
-      return;
-    }
-
+  /* ── Prefetch pipeline — runs immediately on script load ── */
+  function _prefetch() {
+    if (_initPending || _particleReady || _topoCache) return;
     _initPending = true;
 
     fetchTopoWithRetry(MAX_RETRIES, 500)
       .then(function (topo) {
         _topoCache = topo;
-        _initPending = false;
-        _buildFromTopo(wrap, topo);
+        _computeParticles(topo);
       })
       .catch(function () {
         _initPending = false;
-        /* All retries failed — build with empty data so scene exists,
-           then schedule another attempt in 5s */
-        buildScene(wrap, new Float32Array(0), new Float32Array(0), new Float32Array(0));
+        /* Build with empty data as fallback */
+        _particleCache = {
+          positions: new Float32Array(0),
+          sizes:     new Float32Array(0),
+          alphas:    new Float32Array(0)
+        };
+        _particleReady = true;
+        _initPending = false;
+        _flushPending();
+        /* Retry in 5s */
         setTimeout(function () { _retryInit(); }, 5000);
       });
   }
 
-  function _buildFromTopo(wrap, topo) {
+  function _computeParticles(topo) {
     var worker;
-    try { worker = new Worker('js/globe.worker.js'); } catch(e) { computeInline(wrap, topo); return; }
+    try { worker = new Worker('js/globe.worker.js'); } catch (e) {
+      _computeInlineAndCache(topo);
+      return;
+    }
     worker.postMessage({ topo: topo, landTarget: 42000, oceanTarget: 2500 });
     worker.onmessage = function (e) {
       worker.terminate();
-      buildScene(wrap, e.data.positions, e.data.sizes, e.data.alphas);
+      _particleCache = {
+        positions: e.data.positions,
+        sizes:     e.data.sizes,
+        alphas:    e.data.alphas
+      };
+      _particleReady = true;
+      _initPending = false;
+      _flushPending();
     };
     worker.onerror = function () {
       worker.terminate();
-      computeInline(wrap, topo);
+      _computeInlineAndCache(topo);
     };
   }
 
-  /* Retry init if initial fetch failed but we later get connectivity */
-  function _retryInit() {
-    if (_globeBuilt || _initPending) return;
-    _topoCache = null; /* clear so we re-fetch */
-    init();
-  }
-
-  /* ── Inline fallback ─────────────────────────────────────── */
-  function computeInline(wrap, topo) {
+  function _computeInlineAndCache(topo) {
     var features = topoToGeoInline(topo);
     var positions = [], sizes = [], alphas = [];
     var placed = 0, attempts = 0;
@@ -757,8 +754,59 @@
       alphas.push(0.9 + Math.random() * 0.1);
       placed++;
     }
-    buildScene(wrap, new Float32Array(positions), new Float32Array(sizes), new Float32Array(alphas));
+    _particleCache = {
+      positions: new Float32Array(positions),
+      sizes:     new Float32Array(sizes),
+      alphas:    new Float32Array(alphas)
+    };
+    _particleReady = true;
+    _initPending = false;
+    _flushPending();
   }
+
+  /** If init() was called before particles were ready, build now */
+  function _flushPending() {
+    if (_pendingWrap && _particleReady && _particleCache) {
+      var w = _pendingWrap;
+      _pendingWrap = null;
+      buildScene(w, _particleCache.positions, _particleCache.sizes, _particleCache.alphas);
+    }
+  }
+
+  function init() {
+    var wrap = document.querySelector('[data-globe]');
+    if (!wrap) return;
+
+    /* Already built — just ensure it's running */
+    if (_globeBuilt) {
+      if (window.colabGlobe) window.colabGlobe.resume();
+      return;
+    }
+
+    /* Particles ready — build immediately */
+    if (_particleReady && _particleCache) {
+      buildScene(wrap, _particleCache.positions, _particleCache.sizes, _particleCache.alphas);
+      return;
+    }
+
+    /* Still computing — queue the wrap so _flushPending builds when ready */
+    _pendingWrap = wrap;
+
+    /* If prefetch hasn't started yet, kick it off */
+    if (!_initPending) _prefetch();
+  }
+
+  /* Retry init if initial fetch failed but we later get connectivity */
+  function _retryInit() {
+    if (_globeBuilt || _initPending) return;
+    _topoCache = null;
+    _particleReady = false;
+    _particleCache = null;
+    _prefetch();
+  }
+
+  /* ── Inline fallback ─────────────────────────────────────── */
+  /* (used by _computeInlineAndCache — no standalone computeInline needed) */
 
   function pointInRing(lng, lat, ring) {
     var inside = false, j = ring.length - 1;
@@ -792,6 +840,10 @@
     });
   }
 
+  /* ── Kick off prefetch IMMEDIATELY — no waiting for DOM or Three.js ── */
+  _prefetch();
+
+  /* ── DOM ready — build scene if particles are already computed ── */
   document.addEventListener('DOMContentLoaded', function () {
     requestAnimationFrame(function () { waitForThree(init); });
   });
