@@ -1,10 +1,11 @@
 /**
- * co:lab — Cymatics Visualizer v3
- * Water-surface cymatics pattern via WebGL shader.
- * Uses cellular noise modulated by concentric standing waves
- * to recreate the look of real cymatics: thin bright ring
- * outlines with complex fluid caustic shapes between them.
- * Audio-reactive, click to play/mute.
+ * co:lab — Chladni Plate Visualizer
+ * Simulates sand/particle patterns on a vibrating plate.
+ * Audio-reactive: frequency bands drive Chladni mode numbers (n, m),
+ * producing geometric nodal-line patterns that reshape in real-time.
+ * Particles settle along nodal lines (amplitude ≈ 0), matching the
+ * globe's ice-blue palette (0.7, 0.85, 1.0).
+ * Click to play/mute.
  */
 
 (function () {
@@ -51,23 +52,44 @@
       '}'
     ].join('\n');
 
+    /* ═══════════════════════════════════════════════════════════
+       Chladni Plate Fragment Shader
+
+       Chladni equation for a square plate:
+         f(x,y) = cos(n·π·x) · cos(m·π·y) ± cos(m·π·x) · cos(n·π·y)
+
+       Nodal lines occur where f(x,y) ≈ 0.
+       Particles (sand/powder) accumulate on these lines.
+
+       Multiple modes are superimposed, each driven by an audio band.
+       The result: geometric patterns that morph in real-time with
+       the music — low frequencies produce simple shapes, high
+       frequencies produce intricate lattices.
+       ═══════════════════════════════════════════════════════════ */
+
     var fragShader = [
       'precision highp float;',
       'varying vec2 vUv;',
+      '',
       'uniform float uTime;',
       'uniform float uEnergy;',
       'uniform float uBass;',
       'uniform float uMid;',
       'uniform float uHigh;',
       'uniform sampler2D uFreqData;',
-      'uniform vec2 uRes;',
+      'uniform vec2  uRes;',
       '',
-      '/* ── Random & noise ── */',
-      'vec2 hash2(vec2 p) {',
-      '  p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));',
-      '  return fract(sin(p) * 43758.5453) * 2.0 - 1.0;',
-      '}',
+      '/* Smoothly varying mode numbers driven by audio */',
+      'uniform float uN1;',
+      'uniform float uM1;',
+      'uniform float uN2;',
+      'uniform float uM2;',
+      'uniform float uN3;',
+      'uniform float uM3;',
       '',
+      '#define PI 3.141592653589793',
+      '',
+      '/* ── Hash / noise for particle grain ── */',
       'float hash(vec2 p) {',
       '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);',
       '}',
@@ -77,183 +99,131 @@
       '  vec2 f = fract(p);',
       '  f = f * f * (3.0 - 2.0 * f);',
       '  return mix(',
-      '    mix(hash(i), hash(i + vec2(1,0)), f.x),',
-      '    mix(hash(i + vec2(0,1)), hash(i + vec2(1,1)), f.x),',
+      '    mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),',
+      '    mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),',
       '    f.y);',
       '}',
       '',
-      '/* ── Voronoi — creates the cellular water shapes ── */',
-      'float voronoi(vec2 p) {',
-      '  vec2 n = floor(p);',
-      '  vec2 f = fract(p);',
-      '  float md = 8.0;',
-      '  for (int j = -1; j <= 1; j++) {',
-      '    for (int i = -1; i <= 1; i++) {',
-      '      vec2 g = vec2(float(i), float(j));',
-      '      vec2 o = hash2(n + g) * 0.5 + 0.5;',
-      '      vec2 r = g + o - f;',
-      '      float d = dot(r, r);',
-      '      md = min(md, d);',
-      '    }',
-      '  }',
-      '  return sqrt(md);',
+      '/* ── Chladni function ── */',
+      'float chladni(vec2 p, float n, float m, float sign) {',
+      '  return cos(n * PI * p.x) * cos(m * PI * p.y)',
+      '       + sign * cos(m * PI * p.x) * cos(n * PI * p.y);',
       '}',
       '',
-      '/* ── Voronoi edges (second-closest minus closest) ── */',
-      'float voronoiEdge(vec2 p) {',
-      '  vec2 n = floor(p);',
-      '  vec2 f = fract(p);',
-      '  float d1 = 8.0;',
-      '  float d2 = 8.0;',
-      '  for (int j = -2; j <= 2; j++) {',
-      '    for (int i = -2; i <= 2; i++) {',
-      '      vec2 g = vec2(float(i), float(j));',
-      '      vec2 o = hash2(n + g) * 0.5 + 0.5;',
-      '      vec2 r = g + o - f;',
-      '      float d = dot(r, r);',
-      '      if (d < d1) { d2 = d1; d1 = d; }',
-      '      else if (d < d2) { d2 = d; }',
-      '    }',
-      '  }',
-      '  return d2 - d1;',
-      '}',
-      '',
-      'float fbm(vec2 p) {',
-      '  float v = 0.0; float a = 0.5;',
-      '  for (int i = 0; i < 4; i++) {',
-      '    v += a * noise(p);',
-      '    p *= 2.1; a *= 0.5;',
-      '  }',
-      '  return v;',
+      '/* ── Particle density along nodal lines ── */',
+      'float nodalDensity(float amplitude, float width) {',
+      '  float a = abs(amplitude);',
+      '  return exp(-a * a / (width * width));',
       '}',
       '',
       'void main() {',
       '  vec2 asp = vec2(uRes.x / uRes.y, 1.0);',
-      '  vec2 uv  = (vUv - 0.5) * 2.0 * asp;',
-      '  float r  = length(uv);',
-      '  float a  = atan(uv.y, uv.x);',
       '',
-      '  /* No disc boundary — fill entire container */',
-      '  float dR = length(asp);',
-      '  float rn = r / dR;',
-      '  float t  = uTime;',
+      '  /* Map UV to plate coordinates [-1, 1] */',
+      '  vec2 plate = (vUv - 0.5) * 2.0;',
       '',
-      '  /* Freq lookup */',
-      '  float fv = texture2D(uFreqData, vec2(rn, 0.5)).r;',
+      '  /* Subtle vibration displacement — plate is shaking */',
+      '  float t = uTime;',
+      '  float vib = uEnergy * 0.008;',
+      '  plate += vec2(',
+      '    sin(t * 23.0) * vib,',
+      '    cos(t * 19.0) * vib',
+      '  );',
       '',
-      '  /* ═══════════════════════════════════════════════',
-      '     LAYER 1 : Concentric ring structure (thin outlines)',
-      '     Standing wave rings — sharp edges, not smooth sine bands',
-      '     ═══════════════════════════════════════════════ */',
+      '  /* ═════════════════════════════════════════',
+      '     MODE 1: Bass — bold simple geometry',
+      '     ═════════════════════════════════════════ */',
       '',
-      '  /* Subtle angular warp for organic ring shapes */',
-      '  float aw = 0.0;',
-      '  aw += sin(a * 7.0  + r * 10.0 + t * 0.08) * 0.008;',
-      '  aw += sin(a * 11.0 - r * 14.0 + t * 0.06) * 0.006;',
-      '  aw += sin(a * 17.0 + r * 18.0 - t * 0.10) * 0.004;',
-      '  aw += uBass * sin(a * 5.0 + r * 8.0 + t * 0.2) * 0.012;',
+      '  float c1a = chladni(plate, uN1, uM1, 1.0);',
+      '  float c1b = chladni(plate, uN1, uM1, -1.0);',
+      '  float d1  = nodalDensity(c1a, 0.18 + uBass * 0.06);',
+      '  float d1b = nodalDensity(c1b, 0.22 + uBass * 0.05);',
+      '  float bass_pattern = max(d1, d1b * 0.5);',
       '',
-      '  float rW = r + aw;',
+      '  /* ═════════════════════════════════════════',
+      '     MODE 2: Mids — medium complexity',
+      '     ═════════════════════════════════════════ */',
       '',
-      '  /* Multiple ring frequencies — use abs(sin) for thin bright lines */',
-      '  float ringF1 = 28.0 + uEnergy * 5.0;',
-      '  float ringF2 = 42.0 + uBass * 4.0;',
-      '  float ringF3 = 60.0 + uMid * 6.0;',
+      '  float c2a = chladni(plate, uN2, uM2, 1.0);',
+      '  float c2b = chladni(plate, uN2, uM2, -1.0);',
+      '  float d2  = nodalDensity(c2a, 0.15 + uMid * 0.05);',
+      '  float d2b = nodalDensity(c2b, 0.18 + uMid * 0.04);',
+      '  float mid_pattern = max(d2, d2b * 0.6);',
       '',
-      '  /* abs(sin) gives thin bright lines at zero crossings */',
-      '  float ring1 = 1.0 - smoothstep(0.0, 0.12, abs(sin(rW * ringF1 - t * 0.4)));',
-      '  float ring2 = 1.0 - smoothstep(0.0, 0.10, abs(sin(rW * ringF2 + t * 0.25)));',
-      '  float ring3 = 1.0 - smoothstep(0.0, 0.08, abs(sin(rW * ringF3 - t * 0.6)));',
+      '  /* ═════════════════════════════════════════',
+      '     MODE 3: Highs — intricate lattices',
+      '     ═════════════════════════════════════════ */',
       '',
-      '  float rings = ring1 * 0.5 + ring2 * 0.35 + ring3 * 0.25;',
+      '  float c3a = chladni(plate, uN3, uM3, 1.0);',
+      '  float c3b = chladni(plate, uN3, uM3, -1.0);',
+      '  float d3  = nodalDensity(c3a, 0.12 + uHigh * 0.04);',
+      '  float d3b = nodalDensity(c3b, 0.14 + uHigh * 0.03);',
+      '  float high_pattern = max(d3, d3b * 0.7);',
       '',
-      '  /* ═══════════════════════════════════════════════',
-      '     LAYER 2 : Cellular water-surface caustics',
-      '     Voronoi cells that sit between/on the rings',
-      '     ═══════════════════════════════════════════════ */',
+      '  /* ═════════════════════════════════════════',
+      '     MODE 4: Cross-mode interference',
+      '     ═════════════════════════════════════════ */',
       '',
-      '  /* Warp voronoi coords with radial + noise for fluid look */',
-      '  vec2 vUv1 = uv * 5.0 + vec2(t * 0.04, -t * 0.03);',
-      '  float nw1 = noise(uv * 3.0 + t * 0.05);',
-      '  float nw2 = noise(uv * 4.0 - t * 0.04);',
-      '  vUv1 += vec2(nw1, nw2) * 0.4;',
+      '  float c4 = chladni(plate, uN1, uM2, 1.0);',
+      '  float d4 = nodalDensity(c4, 0.20);',
+      '  float cross_pattern = d4 * 0.4;',
       '',
-      '  /* Cell edges — these are the bright caustic lines */',
-      '  float ve1 = voronoiEdge(vUv1);',
-      '  float caustic1 = 1.0 - smoothstep(0.0, 0.08, ve1);',
+      '  /* ═════════════════════════════════════════',
+      '     COMPOSE: Weight by audio energy per band',
+      '     ═════════════════════════════════════════ */',
       '',
-      '  /* Second scale of cells — finer detail */',
-      '  vec2 vUv2 = uv * 9.0 + vec2(-t * 0.03, t * 0.05);',
-      '  vUv2 += vec2(nw2, nw1) * 0.3;',
-      '  float ve2 = voronoiEdge(vUv2);',
-      '  float caustic2 = 1.0 - smoothstep(0.0, 0.06, ve2);',
+      '  float bassW = 0.35 + uBass * 0.5;',
+      '  float midW  = 0.25 + uMid  * 0.6;',
+      '  float highW = 0.15 + uHigh * 0.7;',
       '',
-      '  /* Third scale — finest */',
-      '  vec2 vUv3 = uv * 14.0 + vec2(t * 0.02, t * 0.02);',
-      '  vUv3 += vec2(nw1 * 0.5, nw2 * 0.5) * 0.2;',
-      '  float ve3 = voronoiEdge(vUv3);',
-      '  float caustic3 = 1.0 - smoothstep(0.0, 0.05, ve3);',
+      '  float pattern = 0.0;',
+      '  pattern += bass_pattern * bassW;',
+      '  pattern += mid_pattern  * midW;',
+      '  pattern += high_pattern * highW;',
+      '  pattern += cross_pattern * uEnergy;',
+      '  pattern = clamp(pattern, 0.0, 1.8);',
       '',
-      '  float caustics = caustic1 * 0.45 + caustic2 * 0.35 + caustic3 * 0.2;',
+      '  /* ═════════════════════════════════════════',
+      '     PARTICLE GRAIN TEXTURE',
+      '     ═════════════════════════════════════════ */',
       '',
-      '  /* Modulate caustics with radial standing wave — */',
-      '  /* caustics are brighter on the ring positions, dimmer between */',
-      '  float ringMask = (sin(rW * ringF1 * 0.5) * 0.5 + 0.5);',
-      '  ringMask = 0.4 + ringMask * 0.6;',
-      '  caustics *= ringMask;',
+      '  vec2 grainUV = vUv * uRes;',
+      '  float grain = hash(floor(grainUV * 1.5 + t * 0.3));',
       '',
-      '  /* Audio boosts caustic visibility */',
-      '  caustics *= (0.5 + uEnergy * 0.8);',
+      '  float particleMask = smoothstep(0.15, 0.55, pattern);',
       '',
-      '  /* ═══════════════════════════════════════════════',
-      '     LAYER 3 : Fluid surface noise (soft diffuse glow)',
-      '     ═══════════════════════════════════════════════ */',
+      '  float scatter = noise(vUv * 80.0 + t * 0.2) * 0.25;',
+      '  particleMask = max(particleMask, scatter * pattern);',
       '',
-      '  float fluid = fbm(uv * 4.0 + t * 0.06);',
-      '  float fluid2 = fbm(uv * 6.0 - t * 0.05);',
-      '  float fluidPattern = fluid * fluid2;',
-      '  fluidPattern = pow(fluidPattern, 0.8) * 0.8;',
-      '  fluidPattern *= (0.3 + uEnergy * 0.4);',
+      '  float density = particleMask;',
+      '  float grainBright = 0.6 + grain * 0.4;',
+      '  density *= grainBright;',
+      '  density *= (0.5 + uEnergy * 1.0);',
       '',
-      '  /* ═══════════════════════════════════════════════',
-      '     LAYER 4 : Centre glow',
-      '     ═══════════════════════════════════════════════ */',
+      '  /* ═════════════════════════════════════════',
+      '     NODAL LINE GLOW',
+      '     ═════════════════════════════════════════ */',
       '',
-      '  float core = exp(-r * r * 4.0) * (0.5 + uBass * 0.5);',
-      '  /* Tighter inner glow */',
-      '  float innerCore = exp(-r * r * 16.0) * (0.3 + uEnergy * 0.3);',
+      '  float glow = smoothstep(0.05, 0.45, pattern);',
+      '  glow *= 0.3 * (0.4 + uEnergy * 0.6);',
       '',
-      '  /* ═══════════════════════════════════════════════',
-      '     COMPOSE',
-      '     ═══════════════════════════════════════════════ */',
+      '  /* ═════════════════════════════════════════',
+      '     COLOUR — Globe ice-blue on black plate',
+      '     ═════════════════════════════════════════ */',
       '',
-      '  float bright = 0.0;',
-      '  bright += rings * 0.35;',
-      '  bright += caustics * 0.40;',
-      '  bright += fluidPattern * 0.15;',
-      '  bright += core;',
-      '  bright += innerCore;',
+      '  vec3 particleCol = vec3(0.7, 0.85, 1.0);',
+      '  vec3 glowCol     = vec3(0.45, 0.65, 0.90);',
       '',
-      '  /* Freq-reactive radial boost */',
-      '  bright += fv * 0.10;',
+      '  vec3 col = vec3(0.0);',
+      '  col += particleCol * density;',
+      '  col += glowCol * glow;',
+      '  col += vec3(1.0) * pow(max(density, 0.0), 3.0) * 0.25;',
       '',
-      '  /* ── Radial falloff — denser centre, sparser edges ── */',
-      '  /* like the reference: bright complex centre, fading outward */',
-      '  float radialFade = 1.0 - pow(rn, 2.0) * 0.4;',
-      '  bright *= radialFade;',
+      '  /* Subtle edge vignette */',
+      '  float vignette = 1.0 - smoothstep(0.7, 1.05, length(plate));',
+      '  col *= vignette;',
       '',
-      '  /* ── Colour — cool blue-white ── */',
-      '  vec3 col = vec3(0.65, 0.78, 1.0) * bright;',
-      '  /* Push bright peaks toward white */',
-      '  col += vec3(1.0) * pow(max(bright, 0.0), 3.5) * 0.45;',
-      '',
-      '  /* Subtle warm tint in bright caustic intersections */',
-      '  col.r += pow(max(caustics, 0.0), 2.0) * 0.06;',
-      '',
-      '  /* Edge softening */',
-      '  float edgeFade = 1.0 - smoothstep(0.85, 1.0, rn);',
-      '  col *= edgeFade;',
-      '  float alpha = clamp(bright * 1.3, 0.0, 1.0) * edgeFade;',
+      '  float alpha = clamp((density + glow) * 1.4, 0.0, 1.0) * vignette;',
       '',
       '  gl_FragColor = vec4(col, alpha);',
       '}'
@@ -267,6 +237,13 @@
       uHigh:     { value: 0 },
       uFreqData: { value: freqTex },
       uRes:      { value: new THREE.Vector2(W, H) },
+      /* Chladni mode numbers — driven by audio in the render loop */
+      uN1: { value: 2.0 },
+      uM1: { value: 3.0 },
+      uN2: { value: 4.0 },
+      uM2: { value: 5.0 },
+      uN3: { value: 6.0 },
+      uM3: { value: 7.0 },
     };
 
     var mat = new THREE.ShaderMaterial({
@@ -280,7 +257,9 @@
     var quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
     scene.add(quad);
 
-    /* ── Audio ── */
+    /* ══════════════════════════════════════════════════════
+       Audio — identical chain to previous version
+       ══════════════════════════════════════════════════════ */
     var audioCtx  = null;
     var analyser  = null;
     var dataArray = null;
@@ -294,13 +273,11 @@
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = FFT_SIZE;
-      analyser.smoothingTimeConstant = 0.82;
+      analyser.smoothingTimeConstant = 0.75;
       dataArray = new Uint8Array(analyser.frequencyBinCount);
       gainNode = audioCtx.createGain();
       gainNode.gain.value = 1;
 
-      /* Underwater low-pass filter — sits between gain and analyser.
-         Normal: 22kHz (fully open). Submerged: ~400Hz (muffled). */
       lpFilter = audioCtx.createBiquadFilter();
       lpFilter.type = 'lowpass';
       lpFilter.frequency.value = 22000;
@@ -311,22 +288,18 @@
       audioEl.loop = true;
       audioEl.crossOrigin = 'anonymous';
       var source = audioCtx.createMediaElementSource(audioEl);
-      /* Chain: source → gain → lowpass → analyser → destination */
       source.connect(gainNode);
       gainNode.connect(lpFilter);
       lpFilter.connect(analyser);
       analyser.connect(audioCtx.destination);
 
-      /* Expose global API for underwater effect */
       window.colabAudio = {
-        /** Muffle audio — lowpass drops to ~400Hz with resonance bump */
         submerge: function (dur) {
           if (!lpFilter) return;
           var d = dur || 0.8;
           gsap.to(lpFilter.frequency, { duration: d, value: 400, ease: 'power2.in' });
           gsap.to(lpFilter.Q, { duration: d, value: 3.5, ease: 'power2.in' });
         },
-        /** Restore full audio — filter opens back to 22kHz */
         surface: function (dur) {
           if (!lpFilter) return;
           var d = dur || 0.6;
@@ -361,13 +334,53 @@
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(); }
     });
 
+    /* ══════════════════════════════════════════════════════
+       MODE DRIVER
+       Maps audio bands → Chladni mode numbers (n, m).
+       Transient/beat detection triggers discrete mode jumps
+       for volatile, real-time reshaping.
+       ══════════════════════════════════════════════════════ */
+
+    var targetN1 = 2, targetM1 = 3;
+    var targetN2 = 4, targetM2 = 5;
+    var targetN3 = 6, targetM3 = 7;
+
+    var curN1 = 2, curM1 = 3;
+    var curN2 = 4, curM2 = 5;
+    var curN3 = 6, curM3 = 7;
+
+    var bassModes = [
+      [1, 2], [2, 3], [1, 3], [2, 1], [3, 2], [3, 1],
+      [1, 4], [2, 4], [3, 3], [4, 1]
+    ];
+    var midModes = [
+      [3, 5], [4, 5], [3, 7], [5, 4], [4, 7], [5, 3],
+      [5, 6], [4, 6], [6, 4], [3, 6]
+    ];
+    var highModes = [
+      [5, 8], [6, 7], [7, 9], [8, 5], [7, 6], [9, 7],
+      [6, 9], [8, 7], [5, 9], [7, 8]
+    ];
+
+    var prevBass = 0, prevMid = 0, prevHigh = 0;
+    var modeTimer = 0;
+    var MODE_COOLDOWN = 0.12;
+
+    function pickMode(modes, energy) {
+      var idx = Math.floor(energy * (modes.length - 1));
+      idx = Math.max(0, Math.min(modes.length - 1, idx));
+      return modes[idx];
+    }
+
     /* ── Render loop ── */
     var clock = new THREE.Clock();
     var sEnergy = 0, sBass = 0, sMid = 0, sHigh = 0;
+    var fBass = 0, fMid = 0, fHigh = 0;
 
     function animate() {
       requestAnimationFrame(animate);
-      var t = clock.getElapsedTime();
+      var dt = clock.getDelta();
+      var t  = clock.getElapsedTime();
       var audioActive = analyser && started && !muted && dataArray;
 
       if (audioActive) {
@@ -385,20 +398,72 @@
           else if (b < 20) mid  += avg;
           else              high += avg;
         }
-        sEnergy += (total / (NUM_BANDS * 255) - sEnergy) * 0.15;
-        sBass   += (bass  / (8 * 255)  - sBass)  * 0.18;
-        sMid    += (mid   / (12 * 255) - sMid)   * 0.15;
-        sHigh   += (high  / (12 * 255) - sHigh)  * 0.12;
+
+        sEnergy += (total / (NUM_BANDS * 255) - sEnergy) * 0.18;
+        sBass   += (bass  / (8 * 255)  - sBass)  * 0.22;
+        sMid    += (mid   / (12 * 255) - sMid)   * 0.20;
+        sHigh   += (high  / (12 * 255) - sHigh)  * 0.18;
+
+        var rawBass = bass / (8 * 255);
+        var rawMid  = mid  / (12 * 255);
+        var rawHigh = high / (12 * 255);
+        fBass += (rawBass - fBass) * 0.45;
+        fMid  += (rawMid  - fMid)  * 0.40;
+        fHigh += (rawHigh - fHigh) * 0.35;
+
+        /* Beat detection → mode jumps */
+        modeTimer -= dt;
+        var bassHit = (fBass - prevBass) > 0.06;
+        var midHit  = (fMid  - prevMid)  > 0.05;
+        var highHit = (fHigh - prevHigh) > 0.04;
+
+        if (modeTimer <= 0 && (bassHit || midHit || highHit)) {
+          modeTimer = MODE_COOLDOWN;
+
+          if (bassHit) {
+            var bm = pickMode(bassModes, fBass);
+            targetN1 = bm[0]; targetM1 = bm[1];
+          }
+          if (midHit) {
+            var mm = pickMode(midModes, fMid);
+            targetN2 = mm[0]; targetM2 = mm[1];
+          }
+          if (highHit) {
+            var hm = pickMode(highModes, fHigh);
+            targetN3 = hm[0]; targetM3 = hm[1];
+          }
+        }
+
+        prevBass = fBass;
+        prevMid  = fMid;
+        prevHigh = fHigh;
+
       } else {
-        var idle = 0.06 + Math.sin(t * 0.4) * 0.03;
+        var idle = 0.08 + Math.sin(t * 0.4) * 0.04;
         sEnergy += (idle - sEnergy) * 0.04;
-        sBass   += (idle * 0.8 - sBass) * 0.04;
+        sBass   += (idle * 0.7 - sBass) * 0.04;
         sMid    += (idle * 0.5 - sMid) * 0.04;
         sHigh   += (idle * 0.3 - sHigh) * 0.04;
         for (var b2 = 0; b2 < NUM_BANDS; b2++) {
           freqData[b2] = Math.floor(freqData[b2] * 0.96);
         }
+
+        var idleIdx = Math.floor(t * 0.15) % bassModes.length;
+        targetN1 = bassModes[idleIdx][0];
+        targetM1 = bassModes[idleIdx][1];
+        var midIdx = Math.floor(t * 0.12) % midModes.length;
+        targetN2 = midModes[midIdx][0];
+        targetM2 = midModes[midIdx][1];
       }
+
+      /* Fast mode interpolation for volatile reshaping */
+      var modeLerp = 1.0 - Math.pow(0.02, dt);
+      curN1 += (targetN1 - curN1) * modeLerp;
+      curM1 += (targetM1 - curM1) * modeLerp;
+      curN2 += (targetN2 - curN2) * modeLerp;
+      curM2 += (targetM2 - curM2) * modeLerp;
+      curN3 += (targetN3 - curN3) * modeLerp;
+      curM3 += (targetM3 - curM3) * modeLerp;
 
       freqTex.needsUpdate    = true;
       uniforms.uTime.value   = t;
@@ -406,6 +471,12 @@
       uniforms.uBass.value   = sBass;
       uniforms.uMid.value    = sMid;
       uniforms.uHigh.value   = sHigh;
+      uniforms.uN1.value     = curN1;
+      uniforms.uM1.value     = curM1;
+      uniforms.uN2.value     = curN2;
+      uniforms.uM2.value     = curM2;
+      uniforms.uN3.value     = curN3;
+      uniforms.uM3.value     = curM3;
 
       renderer.render(scene, camera);
     }

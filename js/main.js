@@ -35,8 +35,14 @@
       toggle.setAttribute('aria-expanded', 'false');
       menu.setAttribute('aria-hidden', 'true');
       document.body.removeAttribute('data-menu-open');
-      /* Surface audio — restore full clarity */
-      if (window.colabAudio) window.colabAudio.surface();
+      /* Surface audio — but stay submerged on project page */
+      if (window.colabAudio) {
+        if (document.body.classList.contains('project-page')) {
+          window.colabAudio.submerge(0.6);
+        } else {
+          window.colabAudio.surface();
+        }
+      }
       /* Stop liquid ripple overlay */
       if (window.colabMenuRipple) window.colabMenuRipple.stop();
     }

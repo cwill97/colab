@@ -147,6 +147,7 @@
         after: function (data) {
           var done = this.async();
           var ST = window.ShaderTransition;
+          var entering = data.next.namespace;
 
           /* Small delay then reveal */
           setTimeout(function () {
@@ -154,9 +155,14 @@
               ST.revealIn(0.0);
             }
 
-            /* Surface audio after reveal starts */
+            /* Surface audio only on home — project stays submerged */
             setTimeout(function () {
-              if (window.colabAudio) window.colabAudio.surface(0.6);
+              if (window.colabAudio) {
+                if (entering === 'home') {
+                  window.colabAudio.surface(0.6);
+                }
+                /* Project page: audio stays submerged (deepened tone) */
+              }
             }, 300);
 
             /* Signal complete after reveal finishes */
