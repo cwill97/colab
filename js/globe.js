@@ -730,7 +730,7 @@
       _computeInlineAndCache(topo);
       return;
     }
-    worker.postMessage({ topo: topo, landTarget: 30000, oceanTarget: 1800 });
+    worker.postMessage({ topo: topo, landTarget: 21000, oceanTarget: 1000 });
     worker.onmessage = function (e) {
       worker.terminate();
       _particleCache = {
