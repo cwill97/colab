@@ -29,14 +29,14 @@
     );
   }
 
-  // Convert lat/lng to globe rotation.y that faces that point forward
-  // The globe's initial rotation.y = PI*0.18 centres on ~32° E (JHB area).
-  // To face a given longitude: rotation.y = -lng * PI/180  (then negate for our coord system)
+  // Convert lat/lng to globe rotation that faces that point toward the camera.
+  // Calibrated from the known-good DEFAULT_ROT values that centre JHB.
+  // Rotating by (lng - HOME.lng) degrees shifts the view from JHB to the target.
   function lngToRotY(lng) {
-    return -lng * (Math.PI / 180);
+    return DEFAULT_ROT_Y - (lng - HOME.lng) * (Math.PI / 180);
   }
   function latToRotX(lat) {
-    return lat * (Math.PI / 180) * 0.35;  // damped — full tilt looks extreme
+    return DEFAULT_ROT_X + (lat - HOME.lat) * (Math.PI / 180) * 0.55;
   }
 
   /* ── Project → City mapping ─────────────────────────────── */
@@ -424,9 +424,6 @@
     projectKeys.forEach(function(key) {
       var idx = parseInt(key);
       var city = PROJECT_CITIES[idx];
-      // midpoint longitude between JHB and destination for a nice framing
-      var midLng = (HOME.lng + city.lng) / 2;
-      var midLat = (HOME.lat + city.lat) / 2;
 
       // For SA (same location as home), just zoom in slightly
       if (idx === 0) {
@@ -436,9 +433,10 @@
           camZ: 2.9
         };
       } else {
+        // Point directly at the destination city
         projectTargets[idx] = {
-          rotY: lngToRotY(midLng),
-          rotX: latToRotX(midLat),
+          rotY: lngToRotY(city.lng),
+          rotX: latToRotX(city.lat),
           camZ: 3.0
         };
       }
