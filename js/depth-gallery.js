@@ -198,7 +198,7 @@
     '  float mask = 1.0 - smoothstep(threshold - edgeW, threshold + edgeW, n);',
     '  float edge = smoothstep(threshold - edgeW * 0.3, threshold, n)',
     '             * smoothstep(threshold + edgeW * 0.6, threshold, n);',
-    '  vec3 col = tex.rgb + edge * vec3(0.1, 0.4, 1.0);',
+    '  vec3 col = mix(tex.rgb, vec3(0.0), edge);',
     '  mask *= smoothstep(0.0, 0.05, uProgress);',
     '  mask = mix(mask, 1.0, smoothstep(0.9, 1.0, uProgress));',
     '  gl_FragColor = vec4(col, tex.a * mask);',
