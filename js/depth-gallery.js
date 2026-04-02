@@ -95,8 +95,11 @@
 
     /* End-of-gallery overscroll detection */
     this.onReachEnd      = null;    /* callback fired once when scrolling past end */
+    this.onReachStart    = null;    /* callback fired once when scrolling before start */
     this._endFired       = false;   /* guard: only fire once per image set */
+    this._startFired     = false;
     this._overscrollAccum = 0;      /* accumulated overscroll past the end */
+    this._underscrollAccum = 0;     /* accumulated overscroll before the start */
     this._overscrollThreshold = 80; /* px of extra scroll needed to trigger */
 
     /* Bound handlers */
@@ -240,7 +243,9 @@
       this.prevScrollCurrent = 0;
       this.camera.position.z = this.cameraStartZ;
       this._endFired       = false;
+      this._startFired     = false;
       this._overscrollAccum = 0;
+      this._underscrollAccum = 0;
     }
   };
 
@@ -265,6 +270,20 @@
     } else if (this.scrollTarget <= maxScroll) {
       /* Reset accumulator if user scrolls back */
       this._overscrollAccum = 0;
+    }
+
+    /* ── Start-of-gallery underscroll detection ── */
+    if (this.scrollTarget < minScroll && !this._startFired) {
+      /* User is trying to scroll before the first image */
+      this._underscrollAccum += (minScroll - this.scrollTarget);
+      if (this._underscrollAccum >= this._overscrollThreshold) {
+        this._startFired = true;
+        if (typeof this.onReachStart === 'function') {
+          this.onReachStart();
+        }
+      }
+    } else if (this.scrollTarget >= minScroll) {
+      this._underscrollAccum = 0;
     }
 
     this.scrollTarget  = Math.max(minScroll, Math.min(maxScroll, this.scrollTarget));
@@ -421,6 +440,15 @@
   DepthGallery.prototype.loadImages = function (images) {
     this.images = images;
     this._loadAndBuildPlanes(images, true);
+  };
+
+  /** Jump camera to the last image (for backward project transitions) */
+  DepthGallery.prototype.scrollToEnd = function () {
+    var maxScroll = (this.cameraStartZ - this.minCameraZ) / this.scrollToWorldFactor;
+    this.scrollTarget  = maxScroll;
+    this.scrollCurrent = maxScroll;
+    this.prevScrollCurrent = maxScroll;
+    this.camera.position.z = this.minCameraZ;
   };
 
   /* ----------------------------------------------------------

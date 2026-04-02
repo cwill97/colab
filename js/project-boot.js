@@ -205,6 +205,7 @@
      ============================================================ */
   var currentIndex = 0;
   var gallery      = null;
+  var transitioning = false;
 
   function switchProject(index) {
     if (index === currentIndex || !gallery) return;
@@ -221,6 +222,59 @@
     updateMeta(project, index);
     if (isMobile) updateMobileTitle(project);
     gallery.loadImages(project.images);
+  }
+
+  /**
+   * Transition to another project via shader wipe.
+   * direction: 'forward' — new project starts at first image
+   *            'backward' — new project starts at last image
+   */
+  function transitionToProject(index, direction) {
+    if (transitioning || !gallery) return;
+    transitioning = true;
+
+    var ST = window.ShaderTransition;
+    if (!ST) {
+      /* No shader — instant swap */
+      _doSwap(index, direction);
+      transitioning = false;
+      return;
+    }
+
+    ST.resetLock();
+    ST.wipeOut(function () {
+      /* Screen is black — swap content */
+      _doSwap(index, direction);
+
+      /* Reveal the new project */
+      setTimeout(function () {
+        ST.revealIn(0.0);
+        setTimeout(function () { transitioning = false; }, 2200);
+      }, 120);
+    });
+  }
+
+  function _doSwap(index, direction) {
+    currentIndex = index;
+    var project = PROJECTS[index];
+
+    /* Update UI */
+    updateMeta(project, index);
+    if (isMobile) updateMobileTitle(project);
+
+    if (!isMobile) {
+      document.querySelectorAll('[data-project-index]').forEach(function (el) {
+        el.classList.toggle('is-active', parseInt(el.dataset.projectIndex, 10) === index);
+      });
+    }
+
+    /* Load new images (resets scroll to start) */
+    gallery.loadImages(project.images);
+
+    /* If going backward, jump camera to last image */
+    if (direction === 'backward') {
+      gallery.scrollToEnd();
+    }
   }
 
   /* ============================================================
@@ -274,30 +328,16 @@
     gallery = new DepthGallery();
     gallery.init(canvas, canvasWrap, project.images);
 
-    /* End-of-gallery → next project */
+    /* ── Scroll past end → next project ── */
     gallery.onReachEnd = function () {
       var nextIdx = (currentIndex + 1) % PROJECTS.length;
+      transitionToProject(nextIdx, 'forward');
+    };
 
-      /* Store next project index for session restore */
-      try { sessionStorage.setItem('colab_activeProject', String(nextIdx)); } catch (e) {}
-
-      /* Use Barba if available for seamless transition */
-      if (typeof barba !== 'undefined') {
-        barba.go('project.html');
-        return;
-      }
-
-      /* Fallback: manual shader wipe + hard navigate */
-      try { sessionStorage.setItem('colab_shaderNav', '1'); } catch (e) {}
-      if (window.colabAudio) window.colabAudio.submerge(0.6);
-
-      var ST = window.ShaderTransition;
-      if (ST) {
-        ST.resetLock();
-        ST.wipeOut(function () { window.location.href = 'project.html'; });
-      } else {
-        window.location.href = 'project.html';
-      }
+    /* ── Scroll before start → previous project ── */
+    gallery.onReachStart = function () {
+      var prevIdx = (currentIndex - 1 + PROJECTS.length) % PROJECTS.length;
+      transitionToProject(prevIdx, 'backward');
     };
 
     gallery.start();
