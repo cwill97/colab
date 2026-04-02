@@ -149,6 +149,63 @@
   };
 
   /* ----------------------------------------------------------
+     REVEAL SHADER — noise dissolve per plane
+     ---------------------------------------------------------- */
+  var _revealVert = [
+    'varying vec2 vUv;',
+    'void main() {',
+    '  vUv = uv;',
+    '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+    '}'
+  ].join('\n');
+
+  var _revealFrag = [
+    'precision highp float;',
+    'varying vec2 vUv;',
+    'uniform sampler2D uTexture;',
+    'uniform float uProgress;',
+    'uniform float uTime;',
+    '',
+    'float hash(vec2 p) {',
+    '  vec3 p3 = fract(vec3(p.xyx) * 0.1031);',
+    '  p3 += dot(p3, p3.yzx + 33.33);',
+    '  return fract((p3.x + p3.y) * p3.z);',
+    '}',
+    '',
+    'float noise(vec2 p) {',
+    '  vec2 i = floor(p);',
+    '  vec2 f = fract(p);',
+    '  f = f * f * (3.0 - 2.0 * f);',
+    '  return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),',
+    '             mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);',
+    '}',
+    '',
+    'float fbm(vec2 p) {',
+    '  float v = 0.0, a = 0.5;',
+    '  for (int i = 0; i < 4; i++) {',
+    '    v += a * noise(p);',
+    '    p *= 2.0;',
+    '    a *= 0.5;',
+    '  }',
+    '  return v;',
+    '}',
+    '',
+    'void main() {',
+    '  vec4 tex = texture2D(uTexture, vUv);',
+    '  float n = fbm(vUv * 5.0 + uTime * 0.03);',
+    '  float threshold = uProgress * 1.35 - 0.15;',
+    '  float edgeW = 0.08 + 0.04 * (1.0 - uProgress);',
+    '  float mask = 1.0 - smoothstep(threshold - edgeW, threshold + edgeW, n);',
+    '  float edge = smoothstep(threshold - edgeW * 0.3, threshold, n)',
+    '             * smoothstep(threshold + edgeW * 0.6, threshold, n);',
+    '  vec3 col = tex.rgb + edge * vec3(0.1, 0.4, 1.0);',
+    '  mask *= smoothstep(0.0, 0.05, uProgress);',
+    '  mask = mix(mask, 1.0, smoothstep(0.9, 1.0, uProgress));',
+    '  gl_FragColor = vec4(col, tex.a * mask);',
+    '}'
+  ].join('\n');
+
+  /* ----------------------------------------------------------
      LOAD IMAGES + BUILD PLANES
      ---------------------------------------------------------- */
   DepthGallery.prototype._loadAndBuildPlanes = function (images, firstLoad) {
@@ -164,6 +221,9 @@
     this.planes.forEach(function (p) {
       self.scene.remove(p);
       p.geometry.dispose();
+      if (p.material.uniforms && p.material.uniforms.uTexture && p.material.uniforms.uTexture.value) {
+        p.material.uniforms.uTexture.value.dispose();
+      }
       p.material.dispose();
     });
     this.planes = [];
@@ -177,13 +237,17 @@
           aspect = tex.image.width / tex.image.height;
         }
 
-        var mat = new THREE.MeshBasicMaterial({
-          map:         tex,
-          color:       tex ? '#ffffff' : '#111111',
-          side:        THREE.DoubleSide,
+        var mat = new THREE.ShaderMaterial({
+          vertexShader:   _revealVert,
+          fragmentShader: _revealFrag,
+          uniforms: {
+            uTexture:  { value: tex },
+            uProgress: { value: i === 0 ? 1.0 : 0.0 },
+            uTime:     { value: 0.0 }
+          },
           transparent: true,
           depthWrite:  false,
-          opacity:     i === 0 ? 1 : 0
+          side:        THREE.DoubleSide
         });
 
         var mesh = new THREE.Mesh(planeGeo, mat);
@@ -323,8 +387,9 @@
       var target = 0;
       if (i === curIdx) target = 1 - blend;
       if (i === nxtIdx) target = Math.max(target, blend);
-      var cur = isFinite(p.material.opacity) ? p.material.opacity : 0;
-      p.material.opacity += (target - cur) * 0.14;
+      var u = p.material.uniforms.uProgress;
+      var cur = isFinite(u.value) ? u.value : 0;
+      u.value += (target - cur) * 0.14;
     });
 
     return { curIdx: curIdx, nxtIdx: nxtIdx, blend: blend };
@@ -352,9 +417,10 @@
     this.planes.forEach(function (p, i) {
       var base       = p.userData.basePos;
       var aspect     = p.userData.aspect || 1;
-      var opacity    = isFinite(p.material.opacity) ? p.material.opacity : 0;
+      var progress   = p.material.uniforms.uProgress.value;
+      progress       = isFinite(progress) ? progress : 0;
       var depthInfl  = 1 + i * 0.05;
-      var parallaxInfl = opacity * depthInfl;
+      var parallaxInfl = progress * depthInfl;
 
       /* Position */
       p.position.x = base.x + self.pointerCurrent.x * self.parallaxX * parallaxInfl;
@@ -363,7 +429,7 @@
       p.position.z = -i * self.planeGap;
 
       /* Rotation (breath tilt) */
-      var breathInfl = self.breathIntensity * opacity;
+      var breathInfl = self.breathIntensity * progress;
       p.rotation.x  = -self.pointerCurrent.y * self.breathTiltAmount * breathInfl;
       p.rotation.y  =  self.pointerCurrent.x * self.breathTiltAmount * breathInfl;
       p.rotation.z  = 0;
@@ -382,6 +448,7 @@
     this.rafId = requestAnimationFrame(this._tick);
 
     var time = performance.now();
+    var elapsed = time * 0.001;  /* seconds */
 
     /* Hold-to-auto-scroll: advance while holding */
     if (this._autoScrolling) {
@@ -395,6 +462,13 @@
     this._updateScroll();
     var visData = this._updatePlaneVisibility();
     this._updatePlaneMotion();
+
+    /* Push time to each plane's shader */
+    this.planes.forEach(function (p) {
+      if (p.material.uniforms && p.material.uniforms.uTime) {
+        p.material.uniforms.uTime.value = elapsed;
+      }
+    });
 
     /* Render — transparent clear, then scene */
     this.renderer.clear(true, true, true);
@@ -423,6 +497,9 @@
 
     this.planes.forEach(function (p) {
       p.geometry.dispose();
+      if (p.material.uniforms && p.material.uniforms.uTexture && p.material.uniforms.uTexture.value) {
+        p.material.uniforms.uTexture.value.dispose();
+      }
       p.material.dispose();
     });
     this.planes = [];
