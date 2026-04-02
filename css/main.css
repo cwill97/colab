@@ -154,15 +154,15 @@ body {
   z-index: 0;
   opacity: 0;
   -webkit-mask-image: radial-gradient(
-    circle 60px at var(--cx, 50%) var(--cy, 50%),
+    circle 78px at var(--cx, 50%) var(--cy, 50%),
     black 0%,
-    black 15%,
+    black 25%,
     transparent 100%
   );
   mask-image: radial-gradient(
-    circle 80px at var(--cx, 50%) var(--cy, 50%),
+    circle 104px at var(--cx, 50%) var(--cy, 50%),
     black 0%,
-    black 15%,
+    black 25%,
     transparent 100%
   );
   transition: opacity 2.6s cubic-bezier(0.16, 1, 0.3, 1);
@@ -171,6 +171,24 @@ body {
 body.cursor-active .bg-hover-layer {
   opacity: 1;
   transition: opacity 2.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Ambient auto-reveal spots ───────────────────────────── */
+.bg-ambient-spot {
+  position: fixed;
+  inset: 0;
+  background-image: url('../assets/BG_Hover.webp');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  will-change: opacity, mask-image, -webkit-mask-image;
+}
+
+.bg-ambient-spot.is-visible {
+  opacity: 1;
 }
 
 img, svg {
