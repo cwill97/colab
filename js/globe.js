@@ -30,13 +30,25 @@
   }
 
   // Convert lat/lng to globe rotation that faces that point toward the camera.
-  // Calibrated from the known-good DEFAULT_ROT values that centre JHB.
-  // Rotating by (lng - HOME.lng) degrees shifts the view from JHB to the target.
+  //
+  // Derivation (longitude → rotation.y):
+  //   In local space a point at `lng` sits at theta = -lng*PI/180.
+  //   Its XZ position: x = sin(theta), z = -cos(theta).
+  //   Camera is at +Z. To bring the point to +Z (face camera):
+  //     rotation.y = PI - lng * PI/180
+  //
+  // Latitude → rotation.x:
+  //   Tilt the globe to raise/lower the target latitude toward center.
+  //   Southern (negative lat) → positive rotation.x (tilt forward).
+  //   Damped to avoid extreme angles at high latitudes.
+  //
+  var LAT_DAMP = 0.45;
+
   function lngToRotY(lng) {
-    return DEFAULT_ROT_Y - (lng - HOME.lng) * (Math.PI / 180);
+    return Math.PI - lng * (Math.PI / 180);
   }
   function latToRotX(lat) {
-    return DEFAULT_ROT_X + (lat - HOME.lat) * (Math.PI / 180) * 0.55;
+    return -lat * (Math.PI / 180) * LAT_DAMP;
   }
 
   /* ── Project → City mapping ─────────────────────────────── */
@@ -50,9 +62,9 @@
     2: { name: 'New York',      lat: 40.71,  lng: -74.0  }    // Mannequin Films → NY
   };
 
-  // Default (idle) globe orientation — Africa/Europe forward
-  var DEFAULT_ROT_Y = Math.PI * 0.18;
-  var DEFAULT_ROT_X = Math.PI * 0.05;
+  // Default (idle) globe orientation — JHB centred
+  var DEFAULT_ROT_Y = lngToRotY(HOME.lng);   // PI - 28°
+  var DEFAULT_ROT_X = latToRotX(HOME.lat);   // tilt for -26.2°
   var DEFAULT_CAM_Z = 3.6;
 
 
