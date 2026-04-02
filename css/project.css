@@ -561,6 +561,36 @@
 }
 
 /* ============================================================
+   MOBILE SCROLL HINT — hidden on desktop
+   ============================================================ */
+.project-mobile-hint {
+  display: none;
+}
+
+/* ============================================================
+   DESKTOP CURSOR TOOLTIP — "scroll" follows mouse
+   ============================================================ */
+.project-cursor-tooltip {
+  position: fixed;
+  z-index: 999;
+  pointer-events: none;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out);
+  white-space: nowrap;
+  /* Offset slightly from cursor so it doesn't overlap the arrow tip */
+  transform: translate(14px, 14px);
+}
+
+.project-cursor-tooltip.is-visible {
+  opacity: 0.4;
+}
+
+/* ============================================================
    MOBILE — Project Page Layout (viewport-locked)
    Canvas top → Title + About mid → Related Projects bottom
    ============================================================ */
@@ -679,6 +709,29 @@
      M-P5. Related projects — hidden on mobile
      -------------------------------------------------------- */
   .project-page .related-projects {
+    display: none !important;
+  }
+
+  /* --------------------------------------------------------
+     M-P6. Mobile scroll hint — below about text
+     -------------------------------------------------------- */
+  .project-page .project-mobile-hint {
+    display: block;
+    position: fixed;
+    inset-block-end: 20px;
+    inset-inline-start: var(--m);
+    z-index: 50;
+
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    opacity: 0.3;
+  }
+
+  /* Hide desktop cursor tooltip on mobile */
+  .project-cursor-tooltip {
     display: none !important;
   }
 

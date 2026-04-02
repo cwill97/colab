@@ -313,9 +313,99 @@
     requestAnimationFrame(function () {
       document.body.classList.add('is-ready');
     });
+
+    /* Desktop cursor tooltip — "scroll" follows the mouse */
+    if (!isMobile) initCursorTooltip();
+  }
+
+  /* ============================================================
+     DESKTOP CURSOR TOOLTIP
+     ============================================================ */
+  var tooltipEl  = null;
+  var tooltipRaf = null;
+  var tipTargetX = 0, tipTargetY = 0;
+  var tipCurrentX = 0, tipCurrentY = 0;
+  var TIP_LERP   = 0.12;
+
+  /** Read the current CSS zoom applied to <html> by scale.js.
+      Returns 1 when no zoom is set. clientX/clientY are in screen
+      pixels; dividing by zoom converts to CSS-pixel space so the
+      fixed-position tooltip lands under the actual cursor. */
+  function getZoom() {
+    var z = parseFloat(document.documentElement.style.zoom);
+    return (z && z > 0) ? z : 1;
+  }
+
+  function initCursorTooltip() {
+    /* Create element */
+    tooltipEl = document.createElement('span');
+    tooltipEl.className = 'project-cursor-tooltip';
+    tooltipEl.textContent = 'scroll';
+    tooltipEl.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(tooltipEl);
+
+    /* Track mouse */
+    document.addEventListener('mousemove', onTipMove, { passive: true });
+    document.addEventListener('mouseleave', onTipLeave, { passive: true });
+    document.addEventListener('mouseenter', onTipEnter, { passive: true });
+  }
+
+  function onTipMove(e) {
+    var z = getZoom();
+    tipTargetX = e.clientX / z;
+    tipTargetY = e.clientY / z;
+
+    if (!tooltipEl.classList.contains('is-visible')) {
+      /* Snap to position on first show (no lag) */
+      tipCurrentX = tipTargetX;
+      tipCurrentY = tipTargetY;
+      tooltipEl.style.left = tipCurrentX + 'px';
+      tooltipEl.style.top  = tipCurrentY + 'px';
+      tooltipEl.classList.add('is-visible');
+    }
+
+    if (!tooltipRaf) startTipLoop();
+  }
+
+  function onTipLeave() {
+    if (tooltipEl) tooltipEl.classList.remove('is-visible');
+  }
+
+  function onTipEnter(e) {
+    var z = getZoom();
+    tipTargetX = e.clientX / z;
+    tipTargetY = e.clientY / z;
+  }
+
+  function startTipLoop() {
+    function tick() {
+      tipCurrentX += (tipTargetX - tipCurrentX) * TIP_LERP;
+      tipCurrentY += (tipTargetY - tipCurrentY) * TIP_LERP;
+      if (tooltipEl) {
+        tooltipEl.style.left = tipCurrentX + 'px';
+        tooltipEl.style.top  = tipCurrentY + 'px';
+      }
+
+      if (Math.abs(tipTargetX - tipCurrentX) > 0.3 ||
+          Math.abs(tipTargetY - tipCurrentY) > 0.3) {
+        tooltipRaf = requestAnimationFrame(tick);
+      } else {
+        tooltipRaf = null;
+      }
+    }
+    tooltipRaf = requestAnimationFrame(tick);
+  }
+
+  function destroyCursorTooltip() {
+    document.removeEventListener('mousemove', onTipMove);
+    document.removeEventListener('mouseleave', onTipLeave);
+    document.removeEventListener('mouseenter', onTipEnter);
+    if (tooltipRaf) { cancelAnimationFrame(tooltipRaf); tooltipRaf = null; }
+    if (tooltipEl) { tooltipEl.remove(); tooltipEl = null; }
   }
 
   function destroy() {
+    destroyCursorTooltip();
     if (gallery) {
       gallery.destroy();
       gallery = null;

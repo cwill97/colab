@@ -443,24 +443,30 @@
      INPUT EVENTS
      ---------------------------------------------------------- */
   DepthGallery.prototype._bindEvents = function () {
-    /* Scroll events bound to canvas so they only fire when hovering the panel */
-    this.canvas.addEventListener('wheel',       this._onWheel,       { passive: false });
-    this.canvas.addEventListener('touchstart',  this._onTouchStart,  { passive: true  });
-    this.canvas.addEventListener('touchmove',   this._onTouchMove,   { passive: false });
-    this.canvas.addEventListener('touchend',    this._onTouchEnd,    { passive: true  });
-    this.canvas.addEventListener('touchcancel', this._onTouchEnd,    { passive: true  });
+    /* On mobile, bind scroll/touch to document so the gallery
+       responds to input anywhere on screen — not just the canvas */
+    var isMobile = window.matchMedia('(max-width: 767px)').matches;
+    var scrollTarget = isMobile ? document : this.canvas;
+
+    scrollTarget.addEventListener('wheel',       this._onWheel,       { passive: false });
+    scrollTarget.addEventListener('touchstart',  this._onTouchStart,  { passive: true  });
+    scrollTarget.addEventListener('touchmove',   this._onTouchMove,   { passive: false });
+    scrollTarget.addEventListener('touchend',    this._onTouchEnd,    { passive: true  });
+    scrollTarget.addEventListener('touchcancel', this._onTouchEnd,    { passive: true  });
+    this._scrollTarget = scrollTarget;  /* store ref for unbind */
     window.addEventListener('pointermove', this._onPointerMove, { passive: true });
     window.addEventListener('pointerleave',this._onPointerLeave,{ passive: true });
     window.addEventListener('resize',      this._onResize);
   };
 
   DepthGallery.prototype._unbindEvents = function () {
-    if (this.canvas) {
-      this.canvas.removeEventListener('wheel',      this._onWheel);
-      this.canvas.removeEventListener('touchstart', this._onTouchStart);
-      this.canvas.removeEventListener('touchmove',  this._onTouchMove);
-      this.canvas.removeEventListener('touchend',   this._onTouchEnd);
-      this.canvas.removeEventListener('touchcancel',this._onTouchEnd);
+    var t = this._scrollTarget || this.canvas;
+    if (t) {
+      t.removeEventListener('wheel',      this._onWheel);
+      t.removeEventListener('touchstart', this._onTouchStart);
+      t.removeEventListener('touchmove',  this._onTouchMove);
+      t.removeEventListener('touchend',   this._onTouchEnd);
+      t.removeEventListener('touchcancel',this._onTouchEnd);
     }
     window.removeEventListener('pointermove', this._onPointerMove);
     window.removeEventListener('pointerleave',this._onPointerLeave);
