@@ -47,7 +47,12 @@
 .project-main {
   position: fixed;
   inset-block-start: var(--nav-height);
-  inset-block-end: 0;
+  /* Explicit height instead of inset-block-end:0.
+     CSS zoom multiplies fixed-element insets, so bottom:0 overshoots
+     the physical viewport at zoom > 1. Using 900px (the design artboard
+     height) minus nav guarantees the panel scales in lockstep with zoom
+     and never extends beyond the screen. */
+  height: calc(900px - var(--nav-height));
   inset-inline-start: 0;
   /* Stop at col 7: leave room for right rail (cols 8–10) */
   /* Right edge = grid-margin + 3 col-widths + 3 gutters + viz-width */
