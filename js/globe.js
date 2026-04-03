@@ -664,6 +664,19 @@
       resume: function () {
         if (!globeRunning) { globeRunning = true; animate(); }
       },
+      /** Reset camera, rotation, and active state to defaults */
+      reset: function () {
+        activeProject = -1;
+        targetRotY = DEFAULT_ROT_Y;
+        targetRotX = DEFAULT_ROT_X;
+        targetCamZ = DEFAULT_CAM_Z;
+        velX = 0;
+        velY = 0;
+      },
+      /** Re-bind hover listeners after Barba swaps the container */
+      rebindHovers: function () {
+        bindProjectHovers();
+      },
       isInit: true
     };
   }

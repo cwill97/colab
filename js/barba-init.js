@@ -56,6 +56,13 @@
         window.colabGlobe.resume();
       }
 
+      /* Reset globe to default position and rebind hover listeners
+         (Barba replaced the container so old .project-item refs are gone) */
+      if (window.colabGlobe) {
+        window.colabGlobe.reset();
+        window.colabGlobe.rebindHovers();
+      }
+
       /* Re-init homepage JS (scroll thumb, project hovers, etc.) */
       if (window.colabMainBoot) window.colabMainBoot();
     }
