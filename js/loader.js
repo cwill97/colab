@@ -128,35 +128,44 @@
      Characters cycle through random glyphs before resolving
      to their final value, creating a terminal decryption feel.
   ---------------------------------------------------------- */
-  var GLYPHS = 'ラドクリフマラソンわたしワタシんョシ゚ンハバンドを！＝0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  var SHUFFLE_FPS    = 1000 / 60;     /* tick rate — 60fps */
+  var GLYPHS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*(){}<>[]|/\\:;=-+_?,.';
+  var COLORS = [
+    'rgba(74,222,128,0.9)',   /* green  */
+    'rgba(45,212,191,0.85)',  /* teal   */
+    'rgba(96,165,250,0.8)',   /* blue   */
+    'rgba(129,140,248,0.7)',  /* indigo */
+    'rgba(255,255,255,0.5)',  /* dim white */
+    'rgba(255,255,255,0.35)', /* dimmer white */
+  ];
+  var SHUFFLE_FPS      = 1000 / 40;   /* tick rate */
   var RESOLVE_PER_TICK = 3;           /* chars resolved each tick */
-  var CYCLES_BEFORE   = 1;            /* min shuffle cycles before resolve */
+  var CYCLES_BEFORE    = 2;           /* min shuffle cycles before resolve */
 
   function randomGlyph() {
     return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
   }
 
+  function randomColor() {
+    return COLORS[Math.floor(Math.random() * COLORS.length)];
+  }
+
   /**
    * Shuffle-reveal a string inside a DOM element.
-   * Characters start as random glyphs and resolve left-to-right.
-   * @param {HTMLElement} el      — container element
-   * @param {string}      text    — final resolved text
-   * @param {function}    onDone  — callback when animation completes
+   * Characters start as colored random glyphs and resolve left-to-right.
    */
   function shuffleReveal(el, text, onDone) {
-    /* Build a span for every character */
     var chars = [];
     el.innerHTML = '';
     for (var i = 0; i < text.length; i++) {
       var span = document.createElement('span');
-      span.textContent = text[i] === ' ' ? '\u00A0' : randomGlyph();
-      span.style.opacity = '0.4';
+      var isSpace = text[i] === ' ';
+      span.textContent = isSpace ? '\u00A0' : randomGlyph();
+      if (!isSpace) span.style.color = randomColor();
       el.appendChild(span);
       chars.push({
         el: span,
         final: text[i],
-        resolved: text[i] === ' ',   /* spaces resolve instantly */
+        resolved: isSpace,
         cycles: 0
       });
     }
@@ -165,10 +174,11 @@
     var allDone = false;
 
     var intervalId = setInterval(function () {
-      /* Cycle unresolved characters through random glyphs */
+      /* Cycle unresolved characters through random colored glyphs */
       for (var c = 0; c < chars.length; c++) {
         if (!chars[c].resolved) {
           chars[c].el.textContent = randomGlyph();
+          chars[c].el.style.color = randomColor();
           chars[c].cycles++;
         }
       }
@@ -183,7 +193,7 @@
         }
         if (ch.cycles >= CYCLES_BEFORE) {
           ch.el.textContent = ch.final === ' ' ? '\u00A0' : ch.final;
-          ch.el.style.opacity = '1';
+          ch.el.style.color = '';  /* revert to inherited white */
           ch.resolved = true;
           resolveIndex++;
           resolved++;
