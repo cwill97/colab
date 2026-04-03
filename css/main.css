@@ -1132,7 +1132,7 @@ main {
 }
 
 .loader-cta:not(:disabled):hover {
-  opacity: 0;
+  opacity: 1;
 }
 
 /* While loader is active, prevent main content interaction */
