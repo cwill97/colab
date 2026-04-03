@@ -16,6 +16,8 @@
       index:    '001',
       title:    'Viking Gear',
       services: 'Brand Development · Web Design · E-Commerce · 3D · Animation',
+      hasVideo: true,
+      description: 'Viking Gear forges strength through primal movement. Rooted in the warrior spirit, it reimagines ancient training tools such as maces, clubs, and hammers as modern extensions of discipline, flow, and mastery. Every piece honours resilience, balance, and raw power, turning training into ritual.\n\nWe built the brand from the ground up. We shaped the strategy, art direction, and complete visual identity, creating a bold, purposeful world where ancient form meets contemporary performance.',
       images: [
         'assets/Project_Img_01.webp',
         'assets/Project_Img_Viking_02.webp',
@@ -34,6 +36,8 @@
       index:    '002',
       title:    'Rebel Kids Club',
       services: 'Brand Development · Photography · E-Commerce · Web Design',
+      hasVideo: false,
+      description: 'Rebel Kids Club breaks the pink and blue code. It redefines toddler fashion with gender neutral clothing that celebrates individuality, intention, and timeless style from day one. Bold yet grounded, modern yet wearable, every piece gives parents a fresh way to dress their little rebels.\n\nWe built the brand from the ground up. We created the full identity system, from name and positioning to visual language and guidelines, crafting a distinctive voice that feels confident, inclusive, and unmistakably its own.',
       images: [
         'assets/Project_Img_02.webp',
         'assets/Project_Img_Rebel_02.webp',
@@ -48,6 +52,8 @@
       index:    '003',
       title:    'Mannequin Films',
       services: 'Brand Development · Web Design · Motion',
+      hasVideo: false,
+      description: 'Mannequin Films captures the raw poetry of visual storytelling. Through photography and video, they transform fleeting moments into enduring narratives that resonate with authenticity and precision. Every frame is crafted with intention, blending creativity, emotion, and technical excellence to bring stories to life.\n\nWe led a full rebrand, forging a new identity that honours their cinematic roots while sharpening their contemporary edge. From the refined brandmark to the complete visual system, we distilled their essence into a cohesive language that feels both timeless and alive.',
       images: [
         'assets/Project_Img_03.webp',
         'assets/Project_Img_Mannequin_02.webp',
@@ -75,6 +81,8 @@
   var metaFill     = document.querySelector('[data-meta-fill]');
   var metaCount    = document.querySelector('[data-meta-count]');
   var scrollHint   = document.querySelector('[data-scroll-hint]');
+  var aboutText    = document.querySelector('.about-text');
+  var videoPreview = document.querySelector('[data-video-preview]');
 
   /* ============================================================
      META OVERLAY
@@ -85,6 +93,16 @@
     if (metaCount)    metaCount.textContent    = '0' + (index + 1) + ' / 0' + PROJECTS.length;
     if (metaFill)     metaFill.style.width     = ((index / Math.max(PROJECTS.length - 1, 1)) * 100) + '%';
     if (metaTitle)    metaTitle.textContent    = project.title;
+
+    /* Update about-text with project-specific description */
+    if (aboutText && project.description) {
+      aboutText.textContent = project.description;
+    }
+
+    /* Show/hide video preview based on project */
+    if (videoPreview) {
+      videoPreview.style.display = project.hasVideo ? '' : 'none';
+    }
   }
 
   /* ============================================================
@@ -475,6 +493,8 @@
       metaFill = document.querySelector('[data-meta-fill]');
       metaCount = document.querySelector('[data-meta-count]');
       scrollHint = document.querySelector('[data-scroll-hint]');
+      aboutText = document.querySelector('.about-text');
+      videoPreview = document.querySelector('[data-video-preview]');
       if (!canvas || !canvasWrap) return;
       (function waitForLibs() {
         if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') init();

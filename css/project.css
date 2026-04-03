@@ -282,8 +282,21 @@
   opacity: 0.1;
 }
 
-/* is-active no longer promotes — treated same as rest (dimmed) */
-/* Click/active state only affects canvas content, not visual selection */
+/* is-active — current project indicator on desktop */
+.related-project-item.is-active {
+  opacity: 0.7;
+  padding-inline-start: 8px;
+}
+
+.related-project-item.is-active::before {
+  transform: scaleY(1);
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* When hovering the list, active item dims with the rest (hover takes priority) */
+.related-project-list:hover .related-project-item.is-active:not(:hover) {
+  opacity: 0.15;
+}
 
 .related-project-item:last-child {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -351,7 +364,10 @@
   opacity: 0.55;
 }
 
-/* No persistent active state styling — all items equal at rest */
+/* Active CTA is always visible */
+.related-project-item.is-active .related-project-cta {
+  opacity: 0.5;
+}
 
 /* ------------------------------------------------------------
    About text override for project page
