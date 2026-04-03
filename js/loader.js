@@ -131,7 +131,6 @@
   ---------------------------------------------------------- */
   var GLYPHS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*(){}<>[]|/\\:;=-+_?,.';
   var COLORS = [
-    'rgba(0, 213, 255)',   /* blue  */
     'rgba(0, 113, 255)',   /* blue light  */
     'rgba(8, 21, 45)',   /* blue baby  */
 
