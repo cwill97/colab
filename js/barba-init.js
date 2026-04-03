@@ -92,14 +92,21 @@
 
     /* ── Barba init ── */
     barba.init({
-      /* Don't let Barba intercept external, anchor, or same-page links */
+      /* Don't let Barba intercept non-page protocols or anchor-only links.
+         Note: Barba already blocks cross-origin, cross-port, target="_blank",
+         and download links internally — no need to duplicate here.
+         data.href is the RESOLVED full URL, so never test for http/https. */
       prevent: function (data) {
         var href = data.href;
         if (!href) return true;
-        /* Skip external links */
-        if (/^(https?:|javascript:|mailto:|tel:)/.test(href)) return true;
-        /* Skip anchor-only links */
-        if (href.indexOf('#') === 0) return true;
+        /* Skip non-page protocols */
+        if (/^(javascript:|mailto:|tel:)/.test(href)) return true;
+        /* Skip anchor-only links (raw attribute starts with #) */
+        var el = data.el;
+        if (el && el.getAttribute) {
+          var raw = el.getAttribute('href') || '';
+          if (raw.charAt(0) === '#') return true;
+        }
         return false;
       },
 
