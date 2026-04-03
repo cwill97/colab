@@ -1696,6 +1696,7 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
   .loader-center {
     cursor: pointer;
     padding: 20px;
+    margin-top: 420px;
   }
 
   /* Ensure nav toggle meets minimum touch target */
