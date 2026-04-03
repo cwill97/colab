@@ -1037,7 +1037,7 @@ main {
   font-family: var(--font-mono);
   font-size: 9px;
   line-height: 1.8;
-  color: var(--color-terminal);
+  color: var(--color-muted);
   letter-spacing: 0.04em;
   opacity: 0.9;
 }
