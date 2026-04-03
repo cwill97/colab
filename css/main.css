@@ -1695,7 +1695,7 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
   /* Make the loader center area a larger tap zone on mobile */
   .loader-center {
     cursor: pointer;
-    padding: 20px;
+    padding: 10px;
     margin-top: 220px;
   }
 
