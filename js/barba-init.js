@@ -155,13 +155,10 @@
               ST.revealIn(0.0);
             }
 
-            /* Surface audio only on home — project stays submerged */
+            /* Surface audio after reveal — both pages get full audio */
             setTimeout(function () {
               if (window.colabAudio) {
-                if (entering === 'home') {
-                  window.colabAudio.surface(0.6);
-                }
-                /* Project page: audio stays submerged (deepened tone) */
+                window.colabAudio.surface(0.6);
               }
             }, 300);
 

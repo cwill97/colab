@@ -6,6 +6,10 @@
  * Particles settle along nodal lines (amplitude ≈ 0), matching the
  * globe's ice-blue palette (0.7, 0.85, 1.0).
  * Click to play/mute.
+ *
+ * Audio pipeline is independent of WebGL rendering — audio persists
+ * across Barba transitions and works even when the visualizer canvas
+ * is hidden (e.g. project page direct load).
  */
 
 (function () {
@@ -20,10 +24,130 @@
   var FFT_SIZE  = 512;
   var NUM_BANDS = 32;
 
-  function init() {
+  /* ══════════════════════════════════════════════════════
+     AUDIO SYSTEM — lives at IIFE scope, survives transitions
+     ══════════════════════════════════════════════════════ */
+  var audioCtx  = null;
+  var analyser  = null;
+  var dataArray = null;
+  var gainNode  = null;
+  var lpFilter  = null;
+  var audioEl   = null;
+  var muted     = false;
+  var started   = false;
+
+  function setupAudio() {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = FFT_SIZE;
+    analyser.smoothingTimeConstant = 0.75;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 1;
+
+    lpFilter = audioCtx.createBiquadFilter();
+    lpFilter.type = 'lowpass';
+    lpFilter.frequency.value = 22000;
+    lpFilter.Q.value = 0.7;
+
+    audioEl = new Audio();
+    audioEl.src = AUDIO_SRC;
+    audioEl.loop = true;
+    audioEl.crossOrigin = 'anonymous';
+    var source = audioCtx.createMediaElementSource(audioEl);
+    source.connect(gainNode);
+    gainNode.connect(lpFilter);
+    lpFilter.connect(analyser);
+    analyser.connect(audioCtx.destination);
+
+    window.colabAudio = {
+      submerge: function (dur) {
+        if (!lpFilter) return;
+        var d = dur || 0.8;
+        gsap.to(lpFilter.frequency, { duration: d, value: 400, ease: 'power2.in' });
+        gsap.to(lpFilter.Q, { duration: d, value: 3.5, ease: 'power2.in' });
+      },
+      surface: function (dur) {
+        if (!lpFilter) return;
+        var d = dur || 0.6;
+        gsap.to(lpFilter.frequency, { duration: d, value: 22000, ease: 'power2.out' });
+        gsap.to(lpFilter.Q, { duration: d, value: 0.7, ease: 'power2.out' });
+      }
+    };
+  }
+
+  function startPlayback() {
+    audioCtx.resume().then(function () {
+      audioEl.play().catch(function (err) { console.warn('audio play failed', err); });
+    });
+  }
+
+  function setMuted(container, val) {
+    muted = val;
+    if (container) {
+      container.setAttribute('data-muted',  muted ? 'true' : 'false');
+      container.setAttribute('aria-label',  muted ? 'Audio visualizer — click to unmute' : 'Audio visualizer — click to mute');
+      container.setAttribute('aria-pressed', muted ? 'true' : 'false');
+    }
+    if (gainNode) gsap.to(gainNode.gain, { duration: 0.5, value: muted ? 0 : 1, ease: 'power2.out' });
+  }
+
+  function handleActivate(container) {
+    if (!started) { setupAudio(); started = true; setMuted(container, false); startPlayback(); return; }
+    setMuted(container, !muted);
+    if (!muted && audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  /* ── Bind audio triggers ──
+     If the visualizer container is visible, clicking it toggles audio.
+     On project pages where the visualizer is hidden, the first user
+     interaction (click/scroll/key) auto-starts audio so it seamlessly
+     plays even on direct page loads. */
+  var audioTriggersBound = false;
+
+  function bindAudioTriggers(container) {
+    if (audioTriggersBound) return;
+    audioTriggersBound = true;
+
+    var isHidden = container.style.display === 'none' ||
+                   container.getAttribute('aria-hidden') === 'true';
+
+    /* Always bind the container for when it becomes visible again (Barba) */
+    container.addEventListener('click', function () { handleActivate(container); });
+    container.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(container); }
+    });
+
+    /* If visualizer is hidden (project page direct load), auto-start on
+       first user interaction anywhere on the page */
+    if (isHidden) {
+      var removed = false;
+      function autoStart() {
+        if (removed) return;
+        removed = true;
+        if (!started) handleActivate(container);
+        document.removeEventListener('click', autoStart);
+        document.removeEventListener('keydown', autoStart);
+        document.removeEventListener('scroll', autoStart);
+      }
+      document.addEventListener('click', autoStart);
+      document.addEventListener('keydown', autoStart);
+      document.addEventListener('scroll', autoStart, { passive: true });
+    }
+  }
+
+  /* ══════════════════════════════════════════════════════
+     WEBGL VISUALIZER — only runs when container is visible
+     ══════════════════════════════════════════════════════ */
+  function initVisual() {
     var container = document.querySelector('[data-visualizer]');
     var canvas    = document.querySelector('[data-viz-canvas]');
     if (!container || !canvas) return;
+
+    /* Always bind audio triggers regardless of visibility */
+    bindAudioTriggers(container);
+
+    /* If hidden, skip WebGL entirely — audio still works */
     if (container.style.display === 'none') return;
 
     var W = container.offsetWidth  || 255;
@@ -258,83 +382,6 @@
     scene.add(quad);
 
     /* ══════════════════════════════════════════════════════
-       Audio — identical chain to previous version
-       ══════════════════════════════════════════════════════ */
-    var audioCtx  = null;
-    var analyser  = null;
-    var dataArray = null;
-    var gainNode  = null;
-    var lpFilter  = null;
-    var audioEl   = null;
-    var muted     = false;
-    var started   = false;
-
-    function setupAudio() {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = FFT_SIZE;
-      analyser.smoothingTimeConstant = 0.75;
-      dataArray = new Uint8Array(analyser.frequencyBinCount);
-      gainNode = audioCtx.createGain();
-      gainNode.gain.value = 1;
-
-      lpFilter = audioCtx.createBiquadFilter();
-      lpFilter.type = 'lowpass';
-      lpFilter.frequency.value = 22000;
-      lpFilter.Q.value = 0.7;
-
-      audioEl = new Audio();
-      audioEl.src = AUDIO_SRC;
-      audioEl.loop = true;
-      audioEl.crossOrigin = 'anonymous';
-      var source = audioCtx.createMediaElementSource(audioEl);
-      source.connect(gainNode);
-      gainNode.connect(lpFilter);
-      lpFilter.connect(analyser);
-      analyser.connect(audioCtx.destination);
-
-      window.colabAudio = {
-        submerge: function (dur) {
-          if (!lpFilter) return;
-          var d = dur || 0.8;
-          gsap.to(lpFilter.frequency, { duration: d, value: 400, ease: 'power2.in' });
-          gsap.to(lpFilter.Q, { duration: d, value: 3.5, ease: 'power2.in' });
-        },
-        surface: function (dur) {
-          if (!lpFilter) return;
-          var d = dur || 0.6;
-          gsap.to(lpFilter.frequency, { duration: d, value: 22000, ease: 'power2.out' });
-          gsap.to(lpFilter.Q, { duration: d, value: 0.7, ease: 'power2.out' });
-        }
-      };
-    }
-
-    function startPlayback() {
-      audioCtx.resume().then(function () {
-        audioEl.play().catch(function (err) { console.warn('audio play failed', err); });
-      });
-    }
-
-    function setMuted(val) {
-      muted = val;
-      container.setAttribute('data-muted',  muted ? 'true' : 'false');
-      container.setAttribute('aria-label',  muted ? 'Audio visualizer — click to unmute' : 'Audio visualizer — click to mute');
-      container.setAttribute('aria-pressed', muted ? 'true' : 'false');
-      if (gainNode) gsap.to(gainNode.gain, { duration: 0.5, value: muted ? 0 : 1, ease: 'power2.out' });
-    }
-
-    function handleActivate() {
-      if (!started) { setupAudio(); started = true; setMuted(false); startPlayback(); return; }
-      setMuted(!muted);
-      if (!muted && audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
-    container.addEventListener('click', handleActivate);
-    container.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(); }
-    });
-
-    /* ══════════════════════════════════════════════════════
        MODE DRIVER
        Maps audio bands → Chladni mode numbers (n, m).
        Transient/beat detection triggers discrete mode jumps
@@ -491,7 +538,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    waitForLibs(init);
+    waitForLibs(initVisual);
   });
 
 }());
