@@ -124,7 +124,83 @@
   }
 
   /* ----------------------------------------------------------
-     Typewriter: print each log line sequentially
+     Type Shuffle — Effect 3 (staggered left-to-right decode)
+     Characters cycle through random glyphs before resolving
+     to their final value, creating a terminal decryption feel.
+  ---------------------------------------------------------- */
+  var GLYPHS = 'ラドクリフマラソンわたしワタシんョシ゚ンハバンドを！＝0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  var SHUFFLE_FPS    = 1000 / 30;     /* tick rate for glyph cycling */
+  var RESOLVE_STAGGER = 30;           /* ms between each char resolving */
+  var CYCLES_BEFORE   = 3;            /* min shuffle cycles before resolve */
+
+  function randomGlyph() {
+    return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+  }
+
+  /**
+   * Shuffle-reveal a string inside a DOM element.
+   * Characters start as random glyphs and resolve left-to-right.
+   * @param {HTMLElement} el      — container element
+   * @param {string}      text    — final resolved text
+   * @param {function}    onDone  — callback when animation completes
+   */
+  function shuffleReveal(el, text, onDone) {
+    /* Build a span for every character */
+    var chars = [];
+    el.innerHTML = '';
+    for (var i = 0; i < text.length; i++) {
+      var span = document.createElement('span');
+      span.textContent = text[i] === ' ' ? '\u00A0' : randomGlyph();
+      span.style.opacity = '0.4';
+      el.appendChild(span);
+      chars.push({
+        el: span,
+        final: text[i],
+        resolved: text[i] === ' ',   /* spaces resolve instantly */
+        cycles: 0
+      });
+    }
+
+    var resolveIndex = 0;
+    var allDone = false;
+
+    var intervalId = setInterval(function () {
+      /* Cycle unresolved characters through random glyphs */
+      for (var c = 0; c < chars.length; c++) {
+        if (!chars[c].resolved) {
+          chars[c].el.textContent = randomGlyph();
+          chars[c].cycles++;
+        }
+      }
+
+      /* Resolve the next character if it's had enough cycles */
+      while (resolveIndex < chars.length) {
+        var ch = chars[resolveIndex];
+        if (ch.resolved) {
+          resolveIndex++;
+          continue;
+        }
+        if (ch.cycles >= CYCLES_BEFORE) {
+          ch.el.textContent = ch.final === ' ' ? '\u00A0' : ch.final;
+          ch.el.style.opacity = '1';
+          ch.resolved = true;
+          resolveIndex++;
+          break;                      /* one resolve per tick for stagger */
+        }
+        break;
+      }
+
+      /* Check if everything is resolved */
+      if (resolveIndex >= chars.length && !allDone) {
+        allDone = true;
+        clearInterval(intervalId);
+        if (onDone) onDone();
+      }
+    }, SHUFFLE_FPS);
+  }
+
+  /* ----------------------------------------------------------
+     Typewriter: print each log line with shuffle decode
   ---------------------------------------------------------- */
   function printLines(index) {
     if (index >= LINES.length) {
@@ -134,23 +210,30 @@
 
     var entry = LINES[index];
     var li    = document.createElement('li');
-    var okStr = entry.ok ? ' [OK]' : ' [ERR]';
+    var textSpan = document.createElement('span');
+    var okSpan   = document.createElement('span');
+    okSpan.className = 'log-ok';
 
-    li.innerHTML = entry.text + '<span class="log-ok">' + okStr + '</span>';
+    li.appendChild(textSpan);
+    li.appendChild(okSpan);
     logEl.appendChild(li);
 
-    /* Tiny frame delay then show */
     requestAnimationFrame(function () {
       li.classList.add('is-visible');
     });
 
-    linesComplete++;
-    var pct = (linesComplete / totalLines) * 100;
-    setProgress(pct);
+    /* Shuffle-decode the main text, then reveal [OK] */
+    shuffleReveal(textSpan, entry.text, function () {
+      var okStr = entry.ok ? ' [OK]' : ' [ERR]';
+      okSpan.textContent = okStr;
 
-    setTimeout(function () {
-      printLines(index + 1);
-    }, entry.delay);
+      linesComplete++;
+      setProgress((linesComplete / totalLines) * 100);
+
+      setTimeout(function () {
+        printLines(index + 1);
+      }, entry.delay);
+    });
   }
 
   /* ----------------------------------------------------------
@@ -170,12 +253,16 @@
 
     var line = FOOTER_LINES[index];
     var p    = document.createElement('p');
-    p.textContent = line || '\u00A0'; /* non-breaking space for blank lines */
     footerEl.appendChild(p);
 
-    setTimeout(function () {
-      printFooter(index + 1);
-    }, 120);
+    if (line) {
+      shuffleReveal(p, line, function () {
+        setTimeout(function () { printFooter(index + 1); }, 120);
+      });
+    } else {
+      p.textContent = '\u00A0';
+      setTimeout(function () { printFooter(index + 1); }, 120);
+    }
   }
 
   /* ----------------------------------------------------------
