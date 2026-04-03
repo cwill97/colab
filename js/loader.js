@@ -113,10 +113,10 @@
   document.body.classList.add('loader-active');
 
   /* ----------------------------------------------------------
-     Progress tracking
+     Progress tracking — smooth lerp
   ---------------------------------------------------------- */
-  var totalLines    = LINES.length;
-  var linesComplete = 0;
+  var progressTarget  = 0;
+  var progressCurrent = 0;
 
   function setProgress(pct) {
     fillEl.style.width = pct + '%';
@@ -124,157 +124,211 @@
   }
 
   /* ----------------------------------------------------------
-     Type Shuffle — Effect 3 (staggered left-to-right decode)
-     Characters cycle through random glyphs before resolving
-     to their final value, creating a terminal decryption feel.
+     Type Shuffle — rain-style global decode
+     All lines appear scrambled at once. Characters resolve
+     randomly with a top-to-bottom bias, like rain trickling
+     down the terminal.
   ---------------------------------------------------------- */
   var GLYPHS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*(){}<>[]|/\\:;=-+_?,.';
   var COLORS = [
     'rgba(74,222,128,0.9)',   /* green  */
-    'rgba(45,212,191,0.85)',  /* teal   */
     'rgba(96,165,250,0.8)',   /* blue   */
-    'rgba(129,140,248,0.7)',  /* indigo */
-    'rgba(255,255,255,0.5)',  /* dim white */
-    'rgba(255,255,255,0.35)', /* dimmer white */
+
   ];
-  var SHUFFLE_FPS      = 1000 / 40;   /* tick rate */
-  var RESOLVE_PER_TICK = 3;           /* chars resolved each tick */
-  var CYCLES_BEFORE    = 2;           /* min shuffle cycles before resolve */
+
+  var TICK_MS         = 1000 / 35;   /* shuffle tick rate */
+  var RESOLVES_PER_TICK = 6;         /* chars resolved each tick */
 
   function randomGlyph() {
     return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
   }
-
   function randomColor() {
     return COLORS[Math.floor(Math.random() * COLORS.length)];
   }
 
-  /**
-   * Shuffle-reveal a string inside a DOM element.
-   * Characters start as colored random glyphs and resolve left-to-right.
-   */
-  function shuffleReveal(el, text, onDone) {
-    var chars = [];
-    el.innerHTML = '';
+  /* ----------------------------------------------------------
+     Build ALL lines into the DOM at once — fully scrambled
+  ---------------------------------------------------------- */
+  var allChars  = [];   /* flat array of every character object */
+  var totalChars = 0;
+  var resolvedCount = 0;
+
+  function stampLine(parentEl, tag, text, extraClass) {
+    var el = document.createElement(tag);
+    if (extraClass) el.className = extraClass;
+    parentEl.appendChild(el);
+
+    var row = allChars.length;  /* use current length as row index */
+
     for (var i = 0; i < text.length; i++) {
       var span = document.createElement('span');
       var isSpace = text[i] === ' ';
       span.textContent = isSpace ? '\u00A0' : randomGlyph();
       if (!isSpace) span.style.color = randomColor();
       el.appendChild(span);
-      chars.push({
+
+      var charObj = {
         el: span,
         final: text[i],
         resolved: isSpace,
-        cycles: 0
-      });
+        /* Resolve threshold: lower = resolves sooner.
+           Top-to-bottom bias + per-char randomness = rain effect */
+        threshold: (row * 0.6) + (i * 0.15) + (Math.random() * 8)
+      };
+      allChars.push(charObj);
+      if (!isSpace) totalChars++;
+      else resolvedCount++;
     }
 
-    var resolveIndex = 0;
-    var allDone = false;
+    /* Make visible immediately */
+    requestAnimationFrame(function () { el.classList.add('is-visible'); });
+    return el;
+  }
 
+  function buildTerminal() {
+    /* Log lines */
+    for (var i = 0; i < LINES.length; i++) {
+      var entry = LINES[i];
+      var li = document.createElement('li');
+      logEl.appendChild(li);
+
+      /* Text span */
+      var textSpan = document.createElement('span');
+      li.appendChild(textSpan);
+
+      /* OK tag — will be revealed when line fully resolves */
+      var okSpan = document.createElement('span');
+      okSpan.className = 'log-ok';
+      okSpan.style.opacity = '0';
+      okSpan.textContent = entry.ok ? ' [OK]' : ' [ERR]';
+      li.appendChild(okSpan);
+
+      /* Stamp scrambled characters */
+      var row = i;
+      for (var c = 0; c < entry.text.length; c++) {
+        var span = document.createElement('span');
+        var isSpace = entry.text[c] === ' ';
+        span.textContent = isSpace ? '\u00A0' : randomGlyph();
+        if (!isSpace) span.style.color = randomColor();
+        textSpan.appendChild(span);
+
+        allChars.push({
+          el: span,
+          final: entry.text[c],
+          resolved: isSpace,
+          threshold: (row * 1.2) + (c * 0.08) + (Math.random() * 10),
+          okSpan: okSpan,          /* ref to the line's [OK] tag */
+          lineIndex: i
+        });
+        if (!isSpace) totalChars++;
+        else resolvedCount++;
+      }
+
+      requestAnimationFrame((function (el) {
+        return function () { el.classList.add('is-visible'); };
+      })(li));
+    }
+
+    /* Footer lines */
+    for (var f = 0; f < FOOTER_LINES.length; f++) {
+      var line = FOOTER_LINES[f];
+      if (!line) {
+        var blank = document.createElement('p');
+        blank.textContent = '\u00A0';
+        footerEl.appendChild(blank);
+        continue;
+      }
+
+      var p = document.createElement('p');
+      footerEl.appendChild(p);
+      var fRow = LINES.length + f;
+
+      for (var fc = 0; fc < line.length; fc++) {
+        var fspan = document.createElement('span');
+        var fIsSpace = line[fc] === ' ';
+        fspan.textContent = fIsSpace ? '\u00A0' : randomGlyph();
+        if (!fIsSpace) fspan.style.color = randomColor();
+        p.appendChild(fspan);
+
+        allChars.push({
+          el: fspan,
+          final: line[fc],
+          resolved: fIsSpace,
+          threshold: (fRow * 1.2) + (fc * 0.08) + (Math.random() * 10)
+        });
+        if (!fIsSpace) totalChars++;
+        else resolvedCount++;
+      }
+    }
+  }
+
+  /* ----------------------------------------------------------
+     Global tick — shuffles + resolves across all lines at once
+  ---------------------------------------------------------- */
+  var tickCount = 0;
+  var lineResolved = {};  /* track per-line completion for [OK] tags */
+
+  function startGlobalShuffle() {
     var intervalId = setInterval(function () {
-      /* Cycle unresolved characters through random colored glyphs */
-      for (var c = 0; c < chars.length; c++) {
-        if (!chars[c].resolved) {
-          chars[c].el.textContent = randomGlyph();
-          chars[c].el.style.color = randomColor();
-          chars[c].cycles++;
+      tickCount++;
+
+      /* Cycle all unresolved chars */
+      for (var i = 0; i < allChars.length; i++) {
+        var ch = allChars[i];
+        if (!ch.resolved) {
+          ch.el.textContent = randomGlyph();
+          ch.el.style.color = randomColor();
         }
       }
 
-      /* Resolve the next batch of characters */
+      /* Resolve characters whose threshold has been reached */
       var resolved = 0;
-      while (resolveIndex < chars.length && resolved < RESOLVE_PER_TICK) {
-        var ch = chars[resolveIndex];
-        if (ch.resolved) {
-          resolveIndex++;
-          continue;
-        }
-        if (ch.cycles >= CYCLES_BEFORE) {
-          ch.el.textContent = ch.final === ' ' ? '\u00A0' : ch.final;
-          ch.el.style.color = '';  /* revert to inherited white */
-          ch.resolved = true;
-          resolveIndex++;
+      for (var j = 0; j < allChars.length; j++) {
+        if (resolved >= RESOLVES_PER_TICK) break;
+        var ch2 = allChars[j];
+        if (ch2.resolved) continue;
+        if (tickCount >= ch2.threshold) {
+          ch2.el.textContent = ch2.final === ' ' ? '\u00A0' : ch2.final;
+          ch2.el.style.color = '';
+          ch2.resolved = true;
+          resolvedCount++;
           resolved++;
-        } else {
-          break;
+
+          /* Reveal [OK] when all chars in that line are done */
+          if (ch2.okSpan != null && ch2.lineIndex != null && !lineResolved[ch2.lineIndex]) {
+            var lineDone = true;
+            for (var k = 0; k < allChars.length; k++) {
+              if (allChars[k].lineIndex === ch2.lineIndex && !allChars[k].resolved) {
+                lineDone = false;
+                break;
+              }
+            }
+            if (lineDone) {
+              lineResolved[ch2.lineIndex] = true;
+              ch2.okSpan.style.opacity = '1';
+            }
+          }
         }
       }
 
-      /* Check if everything is resolved */
-      if (resolveIndex >= chars.length && !allDone) {
-        allDone = true;
+      /* Smooth progress */
+      progressTarget = (resolvedCount / allChars.length) * 100;
+      progressCurrent += (progressTarget - progressCurrent) * 0.18;
+      setProgress(progressCurrent);
+
+      /* All done */
+      if (resolvedCount >= allChars.length) {
         clearInterval(intervalId);
-        if (onDone) onDone();
+        setProgress(100);
+
+        /* Cursor prompt */
+        var prompt = document.createElement('div');
+        prompt.innerHTML = '> <span class="loader-cursor"></span>';
+        footerEl.appendChild(prompt);
+
+        setTimeout(enableCta, 300);
       }
-    }, SHUFFLE_FPS);
-  }
-
-  /* ----------------------------------------------------------
-     Typewriter: print each log line with shuffle decode
-  ---------------------------------------------------------- */
-  function printLines(index) {
-    if (index >= LINES.length) {
-      printFooter(0);
-      return;
-    }
-
-    var entry = LINES[index];
-    var li    = document.createElement('li');
-    var textSpan = document.createElement('span');
-    var okSpan   = document.createElement('span');
-    okSpan.className = 'log-ok';
-
-    li.appendChild(textSpan);
-    li.appendChild(okSpan);
-    logEl.appendChild(li);
-
-    requestAnimationFrame(function () {
-      li.classList.add('is-visible');
-    });
-
-    /* Shuffle-decode the main text, then reveal [OK] */
-    shuffleReveal(textSpan, entry.text, function () {
-      var okStr = entry.ok ? ' [OK]' : ' [ERR]';
-      okSpan.textContent = okStr;
-
-      linesComplete++;
-      setProgress((linesComplete / totalLines) * 100);
-
-      setTimeout(function () {
-        printLines(index + 1);
-      }, entry.delay);
-    });
-  }
-
-  /* ----------------------------------------------------------
-     Footer lines after all log entries complete
-  ---------------------------------------------------------- */
-  function printFooter(index) {
-    if (index >= FOOTER_LINES.length) {
-      /* Print cursor prompt */
-      var prompt = document.createElement('div');
-      prompt.innerHTML = '> <span class="loader-cursor"></span>';
-      footerEl.appendChild(prompt);
-
-      /* Enable CTA */
-      setTimeout(enableCta, 300);
-      return;
-    }
-
-    var line = FOOTER_LINES[index];
-    var p    = document.createElement('p');
-    footerEl.appendChild(p);
-
-    if (line) {
-      shuffleReveal(p, line, function () {
-        setTimeout(function () { printFooter(index + 1); }, 40);
-      });
-    } else {
-      p.textContent = '\u00A0';
-      setTimeout(function () { printFooter(index + 1); }, 40);
-    }
+    }, TICK_MS);
   }
 
   /* ----------------------------------------------------------
@@ -364,10 +418,11 @@
   });
 
   /* ----------------------------------------------------------
-     Kick off sequence
+     Kick off sequence — stamp everything, then start the rain
   ---------------------------------------------------------- */
   setTimeout(function () {
-    printLines(0);
+    buildTerminal();
+    startGlobalShuffle();
   }, 300);
 
 }());
