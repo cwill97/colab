@@ -43,7 +43,7 @@
     analyser.smoothingTimeConstant = 0.75;
     dataArray = new Uint8Array(analyser.frequencyBinCount);
     gainNode = audioCtx.createGain();
-    gainNode.gain.value = 1;
+    gainNode.gain.value = 0.5;          /* master volume — 50% */
 
     lpFilter = audioCtx.createBiquadFilter();
     lpFilter.type = 'lowpass';
@@ -82,6 +82,22 @@
     });
   }
 
+  /* ── Audio toggle element (bottom-right on project page) ── */
+  var audioToggle = null;
+  var audioLabel  = null;
+
+  function syncToggle() {
+    if (!audioToggle) {
+      audioToggle = document.querySelector('[data-audio-toggle]');
+      audioLabel  = document.querySelector('[data-audio-label]');
+    }
+    if (!audioToggle) return;
+    var playing = started && !muted;
+    audioToggle.classList.toggle('is-playing', playing);
+    if (audioLabel) audioLabel.textContent = playing ? 'On' : 'Off';
+    audioToggle.setAttribute('aria-label', playing ? 'Toggle audio — on' : 'Toggle audio — off');
+  }
+
   function setMuted(container, val) {
     muted = val;
     if (container) {
@@ -89,7 +105,8 @@
       container.setAttribute('aria-label',  muted ? 'Audio visualizer — click to unmute' : 'Audio visualizer — click to mute');
       container.setAttribute('aria-pressed', muted ? 'true' : 'false');
     }
-    if (gainNode) gsap.to(gainNode.gain, { duration: 0.5, value: muted ? 0 : 1, ease: 'power2.out' });
+    if (gainNode) gsap.to(gainNode.gain, { duration: 0.5, value: muted ? 0 : 0.5, ease: 'power2.out' });
+    syncToggle();
   }
 
   function handleActivate(container) {
@@ -99,42 +116,48 @@
   }
 
   /* ── Bind audio triggers ──
-     If the visualizer container is visible, clicking it toggles audio.
-     On project pages where the visualizer is hidden, the first user
-     interaction (click/scroll/key) auto-starts audio so it seamlessly
-     plays even on direct page loads. */
+     Visualizer container toggles audio on homepage.
+     Audio toggle button (bottom-right) toggles on project page.
+     On direct project page loads with no toggle click yet, first
+     user interaction auto-starts audio. */
   var audioTriggersBound = false;
 
   function bindAudioTriggers(container) {
     if (audioTriggersBound) return;
     audioTriggersBound = true;
 
-    var isHidden = container.style.display === 'none' ||
-                   container.getAttribute('aria-hidden') === 'true';
-
-    /* Always bind the container for when it becomes visible again (Barba) */
+    /* Always bind the visualizer container */
     container.addEventListener('click', function () { handleActivate(container); });
     container.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(container); }
     });
 
-    /* If visualizer is hidden (project page direct load), auto-start on
-       first user interaction anywhere on the page */
-    if (isHidden) {
-      var removed = false;
-      function autoStart() {
-        if (removed) return;
-        removed = true;
-        if (!started) handleActivate(container);
-        document.removeEventListener('click', autoStart);
-        document.removeEventListener('keydown', autoStart);
-        document.removeEventListener('scroll', autoStart);
-      }
-      document.addEventListener('click', autoStart);
-      document.addEventListener('keydown', autoStart);
-      document.addEventListener('scroll', autoStart, { passive: true });
+    /* Bind the audio toggle button */
+    var toggle = document.querySelector('[data-audio-toggle]');
+    if (toggle) {
+      toggle.addEventListener('click', function () { handleActivate(container); });
+      toggle.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(container); }
+      });
     }
+
+    /* Initial sync */
+    syncToggle();
   }
+
+  /* ══════════════════════════════════════════════════════
+     TAB VISIBILITY — pause audio when user leaves the tab
+     ══════════════════════════════════════════════════════ */
+  document.addEventListener('visibilitychange', function () {
+    if (!started || !audioEl) return;
+    if (document.hidden) {
+      audioEl.pause();
+    } else {
+      if (!muted) {
+        audioEl.play().catch(function () {});
+      }
+    }
+  });
 
   /* ══════════════════════════════════════════════════════
      WEBGL VISUALIZER — only runs when container is visible

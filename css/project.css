@@ -757,3 +757,114 @@
   }
 
 } /* end @media (max-width: 767px) — project page */
+
+/* ============================================================
+   AUDIO TOGGLE — bottom-right, project page only
+   Animated stroke ring + On/Off label.
+   Hidden on homepage where the visualizer serves as the toggle.
+   ============================================================ */
+
+.audio-toggle {
+  position: fixed;
+  inset-block-end: 28px;
+  inset-inline-end: var(--grid-margin, 28px);
+  z-index: 80;
+  display: none;                      /* hidden by default (homepage) */
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Show on project page */
+.project-page .audio-toggle {
+  display: flex;
+}
+
+/* Fade in with the rest of the page */
+.project-page .audio-toggle {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.project-page.is-ready .audio-toggle {
+  opacity: 1;
+}
+
+/* ── Label ── */
+.audio-toggle-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+  text-transform: capitalize;
+}
+
+.audio-toggle:hover .audio-toggle-label {
+  opacity: 1;
+}
+
+/* ── SVG ring ── */
+.audio-toggle-ring {
+  width: 32px;
+  height: 32px;
+  transform: rotate(-90deg);      /* start stroke from top */
+}
+
+.audio-toggle-track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1.5;
+}
+
+.audio-toggle-stroke {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  /* Circle circumference = 2 * π * 15 ≈ 94.25 */
+  stroke-dasharray: 94.25;
+  stroke-dashoffset: 94.25;           /* fully hidden when off */
+  transition: stroke-dashoffset 0.6s ease, stroke 0.3s ease;
+}
+
+/* ── Active state (audio playing) ── */
+.audio-toggle.is-playing .audio-toggle-label {
+  opacity: 0.7;
+}
+
+.audio-toggle.is-playing .audio-toggle-stroke {
+  stroke: rgba(255, 255, 255, 0.55);
+  animation: audio-ring-draw 4s ease-in-out infinite;
+}
+
+.audio-toggle:hover .audio-toggle-stroke {
+  stroke: rgba(255, 255, 255, 0.6);
+}
+
+@keyframes audio-ring-draw {
+  0%   { stroke-dashoffset: 94.25; }
+  50%  { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -94.25; }
+}
+
+/* ── Mobile ── */
+@media (max-width: 767px) {
+  .audio-toggle {
+    inset-block-end: 18px;
+    inset-inline-end: 18px;
+  }
+
+  .audio-toggle-ring {
+    width: 28px;
+    height: 28px;
+  }
+
+  .audio-toggle-label {
+    font-size: 9px;
+  }
+}
