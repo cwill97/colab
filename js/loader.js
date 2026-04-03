@@ -15,22 +15,22 @@
      Terminal lines — mimics a real asset/script boot log
   ---------------------------------------------------------- */
   var LINES = [
-    { text: 'FETCHING CORE RUNTIME............', ok: true,  delay: 80  },
-    { text: 'DOWNLOADING PROJECT TEMPLATES....', ok: true,  delay: 120 },
-    { text: 'LOADING UI COMPONENTS............', ok: true,  delay: 90  },
-    { text: 'SYNCING NOTEBOOK EXTENSIONS......', ok: true,  delay: 150 },
-    { text: 'MOUNTING VIRTUAL FILESYSTEM......', ok: true,  delay: 100 },
-    { text: 'ALLOCATING GPU ACCELERATOR.......', ok: true,  delay: 200 },
-    { text: 'INITIALISING THREE.JS RENDERER...', ok: true,  delay: 110 },
-    { text: 'BUILDING PARTICLE GEOMETRY.......', ok: true,  delay: 180 },
-    { text: 'LOADING AUDIO PIPELINE...........', ok: true,  delay: 130 },
-    { text: 'CALIBRATING FFT ANALYSER.........', ok: true,  delay: 90  },
-    { text: 'COMPILING SHADER PROGRAMS........', ok: true,  delay: 160 },
-    { text: 'DOWNLOADING SAMPLE DATASETS......', ok: true,  delay: 140 },
-    { text: 'ACTIVATING INTERACTIVE WIDGETS...', ok: true,  delay: 100 },
-    { text: 'ENABLING REAL-TIME COLLABORATION.', ok: true,  delay: 120 },
-    { text: 'VERIFYING ASSET INTEGRITY........', ok: true,  delay: 90  },
-    { text: 'ESTABLISHING SECURE CONTEXT......', ok: true,  delay: 110 },
+    { text: 'FETCHING CORE RUNTIME............', ok: true,  delay: 25  },
+    { text: 'DOWNLOADING PROJECT TEMPLATES....', ok: true,  delay: 40  },
+    { text: 'LOADING UI COMPONENTS............', ok: true,  delay: 30  },
+    { text: 'SYNCING NOTEBOOK EXTENSIONS......', ok: true,  delay: 50  },
+    { text: 'MOUNTING VIRTUAL FILESYSTEM......', ok: true,  delay: 35  },
+    { text: 'ALLOCATING GPU ACCELERATOR.......', ok: true,  delay: 65  },
+    { text: 'INITIALISING THREE.JS RENDERER...', ok: true,  delay: 35  },
+    { text: 'BUILDING PARTICLE GEOMETRY.......', ok: true,  delay: 60  },
+    { text: 'LOADING AUDIO PIPELINE...........', ok: true,  delay: 45  },
+    { text: 'CALIBRATING FFT ANALYSER.........', ok: true,  delay: 30  },
+    { text: 'COMPILING SHADER PROGRAMS........', ok: true,  delay: 55  },
+    { text: 'DOWNLOADING SAMPLE DATASETS......', ok: true,  delay: 45  },
+    { text: 'ACTIVATING INTERACTIVE WIDGETS...', ok: true,  delay: 35  },
+    { text: 'ENABLING REAL-TIME COLLABORATION.', ok: true,  delay: 40  },
+    { text: 'VERIFYING ASSET INTEGRITY........', ok: true,  delay: 30  },
+    { text: 'ESTABLISHING SECURE CONTEXT......', ok: true,  delay: 35  },
   ];
 
   var FOOTER_LINES = [
@@ -129,9 +129,9 @@
      to their final value, creating a terminal decryption feel.
   ---------------------------------------------------------- */
   var GLYPHS = 'ラドクリフマラソンわたしワタシんョシ゚ンハバンドを！＝0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  var SHUFFLE_FPS    = 1000 / 30;     /* tick rate for glyph cycling */
-  var RESOLVE_STAGGER = 30;           /* ms between each char resolving */
-  var CYCLES_BEFORE   = 3;            /* min shuffle cycles before resolve */
+  var SHUFFLE_FPS    = 1000 / 60;     /* tick rate — 60fps */
+  var RESOLVE_PER_TICK = 3;           /* chars resolved each tick */
+  var CYCLES_BEFORE   = 1;            /* min shuffle cycles before resolve */
 
   function randomGlyph() {
     return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -173,8 +173,9 @@
         }
       }
 
-      /* Resolve the next character if it's had enough cycles */
-      while (resolveIndex < chars.length) {
+      /* Resolve the next batch of characters */
+      var resolved = 0;
+      while (resolveIndex < chars.length && resolved < RESOLVE_PER_TICK) {
         var ch = chars[resolveIndex];
         if (ch.resolved) {
           resolveIndex++;
@@ -185,9 +186,10 @@
           ch.el.style.opacity = '1';
           ch.resolved = true;
           resolveIndex++;
-          break;                      /* one resolve per tick for stagger */
+          resolved++;
+        } else {
+          break;
         }
-        break;
       }
 
       /* Check if everything is resolved */
@@ -257,11 +259,11 @@
 
     if (line) {
       shuffleReveal(p, line, function () {
-        setTimeout(function () { printFooter(index + 1); }, 120);
+        setTimeout(function () { printFooter(index + 1); }, 40);
       });
     } else {
       p.textContent = '\u00A0';
-      setTimeout(function () { printFooter(index + 1); }, 120);
+      setTimeout(function () { printFooter(index + 1); }, 40);
     }
   }
 
