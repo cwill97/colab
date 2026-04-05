@@ -1061,7 +1061,7 @@ main {
 }
 
 .loader-log li .log-ok {
-  color: var(--color-fg);
+  color: var(--color-terminal);
   opacity: 0.6;
   transition: opacity 0.3s ease;
 }
