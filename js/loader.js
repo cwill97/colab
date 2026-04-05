@@ -129,7 +129,7 @@
      randomly with a top-to-bottom bias, like rain trickling
      down the terminal.
   ---------------------------------------------------------- */
-  var GLYPHS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%&*(){}<>[]|/\\:;=-+_?,.';
+  var GLYPHS = '𒈠𒋫𒀠𒀠𒇷𒅅𒈠𒋫𒀝𒁉𒀀𒄿𒁍𒊭𒀭𒉌𒄿𒈠';
   var COLORS = [
     'rgba(74,222,128,0.9)',   /* green  */
     'rgba(45,212,191,0.85)',  /* teal   */
