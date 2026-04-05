@@ -200,7 +200,7 @@
       var okSpan = document.createElement('span');
       okSpan.className = 'log-ok';
       okSpan.style.opacity = '0';
-      okSpan.textContent = entry.ok ? ' [READY' : ' [ERR]';
+      okSpan.textContent = entry.ok ? ' [READY]' : ' [ERR]';
       li.appendChild(okSpan);
 
       /* Stamp scrambled characters */
