@@ -136,8 +136,8 @@
     'rgba(0,213,255)',   /* Teal   */
   ];
 
-  var TICK_MS         = 1000 / 35;   /* shuffle tick rate */
-  var RESOLVES_PER_TICK = 6;         /* chars resolved each tick */
+  var TICK_MS         = 600 / 35;   /* shuffle tick rate */
+  var RESOLVES_PER_TICK = 9;         /* chars resolved each tick */
 
   function randomGlyph() {
     return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
