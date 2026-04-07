@@ -335,20 +335,20 @@ button {
   }
   10%  {
     box-shadow:
-      -3px 0 0 rgba(255, 0, 80, 0.9),
-       3px 0 0 rgba(0, 255, 200, 0.9);
+      -3px 0 0 rgba(30, 172, 255, 0.9),
+       3px 0 0 rgba(0, 238, 250, 0.9);
     transform: translate(2px, -1px) skewX(-8deg);
   }
   20%  {
     box-shadow:
-       3px 0 0 rgba(255, 0, 80, 0.9),
-      -3px 0 0 rgba(0, 255, 200, 0.9);
+       3px 0 0 rgba(30, 172, 255, 0.9),
+      -3px 0 0 rgba(0, 238, 250, 0.9);
     transform: translate(-2px, 1px) skewX(6deg);
   }
   30%  {
     box-shadow:
-      -2px 0 0 rgba(255, 0, 80, 0.9),
-       2px 0 0 rgba(0, 255, 200, 0.9);
+      -2px 0 0 rgba(30, 172, 255, 0.9),
+       2px 0 0 rgba(0, 238, 250, 0.9);
     transform: translate(1px, 0) skewX(-3deg);
   }
   40%  {
