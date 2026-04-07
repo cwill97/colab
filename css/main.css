@@ -63,7 +63,7 @@
   --color-accent:   #ee44ee; /* magenta from the grid image */
   --color-muted:    rgba(255, 255, 255, 0.35);
   --color-border:   rgba(255, 255, 255, 0.08);
-  --color-terminal: rgba(0, 238, 250, 1);
+  --color-terminal: rgba(133, 254, 255, 1);
 
   /* Grid — 10 columns, 30px gutters, 20px margins */
   --grid-columns:   10;
