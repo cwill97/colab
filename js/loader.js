@@ -132,7 +132,7 @@
   var GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWX1234567890!@#$%^&*()_+{}[]?/><';
   var COLORS = [
     'rgba(189,225,255)',  /* Blue   */
-    'rgba(0,238,250)',   /* Teal   */
+    'rgba(133,254,255)',   /* Teal   */
   ];
 
   var TICK_MS         = 600 / 35;   /* shuffle tick rate */
