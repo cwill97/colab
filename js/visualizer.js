@@ -43,7 +43,7 @@
     analyser.smoothingTimeConstant = 0.75;
     dataArray = new Uint8Array(analyser.frequencyBinCount);
     gainNode = audioCtx.createGain();
-    gainNode.gain.value = 0.2;          /* master volume — 50% */
+    gainNode.gain.value = 0.1;          /* master volume — 50% */
 
     lpFilter = audioCtx.createBiquadFilter();
     lpFilter.type = 'lowpass';
