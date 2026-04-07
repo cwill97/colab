@@ -128,149 +128,133 @@
   var resizeBound = false;
 
   /* ============================================================
-     INTERACTION STATE
-     ============================================================ */
+     INTERACTION STATE — mirrors globe.js drag model exactly
+     ============================================================
+     The shader already bakes a constant idle spin into iMouse.x via
+     `rot(iMouse.x + 0.12*iTime)`, so JS never needs to add its own
+     auto-rotate. All we do here is accumulate a user-driven offset
+     with momentum + friction that settles smoothly back to zero.
+     Axis mapping matches the globe's feel:
+       horizontal drag → rotationX (yaw, horizontal spin)
+       vertical drag   → rotationY (pitch, tilt)
+  */
   var interaction = {
-    // Current rotation angles
-    rotationX: 0,
-    rotationY: 0,
-
-    // Velocity for momentum
-    velocityX: 0,
-    velocityY: 0,
-
-    // Drag state
+    rotationX: 0,   // yaw  (horizontal spin offset)
+    rotationY: 0,   // pitch (tilt offset)
+    velX: 0,        // pitch velocity  (from vertical drag)
+    velY: 0,        // yaw velocity    (from horizontal drag)
     isDragging: false,
-    lastMouseX: 0,
-    lastMouseY: 0,
-
-    // Auto-rotation when not dragging
-    autoRotateSpeed: 0.12,
-    lastInteractionTime: 0,
-
-    // Physics constants
-    friction: 0.92,        // How quickly momentum decays (0-1, closer to 1 = less friction)
-    sensitivity: 0.003,    // How sensitive dragging is
-    minVelocity: 0.001,    // Stop applying momentum below this threshold
-    autoReturnDelay: 3000  // Resume auto-rotation after 3 seconds of no interaction
+    prevX: 0,
+    prevY: 0
   };
 
-  /* ============================================================
-     INTERACTION HELPERS
-     ============================================================ */
-  function getPointerPos(e) {
-    var rect = canvas.getBoundingClientRect();
-    return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
-    };
-  }
+  // Physics constants — matched to globe.js for identical feel
+  var DRAG_SENSITIVITY = 0.005;   // same as globe.js
+  var FRICTION         = 0.96;    // per-frame decay (heavier = longer coast)
+  var SETTLE_LERP      = 0.009;   // how fast momentum blends back toward 0
 
+  /* ============================================================
+     UPDATE — called every frame from render loop
+     ============================================================ */
   function updateInteraction() {
-    var now = performance.now();
+    if (interaction.isDragging) return;
 
-    if (!interaction.isDragging) {
-      // Apply momentum/inertia
-      if (Math.abs(interaction.velocityX) > interaction.minVelocity ||
-          Math.abs(interaction.velocityY) > interaction.minVelocity) {
+    // Apply current velocity to rotation
+    interaction.rotationX += interaction.velY;
+    interaction.rotationY += interaction.velX;
 
-        interaction.rotationX += interaction.velocityX;
-        interaction.rotationY += interaction.velocityY;
+    // Friction: decay velocity each frame
+    interaction.velX *= FRICTION;
+    interaction.velY *= FRICTION;
 
-        // Apply friction
-        interaction.velocityX *= interaction.friction;
-        interaction.velocityY *= interaction.friction;
-
-        // Clamp Y rotation to prevent flipping
-        interaction.rotationY = Math.max(-Math.PI * 0.4, Math.min(Math.PI * 0.4, interaction.rotationY));
-      }
-
-      // Resume auto-rotation after delay
-      if (now - interaction.lastInteractionTime > interaction.autoReturnDelay) {
-        var t = (now - t0) * 0.001;
-        interaction.rotationX += interaction.autoRotateSpeed * 0.016; // Approximate 60fps delta
-        interaction.rotationY = Math.sin(t * 0.18) * 0.35;
-      }
-    }
+    // Blend both velocities back toward zero so the idle state is
+    // just the shader's baked-in time spin — no JS drift.
+    interaction.velX += (0 - interaction.velX) * SETTLE_LERP;
+    interaction.velY += (0 - interaction.velY) * SETTLE_LERP;
   }
 
   /* ============================================================
-     EVENT HANDLERS
+     EVENT HANDLERS — mirrors globe.js pattern:
+       • All listeners attach to WINDOW (the tesseract canvas is
+         pointer-events:none and sits behind main, so we can't
+         rely on canvas events at all).
+       • On pointerdown, we check e.target: if the user clicked
+         on an interactive element (link, button, scrolling
+         project list, nav, open menu), we IGNORE it and let the
+         content handle it normally. Otherwise, we start a
+         tesseract drag.
      ============================================================ */
-  function onPointerDown(e) {
-    e.preventDefault();
+
+  // Elements that should swallow clicks/drags without rotating
+  // the tesseract. Matches: links, buttons, the scrolling project
+  // list, the nav, the menu overlay, any form control, and
+  // anything explicitly tagged as interactive.
+  var INTERACTIVE_SELECTOR =
+    'a, button, input, textarea, select, label, ' +
+    '.project-list, [data-scroll-list], ' +
+    '.site-nav, .site-menu, .nav-toggle, ' +
+    '[data-no-tesseract-drag]';
+
+  function shouldIgnoreTarget(target) {
+    if (!target || !target.nodeType) return true;
+    // Skip while the menu overlay is open
+    if (document.body.hasAttribute('data-menu-open')) return true;
+    // Skip if the click landed on / inside any interactive element
+    if (target.closest && target.closest(INTERACTIVE_SELECTOR)) return true;
+    return false;
+  }
+
+  function onMouseDown(e) {
+    // Only react to primary button
+    if (e.button !== undefined && e.button !== 0) return;
+    if (shouldIgnoreTarget(e.target)) return;
     interaction.isDragging = true;
-    interaction.lastInteractionTime = performance.now();
-
-    var pos = getPointerPos(e);
-    interaction.lastMouseX = pos.x;
-    interaction.lastMouseY = pos.y;
-
-    // Stop current momentum
-    interaction.velocityX = 0;
-    interaction.velocityY = 0;
-
-    canvas.style.cursor = 'grabbing';
+    interaction.prevX = e.clientX;
+    interaction.prevY = e.clientY;
+    interaction.velX = 0;
+    interaction.velY = 0;
+    document.body.style.cursor = 'grabbing';
   }
 
-  function onPointerMove(e) {
+  function onMouseMove(e) {
     if (!interaction.isDragging) return;
-    e.preventDefault();
-
-    var pos = getPointerPos(e);
-    var deltaX = (pos.x - interaction.lastMouseX) * interaction.sensitivity;
-    var deltaY = (pos.y - interaction.lastMouseY) * interaction.sensitivity;
-
-    interaction.rotationX += deltaX;
-    interaction.rotationY -= deltaY; // Invert Y for natural feel
-
-    // Clamp Y rotation
-    interaction.rotationY = Math.max(-Math.PI * 0.4, Math.min(Math.PI * 0.4, interaction.rotationY));
-
-    // Update velocity for momentum (with some smoothing)
-    interaction.velocityX = interaction.velocityX * 0.8 + deltaX * 0.2;
-    interaction.velocityY = interaction.velocityY * 0.8 + deltaY * 0.2;
-
-    interaction.lastMouseX = pos.x;
-    interaction.lastMouseY = pos.y;
+    interaction.velY = -(e.clientX - interaction.prevX) * DRAG_SENSITIVITY;
+    interaction.velX = (e.clientY - interaction.prevY) * DRAG_SENSITIVITY;
+    interaction.rotationX += interaction.velY;
+    interaction.rotationY += interaction.velX;
+    interaction.prevX = e.clientX;
+    interaction.prevY = e.clientY;
   }
 
-  function onPointerUp(e) {
+  function onMouseUp() {
     if (!interaction.isDragging) return;
-    e.preventDefault();
-
     interaction.isDragging = false;
-    interaction.lastInteractionTime = performance.now();
-    canvas.style.cursor = 'grab';
+    document.body.style.cursor = '';
   }
 
-  // Touch event handlers
   function onTouchStart(e) {
-    if (e.touches.length === 1) {
-      var touch = e.touches[0];
-      onPointerDown({
-        preventDefault: () => e.preventDefault(),
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
-    }
+    if (!e.touches.length) return;
+    if (shouldIgnoreTarget(e.target)) return;
+    interaction.isDragging = true;
+    interaction.velX = 0;
+    interaction.velY = 0;
+    interaction.prevX = e.touches[0].clientX;
+    interaction.prevY = e.touches[0].clientY;
   }
 
   function onTouchMove(e) {
-    if (e.touches.length === 1) {
-      var touch = e.touches[0];
-      onPointerMove({
-        preventDefault: () => e.preventDefault(),
-        clientX: touch.clientX,
-        clientY: touch.clientY
-      });
-    }
+    if (!interaction.isDragging || !e.touches.length) return;
+    interaction.velY = -(e.touches[0].clientX - interaction.prevX) * DRAG_SENSITIVITY;
+    interaction.velX = (e.touches[0].clientY - interaction.prevY) * DRAG_SENSITIVITY;
+    interaction.rotationX += interaction.velY;
+    interaction.rotationY += interaction.velX;
+    interaction.prevX = e.touches[0].clientX;
+    interaction.prevY = e.touches[0].clientY;
   }
 
-  function onTouchEnd(e) {
-    onPointerUp({
-      preventDefault: () => e.preventDefault()
-    });
+  function onTouchEnd() {
+    if (!interaction.isDragging) return;
+    interaction.isDragging = false;
   }
 
   /* ============================================================
@@ -378,38 +362,30 @@
      EVENT BINDING/UNBINDING
      ============================================================ */
   function bindEvents() {
-    if (!canvas) return;
+    // All events on window — the canvas is pointer-events:none
+    // and sits behind <main>, so canvas-bound events never fire.
+    // We filter by e.target in the down handlers instead.
+    window.addEventListener('mousedown', onMouseDown, false);
+    window.addEventListener('mousemove', onMouseMove, false);
+    window.addEventListener('mouseup',   onMouseUp,   false);
 
-    // Mouse events
-    canvas.addEventListener('mousedown', onPointerDown, false);
-    canvas.addEventListener('mousemove', onPointerMove, false);
-    canvas.addEventListener('mouseup', onPointerUp, false);
-    canvas.addEventListener('mouseleave', onPointerUp, false);
-
-    // Touch events
-    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', onTouchMove, { passive: false });
-    canvas.addEventListener('touchend', onTouchEnd, false);
-    canvas.addEventListener('touchcancel', onTouchEnd, false);
-
-    // Cursor style
-    canvas.style.cursor = 'grab';
+    window.addEventListener('touchstart',  onTouchStart, { passive: true });
+    window.addEventListener('touchmove',   onTouchMove,  { passive: true });
+    window.addEventListener('touchend',    onTouchEnd,   { passive: true });
+    window.addEventListener('touchcancel', onTouchEnd,   { passive: true });
   }
 
   function unbindEvents() {
-    if (!canvas) return;
+    window.removeEventListener('mousedown', onMouseDown);
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup',   onMouseUp);
 
-    canvas.removeEventListener('mousedown', onPointerDown);
-    canvas.removeEventListener('mousemove', onPointerMove);
-    canvas.removeEventListener('mouseup', onPointerUp);
-    canvas.removeEventListener('mouseleave', onPointerUp);
+    window.removeEventListener('touchstart',  onTouchStart);
+    window.removeEventListener('touchmove',   onTouchMove);
+    window.removeEventListener('touchend',    onTouchEnd);
+    window.removeEventListener('touchcancel', onTouchEnd);
 
-    canvas.removeEventListener('touchstart', onTouchStart);
-    canvas.removeEventListener('touchmove', onTouchMove);
-    canvas.removeEventListener('touchend', onTouchEnd);
-    canvas.removeEventListener('touchcancel', onTouchEnd);
-
-    canvas.style.cursor = '';
+    document.body.style.cursor = '';
   }
 
   /* ============================================================
@@ -427,8 +403,6 @@
 
     canvas = document.createElement('canvas');
     canvas.className = 'tesseract-canvas';
-    // Enable pointer events for interaction
-    canvas.style.pointerEvents = 'auto';
     wrap.appendChild(canvas);
 
     gl = canvas.getContext('webgl2', {
@@ -458,8 +432,13 @@
       resizeBound = true;
     }
 
-    // Bind interaction events
-    bindEvents();
+    // Bind interaction events — homepage only. The project page
+    // has the depth gallery, video lightbox, and related-projects
+    // rail, and we don't want window-level drag detection
+    // interfering with any of those.
+    if (!document.body.classList.contains('project-page')) {
+      bindEvents();
+    }
 
     resize();
     t0 = performance.now();
@@ -492,10 +471,9 @@
     // Reset interaction state
     interaction.rotationX = 0;
     interaction.rotationY = 0;
-    interaction.velocityX = 0;
-    interaction.velocityY = 0;
+    interaction.velX = 0;
+    interaction.velY = 0;
     interaction.isDragging = false;
-    interaction.lastInteractionTime = 0;
   }
 
   function destroy() {
