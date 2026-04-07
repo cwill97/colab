@@ -1039,7 +1039,7 @@ main {
   inset-block: 0;
   inset-inline-start: 0;
   width: 0%;
-  background-color: var(--color-fg);
+  background-color: var(--color-terminal);
   transition: width 0.4s ease-out;
 }
 
@@ -1048,7 +1048,7 @@ main {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.08em;
-  color: var(--color-fg);
+  color: var(--color-terminal);
   background: none;
   border: none;
   cursor: pointer;
