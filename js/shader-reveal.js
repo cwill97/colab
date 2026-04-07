@@ -202,10 +202,10 @@
       ease: 'power2.inOut',
       onComplete: function () {
         destroyLayer();
-        /* ── Globe glitch reveal — fires after shader opens ── */
-        var globeEl = document.querySelector('[data-globe]');
-        if (globeEl && !globeEl.classList.contains('globe-glitch-reveal')) {
-          globeEl.classList.add('globe-glitch-reveal');
+        /* ── Tesseract glitch reveal — fires after shader opens ── */
+        var tessEl = document.querySelector('[data-tesseract]');
+        if (tessEl && !tessEl.classList.contains('tesseract-glitch-reveal')) {
+          tessEl.classList.add('tesseract-glitch-reveal');
         }
       }
     });

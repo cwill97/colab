@@ -69,7 +69,7 @@
     document.body.classList.remove('loader-active');
 
     /* Orchestrate elegant page entrance:
-       1. page-entering hides elements (opacity:0, globe scale:0.82)
+       1. page-entering hides elements (opacity:0, tesseract scale:0.82)
        2. Next frame: page-revealed added — CSS transitions kick in
        3. colab:revealed fires so shader reveal runs in sync */
     document.body.classList.add('page-entering');

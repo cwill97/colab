@@ -63,8 +63,7 @@
   --color-accent:   #ee44ee; /* magenta from the grid image */
   --color-muted:    rgba(255, 255, 255, 0.35);
   --color-border:   rgba(255, 255, 255, 0.08);
-  --color-terminal: rgba(30,172,255);
-  );
+  --color-terminal: rgba(30, 172, 255, 1);
 
   /* Grid — 10 columns, 30px gutters, 20px margins */
   --grid-columns:   10;
@@ -905,104 +904,35 @@ main {
 }
 
 /* ------------------------------------------------------------
-   15. Particle Globe
-   position: fixed — completely independent of main/body overflow.
-   Cols 4–7 of a 10-col grid = 30% from left, 30% from right.
-   JS sets the renderer size from the element's bounding rect.
+   15. Tesseract
+   Full-viewport WebGL2 fragment-shader visual mounted inside
+   [data-tesseract]. Sits behind all content so the glow is
+   never clipped, with pointer-events disabled so it never
+   intercepts clicks. Background is fully transparent — the
+   shader outputs premultiplied alpha so empty space lets the
+   page background show through.
+
+   z-index:0 (not 1) puts the tesseract in the same painting
+   layer as the homepage content (.project-item is z-index:auto);
+   DOM order then wins — tesseract is in <body> before <main>,
+   so all content layers above it naturally.
    ------------------------------------------------------------ */
-.globe-wrap {
+.tesseract-wrap {
   position: fixed;
-  inset-block-start: var(--nav-height);
-  inset-block-end: 0;
-  left:  25%;
-  right: 25%;
-  z-index: 10;
+  inset: 0;
+  z-index: 0;
   overflow: visible;
+  pointer-events: none;
+  background: transparent;
   transform-origin: center center;
 }
 
-.globe-wrap:active {
-  cursor: none;
-}
-
-.globe-wrap canvas {
+.tesseract-wrap canvas,
+.tesseract-canvas {
   display: block;
-  width: 100% !important;
+  width:  100% !important;
   height: 100% !important;
-}
-
-/* Globe label — centred beneath the globe */
-.globe-label {
-  position: fixed;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 11;
-
-  font-family: var(--font-display);
-  font-size: 9px;
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: 0.02em;
-  color: var(--color-fg);
-  opacity: 0.5;
-  text-align: center;
-  pointer-events: none;
-  white-space: nowrap;
-}
-
-/* ------------------------------------------------------------
-   Globe HUD overlay
-   Holographic data readouts positioned at corners of globe-wrap.
-   ------------------------------------------------------------ */
-.globe-hud-overlay {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-  opacity: 0;
-  transition: opacity 1.2s ease 0.4s;
-}
-
-/* Crosshair — thin lines crossing at centre */
-.hud-crosshair {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 40px;
-  height: 40px;
-  transform: translate(-50%, -50%);
-  opacity: 0.12;
-}
-
-.hud-crosshair::before,
-.hud-crosshair::after {
-  content: '';
-  position: absolute;
-  background: rgba(140, 190, 240, 0.9);
-}
-
-.hud-crosshair::before {
-  /* horizontal */
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 0.5px;
-  transform: translateY(-50%);
-}
-
-.hud-crosshair::after {
-  /* vertical */
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 0.5px;
-  transform: translateX(-50%);
-}
-
-/* Hide HUD on very small screens where globe is compact */
-@media (max-width: 767px) {
-  .hud-crosshair { display: none; }
+  background: transparent;
 }
 
 /* ------------------------------------------------------------
@@ -1147,8 +1077,7 @@ body.loader-active [data-visualizer],
 body.loader-active .about-text,
 body.loader-active .services-block,
 body.loader-active .contact-block,
-body.loader-active [data-globe],
-body.loader-active .globe-label {
+body.loader-active [data-tesseract] {
   opacity: 0;
   pointer-events: none;
 }
@@ -1158,13 +1087,12 @@ body:not(.loader-active) header,
 body:not(.loader-active) [data-visualizer],
 body:not(.loader-active) .about-text,
 body:not(.loader-active) .services-block,
-body:not(.loader-active) .contact-block,
-body:not(.loader-active) .globe-label {
+body:not(.loader-active) .contact-block {
   opacity: 1;
 }
 
-/* Globe stays hidden until glitch class is added by JS */
-body:not(.loader-active) [data-globe] {
+/* Tesseract stays hidden until glitch class is added by JS */
+body:not(.loader-active) [data-tesseract] {
   opacity: 0;
 }
 
@@ -1172,7 +1100,7 @@ body:not(.loader-active) [data-globe] {
    PAGE TRANSITION — seamless reveal without loader
    Applied by loader.js skipLoader() on return navigation.
    Elements start hidden, stagger in independently.
-   Globe gets its own elegant scale + fade entrance.
+   Tesseract gets its own elegant scale + fade entrance.
    ------------------------------------------------------------ */
 
 /* Initial hidden state for skip-loader page entries */
@@ -1185,8 +1113,8 @@ body.page-entering .contact-block {
   opacity: 0;
 }
 
-/* Globe starts invisible — glitch reveal fires after shader completes */
-body.page-entering [data-globe] {
+/* Tesseract starts invisible — glitch reveal fires after shader completes */
+body.page-entering [data-tesseract] {
   opacity: 0;
   transform: scale(0.82);
 }
@@ -1201,19 +1129,19 @@ body.page-entering.page-revealed .contact-block {
   opacity: 1;
 }
 
-/* Globe — stays hidden until JS triggers .globe-glitch-reveal */
-body.page-entering.page-revealed [data-globe] {
+/* Tesseract — stays hidden until JS triggers .tesseract-glitch-reveal */
+body.page-entering.page-revealed [data-tesseract] {
   opacity: 0;
   transform: scale(0.82);
 }
 
 /* ------------------------------------------------------------
-   GLOBE GLITCH REVEAL
+   TESSERACT GLITCH REVEAL
    Triggered by JS after the shader reveal completes.
    Multi-step glitch flash: rapid opacity/scale/translate pops
    with a chromatic-aberration-style box-shadow burst.
    ------------------------------------------------------------ */
-@keyframes globeGlitch {
+@keyframes tesseractGlitch {
   0%   { opacity: 0;   transform: scale(0.82); filter: brightness(1) blur(0px); }
   8%   { opacity: 1;   transform: scale(1.04) translateX(-3px) skewX(-1.5deg); filter: brightness(3.5) blur(1px); }
   12%  { opacity: 0.1; transform: scale(0.97) translateX(4px) skewX(2deg);    filter: brightness(0.5) blur(0px); }
@@ -1230,7 +1158,7 @@ body.page-entering.page-revealed [data-globe] {
 }
 
 /* Flash overlay pseudo-element for chromatic burst */
-@keyframes globeFlash {
+@keyframes tesseractFlash {
   0%   { opacity: 0; }
   8%   { opacity: 0.6; }
   12%  { opacity: 0; }
@@ -1241,13 +1169,13 @@ body.page-entering.page-revealed [data-globe] {
   100% { opacity: 0; }
 }
 
-[data-globe].globe-glitch-reveal {
-  animation: globeGlitch 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+[data-tesseract].tesseract-glitch-reveal {
+  animation: tesseractGlitch 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
   opacity: 1 !important;
 }
 
 /* Blue flash overlay during glitch */
-[data-globe].globe-glitch-reveal::after {
+[data-tesseract].tesseract-glitch-reveal::after {
   content: '';
   position: absolute;
   inset: -20%;
@@ -1256,14 +1184,14 @@ body.page-entering.page-revealed [data-globe] {
     rgba(49, 65, 251, 0.15) 40%,
     transparent 90%
   );
-  animation: globeFlash 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: tesseractFlash 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   pointer-events: none;
   z-index: 3;
 }
 
 /* --- Also handle loader-active → direct reveal path --- */
-body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
-  animation: globeGlitch 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-reveal {
+  animation: tesseractGlitch 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
 }
 
 /* ------------------------------------------------------------
@@ -1286,10 +1214,10 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
    All elements position:fixed — viewport-locked, no scroll.
 
    STRATEGY:
-   TOP-DOWN:    Nav → Title → Globe
+   TOP-DOWN:    Nav → Title → Tesseract
    BOTTOM-UP:   Contact + Image row pinned to bottom:0
                 Projects pinned 60px above that row
-   MIDDLE:      About text fills remaining space between globe
+   MIDDLE:      About text fills remaining space between tesseract
                 and projects, clipping gracefully if needed
    ============================================================ */
 
@@ -1321,10 +1249,10 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
     --logo-height:  20px;
     --nav-btn-size: 18px;
 
-    /* TOP-DOWN — globe → title → gap → projects */
-    --t-globe:     70px;
-    --h-globe:     38vh;
-    --t-title:     calc(var(--t-globe) + var(--h-globe) + 10px);
+    /* TOP-DOWN — tesseract → title → gap → projects */
+    --t-tesseract: 70px;
+    --h-tesseract: 38vh;
+    --t-title:     calc(var(--t-tesseract) + var(--h-tesseract) + 10px);
     --h-title:     80px;
     --title-proj-gap: 40px;
     --t-projects:  calc(var(--t-title) + var(--h-title) + var(--title-proj-gap));
@@ -1391,7 +1319,7 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
   }
 
   /* --------------------------------------------------------
-     M-5. Display Title — below globe, centred
+     M-5. Display Title — below tesseract, centred
      -------------------------------------------------------- */
   .display-title {
     position: fixed;
@@ -1416,20 +1344,20 @@ body:not(.loader-active):not(.page-entering) [data-globe].globe-glitch-reveal {
   }
 
   /* --------------------------------------------------------
-     M-6. Globe — large, centred, nearly full width
+     M-6. Tesseract — large, centred, nearly full width
      Uses margin:auto centering (not transform) so the
      glitch-reveal animation can freely use transform.
      -------------------------------------------------------- */
-  .globe-wrap {
+  .tesseract-wrap {
     position: fixed;
-    inset-block-start: var(--t-globe);
+    inset-block-start: var(--t-tesseract);
     inset-block-end: unset;
     left: 0;
     right: 0;
     margin-inline: auto;
     transform: none;
     width: calc(100vw - 60px);
-    height: var(--h-globe);
+    height: var(--h-tesseract);
     z-index: 10;
     overflow: visible;
   }

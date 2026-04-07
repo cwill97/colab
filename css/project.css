@@ -8,8 +8,8 @@
    Hides homepage-only elements, adjusts layout for full canvas.
    ------------------------------------------------------------ */
 
-/* On project.html the globe is not used — hide it */
-.project-page .globe-wrap {
+/* On project.html the tesseract is not used — hide it */
+.project-page .tesseract-wrap {
   display: none;
 }
 

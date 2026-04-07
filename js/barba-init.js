@@ -2,7 +2,7 @@
  * co:lab — Barba.js Page Transition Orchestration
  *
  * Manages seamless transitions between homepage and project page.
- * Persistent elements (nav, menu, visualizer, globe, audio) stay
+ * Persistent elements (nav, menu, visualizer, tesseract, audio) stay
  * alive across transitions. Only the Barba container swaps.
  *
  * Transition flow:
@@ -38,9 +38,9 @@
     function enterHome() {
       document.body.classList.remove('project-page');
 
-      /* Show globe */
-      var globe = document.querySelector('[data-globe]');
-      if (globe) globe.style.display = '';
+      /* Show tesseract */
+      var tesseract = document.querySelector('[data-tesseract]');
+      if (tesseract) tesseract.style.display = '';
 
       /* Show visualizer */
       var viz = document.querySelector('[data-visualizer]');
@@ -49,18 +49,10 @@
         viz.setAttribute('aria-hidden', 'false');
       }
 
-      /* Resume or re-init globe */
-      if (window.colabGlobeInit) {
-        window.colabGlobeInit();
-      } else if (window.colabGlobe) {
-        window.colabGlobe.resume();
-      }
-
-      /* Reset globe to default position and rebind hover listeners
-         (Barba replaced the container so old .project-item refs are gone) */
-      if (window.colabGlobe) {
-        window.colabGlobe.reset();
-        window.colabGlobe.rebindHovers();
+      /* Resume or init tesseract */
+      if (window.colabTesseract) {
+        window.colabTesseract.init();
+        window.colabTesseract.resume();
       }
 
       /* Re-init homepage JS (scroll thumb, project hovers, etc.) */
@@ -70,9 +62,9 @@
     function enterProject() {
       document.body.classList.add('project-page');
 
-      /* Hide globe on project page (CSS handles it, but ensure display) */
-      var globe = document.querySelector('[data-globe]');
-      if (globe) globe.style.display = 'none';
+      /* Hide tesseract on project page (CSS handles it, but ensure display) */
+      var tesseract = document.querySelector('[data-tesseract]');
+      if (tesseract) tesseract.style.display = 'none';
 
       /* Hide visualizer on project page */
       var viz = document.querySelector('[data-visualizer]');
@@ -81,8 +73,8 @@
         viz.setAttribute('aria-hidden', 'true');
       }
 
-      /* Pause globe animation to save GPU */
-      if (window.colabGlobe) window.colabGlobe.pause();
+      /* Pause tesseract animation to save GPU */
+      if (window.colabTesseract) window.colabTesseract.pause();
 
       /* Init project page JS (depth gallery, video preview, etc.) */
       if (window.colabProject) window.colabProject.init();
