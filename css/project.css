@@ -622,7 +622,7 @@
      Gallery dominates the viewport; title + about sit below.
      -------------------------------------------------------- */
   :root {
-    --mp-canvas-h:      80vh;
+    --mp-canvas-h:      70vh;
     --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 16px);
     --mp-about-gap:     10px;
     --mp-title-h:       16px;
@@ -681,7 +681,6 @@
     inset-inline-start: var(--m);
     inset-inline-end: var(--m);
     z-index: 50;
-
     font-family: var(--font-display);
     font-size: 21px;
     font-weight: 400;
@@ -705,7 +704,7 @@
      Overrides main.css `display:none` for .about-text
      -------------------------------------------------------- */
   .project-page .related-project-detail {
-    display: block;
+    display: none !important;
     position: fixed;
     inset-block-start: calc(
       var(--mp-info-top) + var(--mp-title-h) + var(--mp-about-gap)
@@ -716,7 +715,6 @@
     height: var(--mp-about-h);
     overflow: hidden;
     z-index: 50;
-
     font-family: var(--font-display);
     font-size: 9px;
     font-weight: 400;
@@ -742,7 +740,6 @@
     inset-block-end: 20px;
     inset-inline-start: var(--m);
     z-index: 50;
-
     font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.1em;
