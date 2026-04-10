@@ -622,7 +622,7 @@
      Gallery dominates the viewport; title + about sit below.
      -------------------------------------------------------- */
   :root {
-    --mp-canvas-h:      50vh;
+    --mp-canvas-h:      80vh;
     --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 16px);
     --mp-about-gap:     10px;
     --mp-title-h:       16px;
@@ -683,7 +683,7 @@
     z-index: 50;
 
     font-family: var(--font-display);
-    font-size: 11px;
+    font-size: 21px;
     font-weight: 400;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -704,8 +704,8 @@
      M-P4. About text — visible on mobile project page
      Overrides main.css `display:none` for .about-text
      -------------------------------------------------------- */
-  .project-page .about-text {
-    display: block !important;
+  .project-page .related-project-detail {
+    display: block;
     position: fixed;
     inset-block-start: calc(
       var(--mp-info-top) + var(--mp-title-h) + var(--mp-about-gap)
@@ -744,7 +744,7 @@
     z-index: 50;
 
     font-family: var(--font-mono);
-    font-size: 8px;
+    font-size: 9px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-fg);
