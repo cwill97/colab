@@ -1057,7 +1057,7 @@ body.is-dragging-tesseract {
   inset-block: 0;
   inset-inline-start: 0;
   width: 0%;
-  background-color: var(--color-terminal);
+  background-color: var(--color-fg);
   transition: width 0.4s ease-out;
 }
 
@@ -1066,7 +1066,7 @@ body.is-dragging-tesseract {
   font-family: var(--font-mono);
   font-size: 9px;
   letter-spacing: 0.08em;
-  color: var(--color-terminal);
+  color: var(--color-fg);
   background: none;
   border: none;
   cursor: pointer;
