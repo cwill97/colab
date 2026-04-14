@@ -437,9 +437,9 @@ button {
 }
 
 .menu-nav-link {
-  color: var(--color-fg);
+  color: var(--color-muted);
   text-decoration: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease, color 0.2s ease;
 }
 
 a.menu-nav-link:hover,
@@ -447,8 +447,23 @@ a.menu-nav-link:focus-visible {
   opacity: 0.7;
 }
 
-.menu-nav-link.is-inactive,
+/* Active page — rendered in full white */
+.menu-nav-link.is-current {
+  color: var(--color-fg);
+}
+
+/* Separators: white only when both adjacent links are active-eligible.
+   We mark separators as current/inactive via JS to match surrounding state. */
+.menu-nav-sep {
+  color: var(--color-fg);
+}
+
 .menu-nav-sep.is-inactive {
+  color: var(--color-muted);
+}
+
+/* Inactive (unbuilt) pages — non-interactive, muted */
+.menu-nav-link.is-inactive {
   color: var(--color-muted);
   cursor: default;
 }
@@ -1417,6 +1432,16 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     z-index: 110;
   }
 
+  /* Mobile: icon only, no label */
+  .audio-toggle .audio-toggle-label {
+    display: none !important;
+  }
+
+  /* Hide the "Sound On/Off" label on mobile — icon only */
+  .audio-toggle-label {
+    display: none !important;
+  }
+
   /* --------------------------------------------------------
      M-4. Main — neutralise desktop flow
      -------------------------------------------------------- */
@@ -1677,7 +1702,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .menu-nav-text {
-    font-size: clamp(36px, 11vw, 64px);
+    font-size: clamp(27px, 8.25vw, 48px);
     line-height: 1.15;
     letter-spacing: -0.005em;
   }

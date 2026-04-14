@@ -546,7 +546,47 @@
     initProjectImageReveal();
     initMobileProjects();
     initProjectHoverSound();
+    syncMenuCurrent();
   }
+
+  /* ----------------------------------------------------------
+     Menu active-page highlight — reflect current Barba namespace
+     in the menu by toggling .is-current on the matching link.
+     Called on boot and after every Barba transition.
+     ---------------------------------------------------------- */
+  function syncMenuCurrent() {
+    var container = document.querySelector('[data-barba="container"]');
+    var ns = container && container.getAttribute('data-barba-namespace');
+    var links = document.querySelectorAll('.menu-nav-link[data-nav]');
+    var seps  = document.querySelectorAll('.menu-nav-sep[data-sep-after]');
+
+    links.forEach(function (link) {
+      if (link.getAttribute('data-nav') === ns) {
+        link.classList.add('is-current');
+      } else {
+        link.classList.remove('is-current');
+      }
+    });
+
+    /* Separator after a link is "active" (white) only when that link
+       OR the next link is the current page. Otherwise dim. */
+    seps.forEach(function (sep) {
+      var afterNav = sep.getAttribute('data-sep-after');
+      var leftLink = document.querySelector('.menu-nav-link[data-nav="' + afterNav + '"]');
+      /* Find next link sibling */
+      var next = sep.nextElementSibling;
+      var leftCurrent  = leftLink && leftLink.classList.contains('is-current');
+      var rightCurrent = next && next.classList && next.classList.contains('is-current');
+      if (leftCurrent || rightCurrent) {
+        sep.classList.remove('is-inactive');
+      } else {
+        sep.classList.add('is-inactive');
+      }
+    });
+  }
+
+  /* Expose for Barba re-init after content swap */
+  window.colabSyncMenuCurrent = syncMenuCurrent;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
