@@ -90,8 +90,11 @@
     this._touchStartY    = 0;
     this._touchMoved     = false;
 
-    /* Idle auto-scroll — always running, direction syncs with user */
-    this._idleSpeed       = 0.8;    /* px per frame — positive = forward */
+    /* Idle auto-scroll — always running, direction syncs with user.
+       Desktop moves 30% slower than mobile so the gallery reads more
+       deliberately at larger viewports. 0.8 × 0.7 = 0.56. */
+    var _isMobile = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
+    this._idleSpeed       = _isMobile ? 0.8 : 0.56; /* px per frame — positive = forward */
 
     /* End-of-gallery overscroll detection */
     this.onReachEnd      = null;    /* callback fired once when scrolling past end */

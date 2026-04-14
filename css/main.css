@@ -631,6 +631,8 @@ main {
   flex-shrink: 0;
   position: relative;
   padding-inline-start: 0;
+  /* Whole card is clickable on desktop — signal selectability. */
+  cursor: pointer;
   transition:
     opacity              0.3s var(--ease-out),
     padding-inline-start 0.3s var(--ease-out);
@@ -935,6 +937,22 @@ main {
   background: transparent;
 }
 
+/* While the user is dragging/rotating the tesseract, suppress text
+   selection and accidental highlighting across the page. Scoped to
+   the drag lifetime via the body class — normal selection is
+   restored the instant the pointer/touch is released. */
+body.is-dragging-tesseract,
+body.is-dragging-tesseract * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+body.is-dragging-tesseract {
+  cursor: grabbing;
+}
+
 /* ------------------------------------------------------------
    16. Preloader
    Full-screen overlay. Dismissed after progress + CTA click.
@@ -965,7 +983,7 @@ main {
   font-family: var(--font-mono);
   font-size: 9px;
   line-height: 1.8;
-  color: var(--color-terminal);
+  color: var(--color-fg);
   letter-spacing: 0.04em;
   opacity: 0.9;
 }
@@ -1433,15 +1451,19 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     margin-block-start: 30px;
   }
 
-  /* Reset desktop hover — mobile uses scroll activation */
+  /* Reset desktop hover — mobile uses scroll activation.
+     Inactive cards sit at low opacity so the active card reads
+     as unmistakably the focused one. */
   .project-item,
   .project-item:hover {
-    opacity: 0.15;
+    opacity: 0.08;
     padding-inline-start: 0;
     width: 80%;
+    transform: translateX(0);
     transition:
       opacity              0.4s var(--ease-out),
       width                0.4s var(--ease-out),
+      transform            0.4s var(--ease-out),
       padding-inline-start 0.4s var(--ease-out);
   }
 
@@ -1458,36 +1480,64 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .project-list:hover .project-item:not(:hover) {
-    opacity: 0.15;
+    opacity: 0.08;
   }
 
-  /* Scroll-activated state — mirrors desktop hover */
+  /* Scroll-activated state — clearly highlighted. The active card
+     comes to full opacity, snaps to full width, nudges right, and
+     its left accent line brightens + thickens so the focus is
+     unambiguous at a glance. */
   .project-list .project-item.is-scrolled-active,
   .project-list .project-item.is-scrolled-active:hover {
     opacity: 1;
-    padding-inline-start: 8px;
+    padding-inline-start: 12px;
     width: 100%;
+    transform: translateX(0);
+  }
+
+  .project-item::before {
+    width: 1px;
+    background: rgba(255, 255, 255, 0.5);
+    transition:
+      transform       0.55s var(--ease-out),
+      width           0.3s  var(--ease-out),
+      background      0.3s  var(--ease-out),
+      box-shadow      0.3s  var(--ease-out);
   }
 
   .project-item.is-scrolled-active::before {
     transform: scaleY(1);
+    width: 2px;
+    background: var(--color-fg);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
   }
 
   .project-item.is-scrolled-active .project-title {
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
   }
 
   .project-item.is-scrolled-active .project-cta {
     opacity: 1;
   }
 
-  /* Thumbnail injected by JS */
+  /* Thumbnail injected by JS — active card gets a brightness + scale
+     lift so it reads as the focused item even at a distance. */
   .project-thumb-mobile {
     width: calc(2 * var(--cw));
     height: 100px;
     object-fit: cover;
     flex-shrink: 0;
     display: block;
+    transform: scale(0.96);
+    filter: brightness(0.6);
+    transition:
+      transform  0.4s var(--ease-out),
+      filter     0.4s var(--ease-out);
+  }
+
+  .project-item.is-scrolled-active .project-thumb-mobile {
+    transform: scale(1);
+    filter: brightness(1);
   }
 
   /* Wrapper for text content (injected by JS) */

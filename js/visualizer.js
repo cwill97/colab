@@ -24,6 +24,13 @@
   var FFT_SIZE  = 512;
   var NUM_BANDS = 32;
 
+  /* Master gain for the ambient track.
+     Halved from the previous 0.5 → 0.25 to soften the default
+     volume and keep peaks well below clipping. Single source of
+     truth so initial state and every mute→unmute toggle land on
+     the same value (prevents the old 0.1→0.5 jump). */
+  var VOLUME = 0.25;
+
   /* ══════════════════════════════════════════════════════
      AUDIO SYSTEM — lives at IIFE scope, survives transitions
      ══════════════════════════════════════════════════════ */
@@ -43,7 +50,7 @@
     analyser.smoothingTimeConstant = 0.75;
     dataArray = new Uint8Array(analyser.frequencyBinCount);
     gainNode = audioCtx.createGain();
-    gainNode.gain.value = 0.1;          /* master volume — 50% */
+    gainNode.gain.value = VOLUME;       /* master volume — see VOLUME const */
 
     lpFilter = audioCtx.createBiquadFilter();
     lpFilter.type = 'lowpass';
@@ -94,7 +101,7 @@
     if (!audioToggle) return;
     var playing = started && !muted;
     audioToggle.classList.toggle('is-playing', playing);
-    if (audioLabel) audioLabel.textContent = playing ? 'On' : 'Off';
+    if (audioLabel) audioLabel.textContent = playing ? 'Sound On' : 'Sound Off';
     audioToggle.setAttribute('aria-label', playing ? 'Toggle audio — on' : 'Toggle audio — off');
   }
 
@@ -105,7 +112,7 @@
       container.setAttribute('aria-label',  muted ? 'Audio visualizer — click to unmute' : 'Audio visualizer — click to mute');
       container.setAttribute('aria-pressed', muted ? 'true' : 'false');
     }
-    if (gainNode) gsap.to(gainNode.gain, { duration: 0.5, value: muted ? 0 : 0.5, ease: 'power2.out' });
+    if (gainNode) gsap.to(gainNode.gain, { duration: 0.5, value: muted ? 0 : VOLUME, ease: 'power2.out', overwrite: true });
     syncToggle();
   }
 

@@ -805,48 +805,73 @@
   opacity: 1;
 }
 
-/* ── SVG ring ── */
-.audio-toggle-ring {
+/* ── SVG waveform ──
+   Five vertical bars styled as a waveform silhouette.
+   Each bar is a <line> 16px tall centred on y=18. Default
+   state collapses them to short flat marks (scaleY(0.1)) with
+   a diagonal slash indicating muted. When playing, bars animate
+   through staggered scaleY values to create a live waveform. */
+.audio-toggle-wave {
   width: 32px;
   height: 32px;
-  transform: rotate(-90deg);      /* start stroke from top */
+  overflow: visible;
 }
 
-.audio-toggle-track {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.08);
-  stroke-width: 1.5;
-}
-
-.audio-toggle-stroke {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.35);
-  stroke-width: 1.5;
+.audio-toggle-bar {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 2;
   stroke-linecap: round;
-  /* Circle circumference = 2 * π * 15 ≈ 94.25 */
-  stroke-dasharray: 94.25;
-  stroke-dashoffset: 94.25;           /* fully hidden when off */
-  transition: stroke-dashoffset 0.6s ease, stroke 0.3s ease;
+  transform: scaleY(0.1);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transition: stroke 0.3s ease, transform 0.3s ease;
 }
 
-/* ── Active state (audio playing) ── */
-.audio-toggle.is-playing .audio-toggle-label {
-  opacity: 0.7;
-}
-
-.audio-toggle.is-playing .audio-toggle-stroke {
+/* Muted slash — visible when off, fades out when playing. */
+.audio-toggle-slash {
   stroke: rgba(255, 255, 255, 0.55);
-  animation: audio-ring-draw 4s ease-in-out infinite;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 1;
+  transition: opacity 0.3s ease, stroke 0.3s ease;
 }
 
-.audio-toggle:hover .audio-toggle-stroke {
-  stroke: rgba(255, 255, 255, 0.6);
+/* ── Active state (audio playing) — bars oscillate ── */
+.audio-toggle.is-playing .audio-toggle-label {
+  opacity: 0.9;
 }
 
-@keyframes audio-ring-draw {
-  0%   { stroke-dashoffset: 94.25; }
-  50%  { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: -94.25; }
+.audio-toggle.is-playing .audio-toggle-bar {
+  stroke: rgba(255, 255, 255, 0.75);
+  animation: audio-wave-bar 1s ease-in-out infinite;
+}
+
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="0"] { animation-delay: 0.00s; }
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="1"] { animation-delay: 0.12s; }
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="2"] { animation-delay: 0.24s; }
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="3"] { animation-delay: 0.36s; }
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="4"] { animation-delay: 0.48s; }
+
+.audio-toggle.is-playing .audio-toggle-slash {
+  opacity: 0;
+}
+
+.audio-toggle:hover .audio-toggle-bar {
+  stroke: rgba(255, 255, 255, 0.85);
+}
+
+.audio-toggle:hover .audio-toggle-slash {
+  stroke: rgba(255, 255, 255, 0.75);
+}
+
+/* Scale bars vertically around each bar's midpoint (y=18).
+   Values chosen so adjacent bars look visually offset while the
+   animation runs, producing a waveform rhythm. */
+@keyframes audio-wave-bar {
+  0%, 100% { transform: scaleY(0.20); }
+  25%      { transform: scaleY(1.00); }
+  50%      { transform: scaleY(0.45); }
+  75%      { transform: scaleY(0.85); }
 }
 
 /* ── Mobile ── */
@@ -856,7 +881,7 @@
     inset-inline-end: 18px;
   }
 
-  .audio-toggle-ring {
+  .audio-toggle-wave {
     width: 28px;
     height: 28px;
   }

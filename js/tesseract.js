@@ -214,6 +214,19 @@
     interaction.velX = 0;
     interaction.velY = 0;
     document.body.style.cursor = 'grabbing';
+    // Suppress text selection / highlight while the user is rotating
+    // the tesseract. Scoped to the drag lifetime only.
+    document.body.classList.add('is-dragging-tesseract');
+    // Clear any existing selection that was made just before mousedown.
+    if (window.getSelection) {
+      var sel = window.getSelection();
+      if (sel && sel.removeAllRanges) sel.removeAllRanges();
+    }
+    // preventDefault on mousedown stops the browser from starting a
+    // text-selection drag. We only reach here after shouldIgnoreTarget
+    // has cleared the target, so we are never blocking a real click
+    // on a link, button, or form control.
+    if (e.preventDefault) e.preventDefault();
   }
 
   function onMouseMove(e) {
@@ -230,6 +243,7 @@
     if (!interaction.isDragging) return;
     interaction.isDragging = false;
     document.body.style.cursor = '';
+    document.body.classList.remove('is-dragging-tesseract');
   }
 
   function onTouchStart(e) {
@@ -240,6 +254,7 @@
     interaction.velY = 0;
     interaction.prevX = e.touches[0].clientX;
     interaction.prevY = e.touches[0].clientY;
+    document.body.classList.add('is-dragging-tesseract');
   }
 
   function onTouchMove(e) {
@@ -255,6 +270,7 @@
   function onTouchEnd() {
     if (!interaction.isDragging) return;
     interaction.isDragging = false;
+    document.body.classList.remove('is-dragging-tesseract');
   }
 
   /* ============================================================
@@ -386,6 +402,7 @@
     window.removeEventListener('touchcancel', onTouchEnd);
 
     document.body.style.cursor = '';
+    document.body.classList.remove('is-dragging-tesseract');
   }
 
   /* ============================================================
