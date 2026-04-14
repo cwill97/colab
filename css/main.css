@@ -1009,7 +1009,7 @@ body.is-dragging-tesseract {
 }
 
 .loader-log li .log-ok {
-  color: var(--color-terminal);
+  color: var(--color-fg);
   opacity: 0.6;
   transition: opacity 0.3s ease;
 }
