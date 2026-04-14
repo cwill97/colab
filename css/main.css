@@ -410,35 +410,57 @@ button {
   pointer-events: auto;
 }
 
-/* ── About text — vertically centred, right-of-centre ──── */
-.menu-about {
-  position: absolute;
-  transform: translateY(0%);
-  /* Desktop: roughly cols 5–8 of 10 (right-of-centre) */
-
-  max-width: 340px;
-  font-family: var(--font-display);
-  font-size: 9px;
-  font-weight: 400;
-  line-height: 1.55;
-  letter-spacing: 0.02em;
-  text-align: justify;
-  color: var(--color-fg);
+/* ── Menu nav links — centred, large display type ──────── */
+.menu-nav {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 1400px;
+  padding-inline: var(--grid-margin);
+  text-align: center;
   opacity: 0;
   transition: opacity 0.6s ease 0.3s;
 }
 
-.site-menu[aria-hidden="false"] .menu-about {
+.site-menu[aria-hidden="false"] .menu-nav {
   opacity: 1;
 }
 
-/* ── Contact + Socials footer — bottom-left ──────────── */
-.menu-footer {
-  position: absolute;
-  inset-block-end: 60px;
-  inset-inline-start: var(--grid-margin);
+.menu-nav-text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(36px, 5.4vw, 90px);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--color-fg);
+}
+
+.menu-nav-link {
+  color: var(--color-fg);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+a.menu-nav-link:hover,
+a.menu-nav-link:focus-visible {
+  opacity: 0.7;
+}
+
+.menu-nav-link.is-inactive,
+.menu-nav-sep.is-inactive {
+  color: var(--color-muted);
+  cursor: default;
+}
+
+/* Legacy about block — no longer used */
+.menu-about {
   display: none;
-  gap: 80px;
+}
+
+/* Contact + Socials footer — hidden on desktop, shown on mobile */
+.menu-footer {
+  display: none;
   opacity: 0;
   transition: opacity 0.6s ease 0.5s;
 }
@@ -1244,6 +1266,46 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   display: none;
 }
 
+/* ============================================================
+   About page — fixed full-viewport layout
+   Text top-left, sculpture image anchored bottom-right
+   Base `main` rule already sets position:fixed below nav.
+   ============================================================ */
+.about-main {
+  padding-block-start: 8px;
+  padding-inline: var(--grid-margin);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.about-copy {
+  margin: 0;
+  max-width: 58%;
+  font-family: var(--font-display);
+  font-size: 33px;
+  font-weight: 400;
+  line-height: 1.0;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--color-fg);
+}
+
+.about-image-wrap {
+  position: absolute;
+  inset-block-end: 98px;
+  inset-inline-end: 0;
+  width: 42%;
+  max-width: 720px;
+  line-height: 0;
+  pointer-events: none;
+}
+
+.about-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 @media (max-width: 767px) {
 
   /* --------------------------------------------------------
@@ -1302,11 +1364,22 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   /* --------------------------------------------------------
-     M-3. Nav
+     M-3. Nav — audio top-left, logo centered, menu top-right
      -------------------------------------------------------- */
   .site-nav {
     height: var(--nav-height);
     padding-inline: var(--m);
+  }
+
+  .nav-inner {
+    position: relative;
+  }
+
+  .nav-logo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .nav-logo img,
@@ -1319,6 +1392,29 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .nav-toggle-icon {
     width: var(--nav-btn-size);
     height: var(--nav-btn-size);
+    margin-left: auto;
+  }
+
+  /* Audio toggle — move into header top-left on mobile (all pages).
+     High specificity + !important to beat project.css base rule.
+     Stays visible above the menu overlay (z-index 90). */
+  body .audio-toggle,
+  body.project-page .audio-toggle,
+  body.about-page .audio-toggle,
+  body[data-menu-open] .audio-toggle {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    position: fixed;
+    inset-block-start: 0;
+    inset-block-end: auto;
+    inset-inline-start: var(--m);
+    inset-inline-end: auto;
+    height: var(--nav-height);
+    min-width: 44px;
+    align-items: center;
+    z-index: 110;
   }
 
   /* --------------------------------------------------------
@@ -1574,24 +1670,24 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
   /* --------------------------------------------------------
      M-9b. Menu overlay — mobile layout
-     About text centred, contact/socials at bottom
+     Large nav text centred, contact/socials at bottom
      -------------------------------------------------------- */
-  .menu-about {
-    position: absolute;
-    transform: translateY(0%);
-    max-width: 60%;
-    font-size: 9px;
-    line-height: 1.55;
-    letter-spacing: 0.03em;
-    text-align: justify;
+  .menu-nav {
+    padding-inline: var(--m);
+  }
+
+  .menu-nav-text {
+    font-size: clamp(36px, 11vw, 64px);
+    line-height: 1.15;
+    letter-spacing: -0.005em;
   }
 
   .menu-footer {
+    display: flex;
     position: absolute;
     inset-block-end: 40px;
     inset-inline-start: var(--m);
     inset-inline-end: var(--m);
-    display: flex;
     gap: 0;
     justify-content: space-between;
   }
@@ -1701,6 +1797,29 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     padding-inline: var(--m);
     grid-template-columns: repeat(5, 1fr);
     gap: var(--g);
+  }
+
+  /* --------------------------------------------------------
+     M-14. About page — mobile layout
+     Text top-left full width, image anchored bottom-right
+     -------------------------------------------------------- */
+  .about-main {
+    padding-inline: var(--m);
+    padding-block-start: 150px;
+  }
+
+  .about-copy {
+    max-width: 100%;
+    font-size: 26px;
+    line-height: 0.9;
+    letter-spacing: -0.01em;
+  }
+
+  .about-image-wrap {
+    width: 62%;
+    max-width: none;
+    inset-block-end: 88px;
+    inset-inline-end: 0;
   }
 
 } /* end @media (max-width: 767px) */

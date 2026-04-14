@@ -89,6 +89,32 @@
         doTransition(hideMenu);
       }
     });
+
+    /* Menu links — close the menu when a link is clicked.
+       - If already on the target page, intercept and just close with shader transition.
+       - If navigating to a different page, close the menu state synchronously
+         (no shader — Barba runs its own shader transition for the page swap)
+         and let Barba handle the navigation. */
+    function bindMenuLink(selector, targetNs) {
+      var link = menu.querySelector(selector);
+      if (!link || link._colabBound) return;
+      link._colabBound = true;
+      link.addEventListener('click', function (e) {
+        var container = document.querySelector('[data-barba="container"]');
+        var currentNs = container && container.getAttribute('data-barba-namespace');
+        if (currentNs === targetNs) {
+          /* Already here — just close the menu with the full shader transition */
+          e.preventDefault();
+          doTransition(hideMenu);
+        } else {
+          /* Cross-page nav — close menu state immediately, Barba takes over */
+          hideMenu();
+        }
+      });
+    }
+
+    bindMenuLink('[data-menu-home]', 'home');
+    bindMenuLink('[data-menu-about]', 'about');
   }
 
   /* ----------------------------------------------------------

@@ -37,6 +37,7 @@
     /* ── Helper: toggle persistent elements for each view ── */
     function enterHome() {
       document.body.classList.remove('project-page');
+      document.body.classList.remove('about-page');
 
       /* Show tesseract */
       var tesseract = document.querySelector('[data-tesseract]');
@@ -61,6 +62,7 @@
 
     function enterProject() {
       document.body.classList.add('project-page');
+      document.body.classList.remove('about-page');
 
       /* Hide tesseract on project page (CSS handles it, but ensure display) */
       var tesseract = document.querySelector('[data-tesseract]');
@@ -79,6 +81,28 @@
       /* Init project page JS (depth gallery, video preview, etc.) */
       if (window.colabProject) window.colabProject.init();
       if (window.colabVideoPreview) window.colabVideoPreview.init();
+
+      /* Re-bind nav toggle for the new container context */
+      if (window.colabMainBoot) window.colabMainBoot();
+    }
+
+    function enterAbout() {
+      document.body.classList.remove('project-page');
+      document.body.classList.add('about-page');
+
+      /* Hide tesseract on about page */
+      var tesseract = document.querySelector('[data-tesseract]');
+      if (tesseract) tesseract.style.display = 'none';
+
+      /* Hide visualizer on about page */
+      var viz = document.querySelector('[data-visualizer]');
+      if (viz) {
+        viz.style.display = 'none';
+        viz.setAttribute('aria-hidden', 'true');
+      }
+
+      /* Pause tesseract to save GPU */
+      if (window.colabTesseract) window.colabTesseract.pause();
 
       /* Re-bind nav toggle for the new container context */
       if (window.colabMainBoot) window.colabMainBoot();
@@ -147,6 +171,8 @@
             enterHome();
           } else if (entering === 'project') {
             enterProject();
+          } else if (entering === 'about') {
+            enterAbout();
           }
         },
 
