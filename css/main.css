@@ -1013,7 +1013,12 @@ main {
      to that slot rather than pushing the row wider. */
   text-align: center;
   overflow: hidden;
-  vertical-align: baseline;
+  /* `vertical-align: top` (not baseline) is critical: an inline-block
+     with overflow:hidden can't expose its text baseline, so browsers
+     synthesise one at the bottom edge — which inflates the parent
+     line-box by ~40%. Aligning by `top` skips the synthetic baseline
+     and keeps the row at its natural line-height. */
+  vertical-align: top;
 }
 
 /* Visually hidden — exposes the original line to screen readers when
