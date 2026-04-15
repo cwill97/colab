@@ -985,7 +985,7 @@ main {
   inset-block-end:   -2px;
   inset-inline-start: -6px;
   inset-inline-end:   -6px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.21);
   -webkit-backdrop-filter: blur(8px) saturate(140%);
           backdrop-filter: blur(8px) saturate(140%);
   pointer-events: none;
