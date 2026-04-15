@@ -163,6 +163,19 @@
           }
         },
 
+        /* afterLeave — fires after wipeOut completes and BEFORE the DOM swap.
+           Screen is fully black at this point. If a menu-link click triggered
+           this transition, the menu is still visually open; close its chrome
+           silently here so the upcoming revealIn doesn't reveal the menu
+           sitting on top of the new container (menu is z-index:90, above
+           the swapped container). */
+        afterLeave: function (data) {
+          if (window.colabHideMenuChrome &&
+              document.body.hasAttribute('data-menu-open')) {
+            window.colabHideMenuChrome();
+          }
+        },
+
         enter: function (data) {
           var entering = data.next.namespace;
 

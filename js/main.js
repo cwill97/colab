@@ -92,9 +92,11 @@
 
     /* Menu links — close the menu when a link is clicked.
        - If already on the target page, intercept and just close with shader transition.
-       - If navigating to a different page, close the menu state synchronously
-         (no shader — Barba runs its own shader transition for the page swap)
-         and let Barba handle the navigation. */
+       - If navigating to a different page, DO NOT close the menu state here.
+         The menu must stay visible so it's hidden BEHIND Barba's shader wipe;
+         closing it synchronously briefly exposes the underlying page (homepage
+         flash). Barba's afterLeave hook calls colabHideMenuChrome() once the
+         screen is fully covered by the shader. */
     function bindMenuLink(selector, targetNs) {
       var link = menu.querySelector(selector);
       if (!link || link._colabBound) return;
@@ -106,15 +108,26 @@
           /* Already here — just close the menu with the full shader transition */
           e.preventDefault();
           doTransition(hideMenu);
-        } else {
-          /* Cross-page nav — close menu state immediately, Barba takes over */
-          hideMenu();
         }
+        /* Cross-page nav — fall through. Barba intercepts the click and runs
+           its leave transition (wipeOut). Menu stays open under the shader
+           and is silently closed in barba-init.js's afterLeave hook. */
       });
     }
 
     bindMenuLink('[data-menu-home]', 'home');
     bindMenuLink('[data-menu-about]', 'about');
+
+    /* Expose a chrome-only menu close for Barba's afterLeave hook. This
+       skips the audio handling because Barba's leave/after manage audio
+       directly during page transitions — surfacing here would briefly
+       fight Barba's submerge call. */
+    window.colabHideMenuChrome = function () {
+      toggle.setAttribute('aria-expanded', 'false');
+      menu.setAttribute('aria-hidden', 'true');
+      document.body.removeAttribute('data-menu-open');
+      if (window.colabMenuRipple) window.colabMenuRipple.stop();
+    };
   }
 
   /* ----------------------------------------------------------
