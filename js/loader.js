@@ -132,8 +132,8 @@
   var GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWX1234567890!@#$%^&*()_+{}[]?/><';
   var COLORS = [
  
-    'rgba(255,225,255)',   /* white   */
-    'rgba(255,225,255,0.50)',   /* white   */
+    'rgba(255,255,255)',   /* white   */
+    'rgba(255,255,255,0.50)',   /* white   */
   ];
 
   var TICK_MS         = 600 / 35;   /* shuffle tick rate */
