@@ -133,7 +133,7 @@
   var COLORS = [
  
     'rgba(255,225,255)',   /* white   */
-    'rgba(255,225,255)',   /* white   */
+    'rgba(255,225,255,0.06)',   /* white   */
   ];
 
   var TICK_MS         = 600 / 35;   /* shuffle tick rate */
