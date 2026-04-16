@@ -15,22 +15,22 @@
      Terminal lines — mimics a real asset/script boot log
   ---------------------------------------------------------- */
   var LINES = [
-    { text: 'FETCHING CORE RUNTIME............', ok: true,  delay: 25  },
-    { text: 'DOWNLOADING PROJECT TEMPLATES....', ok: true,  delay: 40  },
-    { text: 'LOADING UI COMPONENTS............', ok: true,  delay: 30  },
-    { text: 'SYNCING NOTEBOOK EXTENSIONS......', ok: true,  delay: 50  },
-    { text: 'MOUNTING VIRTUAL FILESYSTEM......', ok: true,  delay: 35  },
-    { text: 'ALLOCATING GPU ACCELERATOR.......', ok: true,  delay: 65  },
-    { text: 'INITIALISING THREE.JS RENDERER...', ok: true,  delay: 35  },
-    { text: 'BUILDING PARTICLE GEOMETRY.......', ok: true,  delay: 60  },
-    { text: 'LOADING AUDIO PIPELINE...........', ok: true,  delay: 45  },
-    { text: 'CALIBRATING FFT ANALYSER.........', ok: true,  delay: 30  },
-    { text: 'COMPILING SHADER PROGRAMS........', ok: true,  delay: 55  },
-    { text: 'DOWNLOADING SAMPLE DATASETS......', ok: true,  delay: 45  },
-    { text: 'ACTIVATING INTERACTIVE WIDGETS...', ok: true,  delay: 35  },
-    { text: 'ENABLING REAL-TIME COLLABORATION.', ok: true,  delay: 40  },
-    { text: 'VERIFYING ASSET INTEGRITY........', ok: true,  delay: 30  },
-    { text: 'ESTABLISHING SECURE CONTEXT......', ok: true,  delay: 35  },
+    { text: 'nmap -sS -Pn -T4 10.0.0.0/24', ok: true,  delay: 25  },
+    { text: 'Initiating SYN Stealth Scan...', ok: true,  delay: 40  },
+    { text: 'Scanning 256 hosts [1000 ports/host]', ok: true,  delay: 30  },
+    { text: 'Discovered open port 22/tcp (ssh)', ok: true,  delay: 50  },
+    { text: 'Discovered open port 80/tcp (http)', ok: true,  delay: 35  },
+    { text: 'OS fingerprinting in progress...', ok: true,  delay: 65  },
+    { text: 'Running service detection (-sV)', ok: true,  delay: 35  },
+    { text: 'Service scan report: OpenSSH 8.2p1', ok: true,  delay: 60  },
+    { text: 'Service scan report: Apache httpd 2.4.54', ok: true,  delay: 45  },
+    { text: 'Enumerating SSL/TLS configuration...', ok: true,  delay: 30  },
+    { text: 'Checking for known CVEs...', ok: true,  delay: 55  },
+    { text: 'No critical vulnerabilities detected', ok: true,  delay: 45  },
+    { text: 'Establishing reverse TCP handler...', ok: true,  delay: 35  },
+    { text: 'Attempting credential brute force (ssh)...', ok: true,  delay: 40  },
+    { text: 'Spawning pseudo-terminal...', ok: true,  delay: 30  },
+    { text: 'Access level: root', ok: true,  delay: 35  },
   ];
 
   var FOOTER_LINES = [
