@@ -15,32 +15,28 @@
      Terminal lines — mimics a real asset/script boot log
   ---------------------------------------------------------- */
   var LINES = [
-    { text: 'nmap -sS -Pn -T4 10.0.0.0/24', ok: true,  delay: 25  },
-    { text: 'Initiating SYN Stealth Scan...', ok: true,  delay: 40  },
-    { text: 'Scanning 256 hosts [1000 ports/host]', ok: true,  delay: 30  },
-    { text: 'Discovered open port 22/tcp (ssh)', ok: true,  delay: 50  },
-    { text: 'Discovered open port 80/tcp (http)', ok: true,  delay: 35  },
-    { text: 'OS fingerprinting in progress...', ok: true,  delay: 65  },
-    { text: 'Running service detection (-sV)', ok: true,  delay: 35  },
-    { text: 'Service scan report: OpenSSH 8.2p1', ok: true,  delay: 60  },
-    { text: 'Service scan report: Apache httpd 2.4.54', ok: true,  delay: 45  },
-    { text: 'Enumerating SSL/TLS configuration...', ok: true,  delay: 30  },
-    { text: 'Checking for known CVEs...', ok: true,  delay: 55  },
-    { text: 'No critical vulnerabilities detected', ok: true,  delay: 45  },
-    { text: 'Establishing reverse TCP handler...', ok: true,  delay: 35  },
-    { text: 'Attempting credential brute force (ssh)...', ok: true,  delay: 40  },
-    { text: 'Spawning pseudo-terminal...', ok: true,  delay: 30  },
-    { text: 'Access level: root', ok: true,  delay: 35  },
+    { text: 'NMAP -SS -PN -T4 10.0.0.0/24..', ok: true,  delay: 25  },
+    { text: 'INITIATING SYN STEALTH SCAN...', ok: true,  delay: 40  },
+    { text: 'SCANNING 256 HOSTS [1000 PORTS/HOST]', ok: true,  delay: 30  },
+    { text: 'DISCOVERED OPEN PORT 22/TCP (SSH)', ok: true,  delay: 50  },
+    { text: 'DISCOVERED OPEN PORT 80/TCP (HTTP)', ok: true,  delay: 35  },
+    { text: 'OS FINGERPRINTING IN PROGRESS...', ok: true,  delay: 65  },
+    { text: 'RUNNING SERVICE DETECTION (-SV)', ok: true,  delay: 35  },
+    { text: 'SERVICE SCAN REPORT: OPENSSH 8.2P1', ok: true,  delay: 60  },
+    { text: 'SERVICE SCAN REPORT: APACHE HTTPD 2.4.54', ok: true,  delay: 45  },
+    { text: 'ENUMERATING SSL/TLS CONFIGURATION...', ok: true,  delay: 30  },
+    { text: 'CHECKING FOR KNOWN CVES...', ok: true,  delay: 55  },
+    { text: 'NO CRITICAL VULNERABILITIES DETECTED', ok: true,  delay: 45  },
+    { text: 'ESTABLISHING REVERSE TCP HANDLER...', ok: true,  delay: 35  },
+    { text: 'ATTEMPTING CREDENTIAL BRUTE FORCE (SSH)...', ok: true,  delay: 40  },
+    { text: 'SPAWNING PSEUDO-TERMINAL...', ok: true,  delay: 30  },
+    { text: 'ACCESS LEVEL: ROOT', ok: true,  delay: 35  },
   ];
 
   var FOOTER_LINES = [
-    'ALL SYSTEMS READY.',
-    'WELCOME TO THE EXPERIMENTAL ZONE',
+    'CLEANING TRACES',
     '',
     '(PRESS ANY KEY TO CONTINUE)',
-    'READY!',
-    '',
-    'MONITOR READY.',
   ];
 
   /* ----------------------------------------------------------
