@@ -51,7 +51,7 @@
     this.maxCameraZ    =  Infinity;
 
     /* Plane config — from Gallery.js */
-    this.planeGap       = 4;
+    this.planeGap       = 6;
     this.planeFadeSmoothing = 0.14;
 
     /* Parallax — from Gallery.js */
