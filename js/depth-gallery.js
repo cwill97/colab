@@ -1,7 +1,4 @@
 /**
- * co:lab — Depth Gallery Mode
- * Ported from houmahani/codrops-depth-gallery (MIT)
- *
  * Images stacked along Z-axis. Scroll moves camera forward/backward.
  * Mouse parallax + breath/tilt driven by scroll velocity.
  * GLSL background with animated blob gradient + film grain.
@@ -42,8 +39,8 @@
     /* Scroll state — from Scroll.js */
     this.scrollTarget  = 0;
     this.scrollCurrent = 0;
-    this.scrollSmoothing      = 0.09;
-    this.scrollToWorldFactor  = 0.02;
+    this.scrollSmoothing      = 0.12;
+    this.scrollToWorldFactor  = 0.01;
     this.prevScrollCurrent    = 0;
     this.rawVelocity   = 0;
     this.velocity      = 0;
@@ -54,7 +51,7 @@
     this.maxCameraZ    =  Infinity;
 
     /* Plane config — from Gallery.js */
-    this.planeGap       = 5;
+    this.planeGap       = 4;
     this.planeFadeSmoothing = 0.14;
 
     /* Parallax — from Gallery.js */
@@ -84,8 +81,8 @@
     /* Hold-to-auto-scroll */
     this._holdTimer      = null;
     this._autoScrolling  = false;
-    this._autoScrollSpeed = 6.0;    /* px-equivalent per frame */
-    this._holdDelay      = 200;     /* ms before auto-scroll kicks in */
+    this._autoScrollSpeed = 5.0;    /* px-equivalent per frame */
+    this._holdDelay      = 140;     /* ms before auto-scroll kicks in */
     this._touchStartX    = 0;
     this._touchStartY    = 0;
     this._touchMoved     = false;
