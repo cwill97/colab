@@ -39,13 +39,13 @@
     /* Scroll state — from Scroll.js */
     this.scrollTarget  = 0;
     this.scrollCurrent = 0;
-    this.scrollSmoothing      = 0.12;
-    this.scrollToWorldFactor  = 0.01;
+    this.scrollSmoothing      = 0.21;
+    this.scrollToWorldFactor  = 0.02;
     this.prevScrollCurrent    = 0;
     this.rawVelocity   = 0;
     this.velocity      = 0;
     this.velocityDamping     = 0.12;
-    this.velocityMax         = 1.5;
+    this.velocityMax         = 1.2;
     this.cameraStartZ  = 0;
     this.minCameraZ    = -Infinity;
     this.maxCameraZ    =  Infinity;
@@ -81,7 +81,7 @@
     /* Hold-to-auto-scroll */
     this._holdTimer      = null;
     this._autoScrolling  = false;
-    this._autoScrollSpeed = 5.0;    /* px-equivalent per frame */
+    this._autoScrollSpeed = 5.5;    /* px-equivalent per frame */
     this._holdDelay      = 140;     /* ms before auto-scroll kicks in */
     this._touchStartX    = 0;
     this._touchStartY    = 0;
