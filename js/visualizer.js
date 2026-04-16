@@ -326,7 +326,7 @@
       var newPr = getPixelRatio();
       if (renderer.getPixelRatio() !== newPr) {
         renderer.setPixelRatio(newPr);
-        mat.size = 1.4 * newPr;
+        mat.size = 0.6 * newPr;
       }
       renderer.setSize(nW, nH);
       camera.aspect = nW / nH;
