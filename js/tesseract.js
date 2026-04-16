@@ -38,7 +38,7 @@
       '        p = 0.7*abs(p)/dot(p,p) - 0.7;\n' +
       '        p.yz = csqr(p.yz);\n' +
       '        p = p.zxy;\n' +
-      '        res += exp(-19.0 * abs(dot(p,c)));\n' +
+      '        res += exp(-15.0 * abs(dot(p,c)));\n' +
       '    }\n' +
       '    return res * 0.5;\n' +
       '}\n' +

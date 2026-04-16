@@ -1,10 +1,10 @@
 /**
- * co:lab — Chladni Plate Visualizer
- * Simulates sand/particle patterns on a vibrating plate.
- * Audio-reactive: frequency bands drive Chladni mode numbers (n, m),
- * producing geometric nodal-line patterns that reshape in real-time.
- * Particles settle along nodal lines (amplitude ≈ 0), matching the
- * globe's ice-blue palette (0.7, 0.85, 1.0).
+ * co:lab — Particle Dome Visualizer
+ * Audio-reactive 3D point field. ~3500 white particles arranged in
+ * concentric rings in the xz-plane; each ring's Y height is driven by
+ * a frequency band (inner rings = bass, outer rings = mids). Produces
+ * the classic "UFO/dome" silhouette where bass hits lift the center
+ * hump and higher frequencies ripple the brim.
  * Click to play/mute.
  *
  * Audio pipeline is independent of WebGL rendering — audio persists
@@ -29,7 +29,7 @@
      volume and keep peaks well below clipping. Single source of
      truth so initial state and every mute→unmute toggle land on
      the same value (prevents the old 0.1→0.5 jump). */
-  var VOLUME = 0.25;
+  var VOLUME = 0.21;
 
   /* ══════════════════════════════════════════════════════
      AUDIO SYSTEM — lives at IIFE scope, survives transitions
@@ -177,383 +177,141 @@
     /* Always bind audio triggers regardless of visibility */
     bindAudioTriggers(container);
 
-    /* If hidden, skip WebGL entirely — audio still works */
+    /* If hidden (mobile CSS), skip WebGL entirely — audio still works */
     if (container.style.display === 'none') return;
 
     var W = container.offsetWidth  || 255;
     var H = container.offsetHeight || 115;
 
+    /* antialias: false — we want crisp square points, not AA'd soft circles */
     var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    /* Pixel-ratio must account for the CSS `zoom` scale.js applies to <html>.
+       offsetWidth/setSize work in pre-zoom CSS px, but the canvas is displayed
+       at (cssSize × zoom × devicePixelRatio) physical px. Without multiplying
+       by zoom here, the buffer is under-allocated and every dot renders as
+       a chunky square stretched across many screen pixels. */
+    function getPixelRatio() {
+      var zoom = parseFloat(document.documentElement.style.zoom) || 1;
+      return Math.min((window.devicePixelRatio || 1) * zoom, 4);
+    }
+    var pr = getPixelRatio();
+    renderer.setPixelRatio(pr);
     renderer.setSize(W, H);
     renderer.setClearColor(0x000000, 0);
 
     var scene  = new THREE.Scene();
-    var camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-
-    /* Frequency data texture */
-    var freqData = new Uint8Array(NUM_BANDS);
-    var freqTex  = new THREE.DataTexture(freqData, NUM_BANDS, 1, THREE.LuminanceFormat);
-    freqTex.minFilter = THREE.LinearFilter;
-    freqTex.magFilter = THREE.LinearFilter;
-    freqTex.needsUpdate = true;
-
-    var vertShader = [
-      'varying vec2 vUv;',
-      'void main() {',
-      '  vUv = uv;',
-      '  gl_Position = vec4(position, 1.0);',
-      '}'
-    ].join('\n');
-
-    /* ═══════════════════════════════════════════════════════════
-       Chladni Plate Fragment Shader
-
-       Chladni equation for a square plate:
-         f(x,y) = cos(n·π·x) · cos(m·π·y) ± cos(m·π·x) · cos(n·π·y)
-
-       Nodal lines occur where f(x,y) ≈ 0.
-       Particles (sand/powder) accumulate on these lines.
-
-       Multiple modes are superimposed, each driven by an audio band.
-       The result: geometric patterns that morph in real-time with
-       the music — low frequencies produce simple shapes, high
-       frequencies produce intricate lattices.
-       ═══════════════════════════════════════════════════════════ */
-
-    var fragShader = [
-      'precision highp float;',
-      'varying vec2 vUv;',
-      '',
-      'uniform float uTime;',
-      'uniform float uEnergy;',
-      'uniform float uBass;',
-      'uniform float uMid;',
-      'uniform float uHigh;',
-      'uniform sampler2D uFreqData;',
-      'uniform vec2  uRes;',
-      '',
-      '/* Smoothly varying mode numbers driven by audio */',
-      'uniform float uN1;',
-      'uniform float uM1;',
-      'uniform float uN2;',
-      'uniform float uM2;',
-      'uniform float uN3;',
-      'uniform float uM3;',
-      '',
-      '#define PI 3.141592653589793',
-      '',
-      '/* ── Hash / noise for particle grain ── */',
-      'float hash(vec2 p) {',
-      '  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);',
-      '}',
-      '',
-      'float noise(vec2 p) {',
-      '  vec2 i = floor(p);',
-      '  vec2 f = fract(p);',
-      '  f = f * f * (3.0 - 2.0 * f);',
-      '  return mix(',
-      '    mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x),',
-      '    mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x),',
-      '    f.y);',
-      '}',
-      '',
-      '/* ── Chladni function ── */',
-      'float chladni(vec2 p, float n, float m, float sign) {',
-      '  return cos(n * PI * p.x) * cos(m * PI * p.y)',
-      '       + sign * cos(m * PI * p.x) * cos(n * PI * p.y);',
-      '}',
-      '',
-      '/* ── Particle density along nodal lines ── */',
-      'float nodalDensity(float amplitude, float width) {',
-      '  float a = abs(amplitude);',
-      '  return exp(-a * a / (width * width));',
-      '}',
-      '',
-      'void main() {',
-      '  vec2 asp = vec2(uRes.x / uRes.y, 1.0);',
-      '',
-      '  /* Map UV to plate coordinates [-1, 1] */',
-      '  vec2 plate = (vUv - 0.5) * 2.0;',
-      '',
-      '  /* Subtle vibration displacement — plate is shaking */',
-      '  float t = uTime;',
-      '  float vib = uEnergy * 0.008;',
-      '  plate += vec2(',
-      '    sin(t * 23.0) * vib,',
-      '    cos(t * 19.0) * vib',
-      '  );',
-      '',
-      '  /* ═════════════════════════════════════════',
-      '     MODE 1: Bass — bold simple geometry',
-      '     ═════════════════════════════════════════ */',
-      '',
-      '  float c1a = chladni(plate, uN1, uM1, 1.0);',
-      '  float c1b = chladni(plate, uN1, uM1, -1.0);',
-      '  float d1  = nodalDensity(c1a, 0.18 + uBass * 0.06);',
-      '  float d1b = nodalDensity(c1b, 0.22 + uBass * 0.05);',
-      '  float bass_pattern = max(d1, d1b * 0.5);',
-      '',
-      '  /* ═════════════════════════════════════════',
-      '     MODE 2: Mids — medium complexity',
-      '     ═════════════════════════════════════════ */',
-      '',
-      '  float c2a = chladni(plate, uN2, uM2, 1.0);',
-      '  float c2b = chladni(plate, uN2, uM2, -1.0);',
-      '  float d2  = nodalDensity(c2a, 0.15 + uMid * 0.05);',
-      '  float d2b = nodalDensity(c2b, 0.18 + uMid * 0.04);',
-      '  float mid_pattern = max(d2, d2b * 0.6);',
-      '',
-      '  /* ═════════════════════════════════════════',
-      '     MODE 3: Highs — intricate lattices',
-      '     ═════════════════════════════════════════ */',
-      '',
-      '  float c3a = chladni(plate, uN3, uM3, 1.0);',
-      '  float c3b = chladni(plate, uN3, uM3, -1.0);',
-      '  float d3  = nodalDensity(c3a, 0.12 + uHigh * 0.04);',
-      '  float d3b = nodalDensity(c3b, 0.14 + uHigh * 0.03);',
-      '  float high_pattern = max(d3, d3b * 0.7);',
-      '',
-      '  /* ═════════════════════════════════════════',
-      '     MODE 4: Cross-mode interference',
-      '     ═════════════════════════════════════════ */',
-      '',
-      '  float c4 = chladni(plate, uN1, uM2, 1.0);',
-      '  float d4 = nodalDensity(c4, 0.20);',
-      '  float cross_pattern = d4 * 0.4;',
-      '',
-      '  /* ═════════════════════════════════════════',
-      '     COMPOSE: Weight by audio energy per band',
-      '     ═════════════════════════════════════════ */',
-      '',
-      '  float bassW = 0.35 + uBass * 0.5;',
-      '  float midW  = 0.25 + uMid  * 0.6;',
-      '  float highW = 0.15 + uHigh * 0.7;',
-      '',
-      '  float pattern = 0.0;',
-      '  pattern += bass_pattern * bassW;',
-      '  pattern += mid_pattern  * midW;',
-      '  pattern += high_pattern * highW;',
-      '  pattern += cross_pattern * uEnergy;',
-      '  pattern = clamp(pattern, 0.0, 1.8);',
-      '',
-      '  /* ═════════════════════════════════════════',
-      '     PARTICLE GRAIN TEXTURE',
-      '     ═════════════════════════════════════════ */',
-      '',
-      '  vec2 grainUV = vUv * uRes;',
-      '  float grain = hash(floor(grainUV * 1.5 + t * 0.3));',
-      '',
-      '  float particleMask = smoothstep(0.15, 0.55, pattern);',
-      '',
-      '  float scatter = noise(vUv * 80.0 + t * 0.2) * 0.25;',
-      '  particleMask = max(particleMask, scatter * pattern);',
-      '',
-      '  float density = particleMask;',
-      '  float grainBright = 0.6 + grain * 0.4;',
-      '  density *= grainBright;',
-      '  density *= (0.5 + uEnergy * 1.0);',
-      '',
-      '  /* ═════════════════════════════════════════',
-      '     NODAL LINE GLOW',
-      '     ═════════════════════════════════════════ */',
-      '',
-      '  float glow = smoothstep(0.05, 0.45, pattern);',
-      '  glow *= 0.3 * (0.4 + uEnergy * 0.6);',
-      '',
-      '  /* ═════════════════════════════════════════',
-      '     COLOUR — Globe ice-blue on black plate',
-      '     ═════════════════════════════════════════ */',
-      '',
-      '  vec3 particleCol = vec3(0.7, 0.85, 1.0);',
-      '  vec3 glowCol     = vec3(0.45, 0.65, 0.90);',
-      '',
-      '  vec3 col = vec3(0.0);',
-      '  col += particleCol * density;',
-      '  col += glowCol * glow;',
-      '  col += vec3(1.0) * pow(max(density, 0.0), 3.0) * 0.25;',
-      '',
-      '  /* Subtle edge vignette */',
-      '  float vignette = 1.0 - smoothstep(0.7, 1.05, length(plate));',
-      '  col *= vignette;',
-      '',
-      '  float alpha = clamp((density + glow) * 1.4, 0.0, 1.0) * vignette;',
-      '',
-      '  gl_FragColor = vec4(col, alpha);',
-      '}'
-    ].join('\n');
-
-    var uniforms = {
-      uTime:     { value: 0 },
-      uEnergy:   { value: 0 },
-      uBass:     { value: 0 },
-      uMid:      { value: 0 },
-      uHigh:     { value: 0 },
-      uFreqData: { value: freqTex },
-      uRes:      { value: new THREE.Vector2(W, H) },
-      /* Chladni mode numbers — driven by audio in the render loop */
-      uN1: { value: 2.0 },
-      uM1: { value: 3.0 },
-      uN2: { value: 4.0 },
-      uM2: { value: 5.0 },
-      uN3: { value: 6.0 },
-      uM3: { value: 7.0 },
-    };
-
-    var mat = new THREE.ShaderMaterial({
-      vertexShader:   vertShader,
-      fragmentShader: fragShader,
-      uniforms:       uniforms,
-      transparent:    true,
-      depthWrite:     false,
-    });
-
-    var quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat);
-    scene.add(quad);
+    var camera = new THREE.PerspectiveCamera(22, W / H, 0.1, 100);
+    /* Slight downward tilt (~18°) to match the reference's elevated look-down */
+    camera.position.set(0, 0.95, 3.0);
+    camera.lookAt(0, 0.08, 0);
 
     /* ══════════════════════════════════════════════════════
-       MODE DRIVER
-       Maps audio bands → Chladni mode numbers (n, m).
-       Transient/beat detection triggers discrete mode jumps
-       for volatile, real-time reshaping.
+       PARTICLE DOME
+       48 concentric rings in the xz-plane. Points-per-ring
+       scales with circumference so dot density stays roughly
+       uniform — sparse center, dense brim, matching the ref.
+       Each particle stores its ring index so we can look up
+       the ring's audio-driven height every frame.
        ══════════════════════════════════════════════════════ */
+    var NUM_RINGS            = 30;
+    var MIN_R                = 0.06;
+    var MAX_R                = 0.9;
+    var POINTS_PER_UNIT_CIRC = 21;   /* density — higher = closer to ref's fine-dust look */
+    var MIN_RING_POINTS      = 18;   /* floor so the inner hump has body, not 8 lonely dots */
 
-    var targetN1 = 2, targetM1 = 3;
-    var targetN2 = 4, targetM2 = 5;
-    var targetN3 = 6, targetM3 = 7;
-
-    var curN1 = 2, curM1 = 3;
-    var curN2 = 4, curM2 = 5;
-    var curN3 = 6, curM3 = 7;
-
-    var bassModes = [
-      [1, 2], [2, 3], [1, 3], [2, 1], [3, 2], [3, 1],
-      [1, 4], [2, 4], [3, 3], [4, 1]
-    ];
-    var midModes = [
-      [3, 5], [4, 5], [3, 7], [5, 4], [4, 7], [5, 3],
-      [5, 6], [4, 6], [6, 4], [3, 6]
-    ];
-    var highModes = [
-      [5, 8], [6, 7], [7, 9], [8, 5], [7, 6], [9, 7],
-      [6, 9], [8, 7], [5, 9], [7, 8]
-    ];
-
-    var prevBass = 0, prevMid = 0, prevHigh = 0;
-    var modeTimer = 0;
-    var MODE_COOLDOWN = 0.12;
-
-    function pickMode(modes, energy) {
-      var idx = Math.floor(energy * (modes.length - 1));
-      idx = Math.max(0, Math.min(modes.length - 1, idx));
-      return modes[idx];
+    var posList = [];
+    var ringIdx = [];   /* ring-index per particle — parallel to posList/3 */
+    for (var r = 0; r < NUM_RINGS; r++) {
+      var tRing  = r / (NUM_RINGS - 1);
+      var radius = MIN_R + tRing * (MAX_R - MIN_R);
+      var circ   = 2 * Math.PI * radius;
+      var n      = Math.max(MIN_RING_POINTS, Math.round(circ * POINTS_PER_UNIT_CIRC));
+      /* Golden-angle-ish offset per ring so adjacent rings don't form
+         obvious radial spokes when viewed head-on. */
+      var angleOffset = r * 0.393;
+      for (var i = 0; i < n; i++) {
+        var a = angleOffset + (i / n) * Math.PI * 2;
+        posList.push(Math.cos(a) * radius, 0, Math.sin(a) * radius);
+        ringIdx.push(r);
+      }
     }
 
-    /* ── Render loop ── */
+    var positions = new Float32Array(posList);
+    var geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    var mat = new THREE.PointsMaterial({
+      color:            0xffffff,
+      size:             0.06 * pr,  /* ~1.4 CSS px dots — crisp, not chunky */
+      sizeAttenuation:  false
+    });
+
+    var points = new THREE.Points(geom, mat);
+    scene.add(points);
+
+    /* ══════════════════════════════════════════════════════
+       RING-HEIGHT STATE
+       Targets are recomputed every frame from FFT; heights
+       lerp toward targets with asymmetric attack/release so
+       the motion feels like a real spectrum analyser.
+       ══════════════════════════════════════════════════════ */
+    var ringHeights = new Float32Array(NUM_RINGS);
+    var ringTargets = new Float32Array(NUM_RINGS);
+
+    var HEIGHT_SCALE = 0.30;  /* world-units per normalised amplitude */
+
     var clock = new THREE.Clock();
-    var sEnergy = 0, sBass = 0, sMid = 0, sHigh = 0;
-    var fBass = 0, fMid = 0, fHigh = 0;
 
     function animate() {
       requestAnimationFrame(animate);
-      var dt = clock.getDelta();
-      var t  = clock.getElapsedTime();
+      var t = clock.getElapsedTime();
       var audioActive = analyser && started && !muted && dataArray;
 
       if (audioActive) {
         analyser.getByteFrequencyData(dataArray);
-
-        var binsPer = Math.floor(dataArray.length / NUM_BANDS);
-        var total = 0, bass = 0, mid = 0, high = 0;
-        for (var b = 0; b < NUM_BANDS; b++) {
-          var sum = 0;
-          for (var j = 0; j < binsPer; j++) sum += dataArray[b * binsPer + j];
-          var avg = sum / binsPer;
-          freqData[b] = Math.floor(avg);
-          total += avg;
-          if (b < 8)       bass += avg;
-          else if (b < 20) mid  += avg;
-          else              high += avg;
+        /* Ring → FFT bin via power curve. Inner rings grab the low bass
+           bins aggressively; outer rings spread into the mids. Cap at
+           bin 56 (~4.8kHz at 44.1kHz sample rate) — above that, bins
+           are mostly noise floor and don't add visual interest. */
+        for (var r2 = 0; r2 < NUM_RINGS; r2++) {
+          var ratio = r2 / (NUM_RINGS - 1);
+          var bin   = Math.floor(Math.pow(ratio, 1.6) * 21);
+          if (bin >= dataArray.length) bin = dataArray.length - 1;
+          var v = dataArray[bin] / 255;
+          /* Inner-boost — exaggerates the bass-driven center hump,
+             which is the defining feature of the reference look. */
+          var innerBoost = 1 + (1 - ratio) * 0.9;
+          ringTargets[r2] = v * innerBoost;
         }
-
-        sEnergy += (total / (NUM_BANDS * 255) - sEnergy) * 0.18;
-        sBass   += (bass  / (8 * 255)  - sBass)  * 0.22;
-        sMid    += (mid   / (12 * 255) - sMid)   * 0.20;
-        sHigh   += (high  / (12 * 255) - sHigh)  * 0.18;
-
-        var rawBass = bass / (8 * 255);
-        var rawMid  = mid  / (12 * 255);
-        var rawHigh = high / (12 * 255);
-        fBass += (rawBass - fBass) * 0.45;
-        fMid  += (rawMid  - fMid)  * 0.40;
-        fHigh += (rawHigh - fHigh) * 0.35;
-
-        /* Beat detection → mode jumps */
-        modeTimer -= dt;
-        var bassHit = (fBass - prevBass) > 0.06;
-        var midHit  = (fMid  - prevMid)  > 0.05;
-        var highHit = (fHigh - prevHigh) > 0.04;
-
-        if (modeTimer <= 0 && (bassHit || midHit || highHit)) {
-          modeTimer = MODE_COOLDOWN;
-
-          if (bassHit) {
-            var bm = pickMode(bassModes, fBass);
-            targetN1 = bm[0]; targetM1 = bm[1];
-          }
-          if (midHit) {
-            var mm = pickMode(midModes, fMid);
-            targetN2 = mm[0]; targetM2 = mm[1];
-          }
-          if (highHit) {
-            var hm = pickMode(highModes, fHigh);
-            targetN3 = hm[0]; targetM3 = hm[1];
-          }
-        }
-
-        prevBass = fBass;
-        prevMid  = fMid;
-        prevHigh = fHigh;
-
       } else {
-        var idle = 0.08 + Math.sin(t * 0.4) * 0.04;
-        sEnergy += (idle - sEnergy) * 0.04;
-        sBass   += (idle * 0.7 - sBass) * 0.04;
-        sMid    += (idle * 0.5 - sMid) * 0.04;
-        sHigh   += (idle * 0.3 - sHigh) * 0.04;
-        for (var b2 = 0; b2 < NUM_BANDS; b2++) {
-          freqData[b2] = Math.floor(freqData[b2] * 0.96);
+        /* Idle breathing — gentle radial mound + slow sine wobble so
+           the visualizer still reads as alive when muted. */
+        for (var r3 = 0; r3 < NUM_RINGS; r3++) {
+          var ratio2  = r3 / (NUM_RINGS - 1);
+          var baseline = (1 - ratio2) * 0.28;
+          var wobble   = Math.sin(ratio2 * 3.2 + t * 0.7) * 0.06 * (1 - ratio2);
+          ringTargets[r3] = baseline + wobble;
         }
-
-        var idleIdx = Math.floor(t * 0.15) % bassModes.length;
-        targetN1 = bassModes[idleIdx][0];
-        targetM1 = bassModes[idleIdx][1];
-        var midIdx = Math.floor(t * 0.12) % midModes.length;
-        targetN2 = midModes[midIdx][0];
-        targetM2 = midModes[midIdx][1];
       }
 
-      /* Fast mode interpolation for volatile reshaping */
-      var modeLerp = 1.0 - Math.pow(0.02, dt);
-      curN1 += (targetN1 - curN1) * modeLerp;
-      curM1 += (targetM1 - curM1) * modeLerp;
-      curN2 += (targetN2 - curN2) * modeLerp;
-      curM2 += (targetM2 - curM2) * modeLerp;
-      curN3 += (targetN3 - curN3) * modeLerp;
-      curM3 += (targetM3 - curM3) * modeLerp;
+      /* Asymmetric smoothing — fast rise (peak response), slow fall
+         (afterglow). Feels closer to an analog VU than symmetric lerp. */
+      for (var r4 = 0; r4 < NUM_RINGS; r4++) {
+        var diff = ringTargets[r4] - ringHeights[r4];
+        ringHeights[r4] += diff * (diff > 0 ? 0.28 : 0.12);
+      }
 
-      freqTex.needsUpdate    = true;
-      uniforms.uTime.value   = t;
-      uniforms.uEnergy.value = sEnergy;
-      uniforms.uBass.value   = sBass;
-      uniforms.uMid.value    = sMid;
-      uniforms.uHigh.value   = sHigh;
-      uniforms.uN1.value     = curN1;
-      uniforms.uM1.value     = curM1;
-      uniforms.uN2.value     = curN2;
-      uniforms.uM2.value     = curM2;
-      uniforms.uN3.value     = curN3;
-      uniforms.uM3.value     = curM3;
+      /* Push heights into the position buffer. Only Y changes per frame;
+         X/Z were set once at build time and stay fixed. */
+      var pos = geom.attributes.position.array;
+      for (var i2 = 0; i2 < ringIdx.length; i2++) {
+        pos[i2 * 3 + 1] = ringHeights[ringIdx[i2]] * HEIGHT_SCALE;
+      }
+      geom.attributes.position.needsUpdate = true;
+
+      /* Slow auto-spin around Y — ~52s per full rotation */
+      points.rotation.y = t * 0.12;
 
       renderer.render(scene, camera);
     }
@@ -562,8 +320,17 @@
     window.addEventListener('resize', function () {
       var nW = container.offsetWidth;
       var nH = container.offsetHeight;
-      uniforms.uRes.value.set(nW, nH);
+      /* Re-read zoom on every resize — scale.js updates it continuously.
+         Without this, rotating between viewport sizes leaves the buffer
+         under- or over-allocated and dots go chunky again. */
+      var newPr = getPixelRatio();
+      if (renderer.getPixelRatio() !== newPr) {
+        renderer.setPixelRatio(newPr);
+        mat.size = 1.4 * newPr;
+      }
       renderer.setSize(nW, nH);
+      camera.aspect = nW / nH;
+      camera.updateProjectionMatrix();
     });
   }
 
