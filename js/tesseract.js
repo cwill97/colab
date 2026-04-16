@@ -204,10 +204,32 @@
     return false;
   }
 
+  /**
+   * Geometric hit-zone: only start a drag if the pointer is within
+   * the tesseract's visible footprint. The shader renders a cube
+   * (half-size 1.55) at camera distance 4.5 with focal 2.5, so the
+   * silhouette projects to p ≈ 0.917 of half-viewport-height — i.e.
+   * a centered square of ~0.92 × viewport-height. We use a centered
+   * square of side = min(vw, vh), which is slightly generous so the
+   * outer rim glow stays grabbable, and collapses sensibly on
+   * portrait viewports where vh > vw.
+   */
+  function isWithinTesseractHitZone(clientX, clientY) {
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var half = Math.min(vw, vh) * 0.5;
+    var dx = clientX - vw * 0.5;
+    var dy = clientY - vh * 0.5;
+    return Math.abs(dx) <= half && Math.abs(dy) <= half;
+  }
+
   function onMouseDown(e) {
     // Only react to primary button
     if (e.button !== undefined && e.button !== 0) return;
     if (shouldIgnoreTarget(e.target)) return;
+    // Only start a drag if the pointer is over the tesseract itself,
+    // not the empty regions of the viewport around it.
+    if (!isWithinTesseractHitZone(e.clientX, e.clientY)) return;
     interaction.isDragging = true;
     interaction.prevX = e.clientX;
     interaction.prevY = e.clientY;
@@ -249,6 +271,8 @@
   function onTouchStart(e) {
     if (!e.touches.length) return;
     if (shouldIgnoreTarget(e.target)) return;
+    var t = e.touches[0];
+    if (!isWithinTesseractHitZone(t.clientX, t.clientY)) return;
     interaction.isDragging = true;
     interaction.velX = 0;
     interaction.velY = 0;

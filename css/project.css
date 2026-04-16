@@ -364,9 +364,9 @@
   opacity: 0.55;
 }
 
-/* Active CTA is always visible */
+/* Active item has no CTA — you're already viewing this project */
 .related-project-item.is-active .related-project-cta {
-  opacity: 0.5;
+  display: none;
 }
 
 /* ------------------------------------------------------------
@@ -589,29 +589,6 @@
 }
 
 /* ============================================================
-   DESKTOP CURSOR TOOLTIP — "scroll" follows mouse
-   ============================================================ */
-.project-cursor-tooltip {
-  position: fixed;
-  z-index: 999;
-  pointer-events: none;
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--color-fg);
-  opacity: 0;
-  transition: opacity 0.4s var(--ease-out);
-  white-space: nowrap;
-  /* Offset slightly from cursor so it doesn't overlap the arrow tip */
-  transform: translate(14px, 14px);
-}
-
-.project-cursor-tooltip.is-visible {
-  opacity: 0.4;
-}
-
-/* ============================================================
    MOBILE — Project Page Layout (viewport-locked)
    Canvas top → Title + About mid → Related Projects bottom
    ============================================================ */
@@ -746,11 +723,6 @@
     text-transform: uppercase;
     color: var(--color-fg);
     opacity: 0.3;
-  }
-
-  /* Hide desktop cursor tooltip on mobile */
-  .project-cursor-tooltip {
-    display: none !important;
   }
 
 } /* end @media (max-width: 767px) — project page */

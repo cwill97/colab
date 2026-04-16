@@ -19,17 +19,17 @@
       hasVideo: true,
       description: 'Viking Gear forges strength through primal movement. Rooted in the warrior spirit, it reimagines ancient training tools such as maces, clubs, and hammers as modern extensions of discipline, flow, and mastery. Every piece honours resilience, balance, and raw power, turning training into ritual.\n\nWe built the brand from the ground up. We shaped the strategy, art direction, and complete visual identity, creating a bold, purposeful world where ancient form meets contemporary performance.',
       images: [
-        'assets/Project_Img_01.webp',
-        'assets/Project_Img_Viking_02.webp',
-        'assets/Project_Img_Viking_03.webp',
-        'assets/Project_Img_Viking_04.webp',
-        'assets/Project_Img_Viking_05.webp',
-        'assets/Project_Img_Viking_06.webp',
-        'assets/Project_Img_Viking_07.webp',
-        'assets/Project_Img_Viking_08.webp',
-        'assets/Project_Img_Viking_09.webp',
-        'assets/Project_Img_Viking_10.webp',
-        'assets/Project_Img_Viking_11.webp'
+        '/assets/Project_Img_01.webp',
+        '/assets/Project_Img_Viking_02.webp',
+        '/assets/Project_Img_Viking_03.webp',
+        '/assets/Project_Img_Viking_04.webp',
+        '/assets/Project_Img_Viking_05.webp',
+        '/assets/Project_Img_Viking_06.webp',
+        '/assets/Project_Img_Viking_07.webp',
+        '/assets/Project_Img_Viking_08.webp',
+        '/assets/Project_Img_Viking_09.webp',
+        '/assets/Project_Img_Viking_10.webp',
+        '/assets/Project_Img_Viking_11.webp'
       ]
     },
     {
@@ -39,13 +39,13 @@
       hasVideo: false,
       description: 'Rebel Kids Club breaks the pink and blue code. It redefines toddler fashion with gender neutral clothing that celebrates individuality, intention, and timeless style from day one. Bold yet grounded, modern yet wearable, every piece gives parents a fresh way to dress their little rebels.\n\nWe built the brand from the ground up. We created the full identity system, from name and positioning to visual language and guidelines, crafting a distinctive voice that feels confident, inclusive, and unmistakably its own.',
       images: [
-        'assets/Project_Img_02.webp',
-        'assets/Project_Img_Rebel_02.webp',
-        'assets/Project_Img_Rebel_03.webp',
-        'assets/Project_Img_Rebel_04.webp',
-        'assets/Project_Img_Rebel_05.webp',
-        'assets/Project_Img_Rebel_06.webp',
-        'assets/Project_Img_Rebel_07.webp'
+        '/assets/Project_Img_02.webp',
+        '/assets/Project_Img_Rebel_02.webp',
+        '/assets/Project_Img_Rebel_03.webp',
+        '/assets/Project_Img_Rebel_04.webp',
+        '/assets/Project_Img_Rebel_05.webp',
+        '/assets/Project_Img_Rebel_06.webp',
+        '/assets/Project_Img_Rebel_07.webp'
       ]
     },
     {
@@ -55,17 +55,17 @@
       hasVideo: false,
       description: 'Mannequin Films captures the raw poetry of visual storytelling. Through photography and video, they transform fleeting moments into enduring narratives that resonate with authenticity and precision. Every frame is crafted with intention, blending creativity, emotion, and technical excellence to bring stories to life.\n\nWe led a full rebrand, forging a new identity that honours their cinematic roots while sharpening their contemporary edge. From the refined brandmark to the complete visual system, we distilled their essence into a cohesive language that feels both timeless and alive.',
       images: [
-        'assets/Project_Img_03.webp',
-        'assets/Project_Img_Mannequin_02.webp',
-        'assets/Project_Img_Mannequin_03.webp',
-        'assets/Project_Img_Mannequin_04.webp',
-        'assets/Project_Img_Mannequin_05.webp',
-        'assets/Project_Img_Mannequin_06.webp',
-        'assets/Project_Img_Mannequin_07.webp',
-        'assets/Project_Img_Mannequin_08.webp',
-        'assets/Project_Img_Mannequin_09.webp',
-        'assets/Project_Img_Mannequin_10.webp',
-        'assets/Project_Img_Mannequin_10.webp'
+        '/assets/Project_Img_03.webp',
+        '/assets/Project_Img_Mannequin_02.webp',
+        '/assets/Project_Img_Mannequin_03.webp',
+        '/assets/Project_Img_Mannequin_04.webp',
+        '/assets/Project_Img_Mannequin_05.webp',
+        '/assets/Project_Img_Mannequin_06.webp',
+        '/assets/Project_Img_Mannequin_07.webp',
+        '/assets/Project_Img_Mannequin_08.webp',
+        '/assets/Project_Img_Mannequin_09.webp',
+        '/assets/Project_Img_Mannequin_10.webp',
+        '/assets/Project_Img_Mannequin_10.webp'
       ]
     }
   ];
@@ -371,99 +371,9 @@
     requestAnimationFrame(function () {
       document.body.classList.add('is-ready');
     });
-
-    /* Desktop cursor tooltip — "scroll" follows the mouse */
-    if (!isMobile) initCursorTooltip();
-  }
-
-  /* ============================================================
-     DESKTOP CURSOR TOOLTIP
-     ============================================================ */
-  var tooltipEl  = null;
-  var tooltipRaf = null;
-  var tipTargetX = 0, tipTargetY = 0;
-  var tipCurrentX = 0, tipCurrentY = 0;
-  var TIP_LERP   = 0.12;
-
-  /** Read the current CSS zoom applied to <html> by scale.js.
-      Returns 1 when no zoom is set. clientX/clientY are in screen
-      pixels; dividing by zoom converts to CSS-pixel space so the
-      fixed-position tooltip lands under the actual cursor. */
-  function getZoom() {
-    var z = parseFloat(document.documentElement.style.zoom);
-    return (z && z > 0) ? z : 1;
-  }
-
-  function initCursorTooltip() {
-    /* Create element */
-    tooltipEl = document.createElement('span');
-    tooltipEl.className = 'project-cursor-tooltip';
-    tooltipEl.textContent = 'scroll';
-    tooltipEl.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(tooltipEl);
-
-    /* Track mouse */
-    document.addEventListener('mousemove', onTipMove, { passive: true });
-    document.addEventListener('mouseleave', onTipLeave, { passive: true });
-    document.addEventListener('mouseenter', onTipEnter, { passive: true });
-  }
-
-  function onTipMove(e) {
-    var z = getZoom();
-    tipTargetX = e.clientX / z;
-    tipTargetY = e.clientY / z;
-
-    if (!tooltipEl.classList.contains('is-visible')) {
-      /* Snap to position on first show (no lag) */
-      tipCurrentX = tipTargetX;
-      tipCurrentY = tipTargetY;
-      tooltipEl.style.left = tipCurrentX + 'px';
-      tooltipEl.style.top  = tipCurrentY + 'px';
-      tooltipEl.classList.add('is-visible');
-    }
-
-    if (!tooltipRaf) startTipLoop();
-  }
-
-  function onTipLeave() {
-    if (tooltipEl) tooltipEl.classList.remove('is-visible');
-  }
-
-  function onTipEnter(e) {
-    var z = getZoom();
-    tipTargetX = e.clientX / z;
-    tipTargetY = e.clientY / z;
-  }
-
-  function startTipLoop() {
-    function tick() {
-      tipCurrentX += (tipTargetX - tipCurrentX) * TIP_LERP;
-      tipCurrentY += (tipTargetY - tipCurrentY) * TIP_LERP;
-      if (tooltipEl) {
-        tooltipEl.style.left = tipCurrentX + 'px';
-        tooltipEl.style.top  = tipCurrentY + 'px';
-      }
-
-      if (Math.abs(tipTargetX - tipCurrentX) > 0.3 ||
-          Math.abs(tipTargetY - tipCurrentY) > 0.3) {
-        tooltipRaf = requestAnimationFrame(tick);
-      } else {
-        tooltipRaf = null;
-      }
-    }
-    tooltipRaf = requestAnimationFrame(tick);
-  }
-
-  function destroyCursorTooltip() {
-    document.removeEventListener('mousemove', onTipMove);
-    document.removeEventListener('mouseleave', onTipLeave);
-    document.removeEventListener('mouseenter', onTipEnter);
-    if (tooltipRaf) { cancelAnimationFrame(tooltipRaf); tooltipRaf = null; }
-    if (tooltipEl) { tooltipEl.remove(); tooltipEl = null; }
   }
 
   function destroy() {
-    destroyCursorTooltip();
     if (gallery) {
       gallery.destroy();
       gallery = null;
