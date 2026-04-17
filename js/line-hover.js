@@ -25,9 +25,9 @@
   'use strict';
 
   // ── Config ─────────────────────────────────────────────────────────
-  var SHUFFLE_DURATION = 320;   // ms — total time per character to settle
-  var SHUFFLE_STAGGER  = 14;    // ms — delay added per character (left → right)
-  var SHUFFLE_TICK_MS  = 40;    // ms — interval between glyph swaps per char
+  var SHUFFLE_DURATION = 120;   // ms — total time per character to settle
+  var SHUFFLE_STAGGER  = 9;    // ms — delay added per character (left → right)
+  var SHUFFLE_TICK_MS  = 21;    // ms — interval between glyph swaps per char
   var SHUFFLE_GLYPHS   =
     '!@#$%^&*<>?+=/\\|~_-:;.,[]{}()ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
