@@ -149,9 +149,9 @@
   };
 
   // Physics constants — matched to globe.js for identical feel
-  var DRAG_SENSITIVITY = 0.005;   // same as globe.js
+  var DRAG_SENSITIVITY = 0.009;   // same as globe.js
   var FRICTION         = 0.96;    // per-frame decay (heavier = longer coast)
-  var SETTLE_LERP      = 0.009;   // how fast momentum blends back toward 0
+  var SETTLE_LERP      = 0.0021;   // how fast momentum blends back toward 0
 
   /* ============================================================
      UPDATE — called every frame from render loop
