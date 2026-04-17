@@ -26,6 +26,8 @@
       'uniform float iTime;\n' +
       'uniform vec2  iMouse;\n' +
       'uniform float iZoom;\n' +
+      'uniform float iImpact;\n' +
+      'uniform float iHeat;\n' +
       '\n' +
       'mat2 rot(float a){ return mat2(cos(a),sin(a),-sin(a),cos(a)); }\n' +
       'vec2 csqr(vec2 a){ return vec2(a.x*a.x - a.y*a.y, 2.0*a.x*a.y); }\n' +
@@ -60,11 +62,15 @@
       '    float dt = 0.028;\n' +
       '    vec3 col = vec3(0.0);\n' +
       '    float c = 0.0;\n' +
+      '    // cool (idle) → hot (fast drag) color palette\n' +
+      '    vec3 coolR = vec3(0.55, 1.20, 1.25);  // blue-cyan\n' +
+      '    vec3 hotR  = vec3(1.30, 0.85, 1.45);  // violet-white\n' +
+      '    vec3 tint  = mix(coolR, hotR, iHeat);\n' +
       '    for(int i=0; i<72; i++){\n' +
       '        t += dt*exp(-2.0*c);\n' +
       '        if(t > tmm.y) break;\n' +
       '        c = map(ro + t*rd);\n' +
-      '        col = 0.99*col + 0.10*vec3(c*c*c*0.55, c*1.20, c*1.25);\n' +
+      '        col = 0.99*col + 0.10*vec3(c*c*c*tint.x, c*tint.y, c*tint.z);\n' +
       '    }\n' +
       '    return col;\n' +
       '}\n' +
@@ -92,12 +98,15 @@
       '    vec3  qd = abs(cp) - vec3(1.55);\n' +
       '    float sd = length(max(qd, 0.0)) + min(max(qd.x, max(qd.y, qd.z)), 0.0);\n' +
       '    float rim = exp(-max(sd, 0.0) * 2.2);\n' +
-      '    col += rim * vec3(0.15, 0.55, 0.95) * 0.55;\n' +
+      '    float impBoost = 1.0 + iImpact * 2.5;\n' +
+      '    col += rim * vec3(0.15, 0.55, 0.95) * 0.55 * impBoost;\n' +
+      '    // shift rim toward white-hot on impact\n' +
+      '    col += rim * vec3(0.45, 0.25, 0.05) * iImpact * 1.8;\n' +
       '\n' +
       '    // fractal energy core (bounded inside tesseract envelope)\n' +
       '    vec2 tmm = iBox(ro, rd, vec3(1.55));\n' +
       '    if(tmm.x > -0.5){\n' +
-      '        col += raymarch(ro, rd, tmm);\n' +
+      '        col += raymarch(ro, rd, tmm) * impBoost;\n' +
       '    }\n' +
       '\n' +
       '    float vig = 1.0 - 0.38 * length(p * vec2(0.55, 0.72));\n' +
@@ -121,11 +130,36 @@
   var uTime       = null;
   var uMouse      = null;
   var uZoom       = null;
+  var uImpact     = null;
+  var uHeat       = null;
   var rafId       = 0;
   var t0          = 0;
   var running     = false;
   var initialized = false;
   var resizeBound = false;
+
+  /* ============================================================
+     PROXIMITY ZOOM — cursor distance from center drives camera
+     ============================================================ */
+  var ZOOM_IDLE     = 1.0;    // default camera distance multiplier
+  var ZOOM_CLOSE    = 0.82;   // closest zoom when cursor is dead center
+  var ZOOM_LERP     = 0.04;   // per-frame blend toward target zoom
+  var cursorZoom    = ZOOM_IDLE;   // current interpolated zoom
+  var targetZoom    = ZOOM_IDLE;   // where we're heading
+  var cursorInside  = false;       // is cursor within the hit zone?
+
+  /* ============================================================
+     IMPACT PULSE — click/tap fires a flare that decays
+     ============================================================ */
+  var IMPACT_DECAY  = 0.93;   // per-frame multiplier (lower = faster fade)
+  var impactVal     = 0.0;    // current impact intensity (0–1)
+
+  /* ============================================================
+     DRAG HEAT — velocity magnitude drives color temperature
+     ============================================================ */
+  var HEAT_GAIN     = 8.0;    // how fast drag velocity builds heat
+  var HEAT_DECAY    = 0.97;   // per-frame decay back to cool (lower = faster)
+  var heatVal       = 0.0;    // current heat (0 = cool blue, 1 = white-hot)
 
   /* ============================================================
      INTERACTION STATE — mirrors globe.js drag model exactly
@@ -149,28 +183,48 @@
   };
 
   // Physics constants — matched to globe.js for identical feel
-  var DRAG_SENSITIVITY = 0.009;   // same as globe.js
+  var DRAG_SENSITIVITY = 0.005;   // same as globe.js
   var FRICTION         = 0.96;    // per-frame decay (heavier = longer coast)
-  var SETTLE_LERP      = 0.0021;   // how fast momentum blends back toward 0
+  var SETTLE_LERP      = 0.009;   // how fast momentum blends back toward 0
 
   /* ============================================================
      UPDATE — called every frame from render loop
      ============================================================ */
   function updateInteraction() {
-    if (interaction.isDragging) return;
+    if (!interaction.isDragging) {
+      // Apply current velocity to rotation
+      interaction.rotationX += interaction.velY;
+      interaction.rotationY += interaction.velX;
 
-    // Apply current velocity to rotation
-    interaction.rotationX += interaction.velY;
-    interaction.rotationY += interaction.velX;
+      // Friction: decay velocity each frame
+      interaction.velX *= FRICTION;
+      interaction.velY *= FRICTION;
 
-    // Friction: decay velocity each frame
-    interaction.velX *= FRICTION;
-    interaction.velY *= FRICTION;
+      // Blend both velocities back toward zero so the idle state is
+      // just the shader's baked-in time spin — no JS drift.
+      interaction.velX += (0 - interaction.velX) * SETTLE_LERP;
+      interaction.velY += (0 - interaction.velY) * SETTLE_LERP;
+    }
 
-    // Blend both velocities back toward zero so the idle state is
-    // just the shader's baked-in time spin — no JS drift.
-    interaction.velX += (0 - interaction.velX) * SETTLE_LERP;
-    interaction.velY += (0 - interaction.velY) * SETTLE_LERP;
+    // Proximity zoom — lerp toward target
+    cursorZoom += (targetZoom - cursorZoom) * ZOOM_LERP;
+
+    // Impact pulse — exponential decay toward zero
+    if (impactVal > 0.001) {
+      impactVal *= IMPACT_DECAY;
+    } else {
+      impactVal = 0.0;
+    }
+
+    // Drag heat — velocity magnitude drives color temperature
+    var speed = Math.sqrt(interaction.velX * interaction.velX +
+                          interaction.velY * interaction.velY);
+    if (interaction.isDragging && speed > 0.0001) {
+      heatVal = Math.min(heatVal + speed * HEAT_GAIN, 1.0);
+    } else {
+      heatVal *= HEAT_DECAY;
+      if (heatVal < 0.001) heatVal = 0.0;
+    }
   }
 
   /* ============================================================
@@ -223,35 +277,55 @@
     return Math.abs(dx) <= half && Math.abs(dy) <= half;
   }
 
+  /** Compute proximity zoom: 0 = cursor at center, 1 = at edge or beyond */
+  function computeProximityZoom(clientX, clientY) {
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var dx = clientX - vw * 0.5;
+    var dy = clientY - vh * 0.5;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    // Normalize against half the smaller dimension (tesseract radius)
+    var radius = Math.min(vw, vh) * 0.5;
+    var t = Math.min(dist / radius, 1.0);
+    // Quadratic ease — fast zoom near center, gentle at edges
+    t = t * t;
+    return ZOOM_CLOSE + (ZOOM_IDLE - ZOOM_CLOSE) * t;
+  }
+
   function onMouseDown(e) {
     // Only react to primary button
     if (e.button !== undefined && e.button !== 0) return;
     if (shouldIgnoreTarget(e.target)) return;
-    // Only start a drag if the pointer is over the tesseract itself,
-    // not the empty regions of the viewport around it.
     if (!isWithinTesseractHitZone(e.clientX, e.clientY)) return;
+
+    // ── Impact pulse ──
+    impactVal = 1.0;
+
     interaction.isDragging = true;
     interaction.prevX = e.clientX;
     interaction.prevY = e.clientY;
     interaction.velX = 0;
     interaction.velY = 0;
     document.body.style.cursor = 'grabbing';
-    // Suppress text selection / highlight while the user is rotating
-    // the tesseract. Scoped to the drag lifetime only.
     document.body.classList.add('is-dragging-tesseract');
-    // Clear any existing selection that was made just before mousedown.
     if (window.getSelection) {
       var sel = window.getSelection();
       if (sel && sel.removeAllRanges) sel.removeAllRanges();
     }
-    // preventDefault on mousedown stops the browser from starting a
-    // text-selection drag. We only reach here after shouldIgnoreTarget
-    // has cleared the target, so we are never blocking a real click
-    // on a link, button, or form control.
     if (e.preventDefault) e.preventDefault();
   }
 
   function onMouseMove(e) {
+    // ── Proximity zoom (always, even when not dragging) ──
+    if (isWithinTesseractHitZone(e.clientX, e.clientY)) {
+      cursorInside = true;
+      targetZoom = computeProximityZoom(e.clientX, e.clientY);
+    } else {
+      cursorInside = false;
+      targetZoom = ZOOM_IDLE;
+    }
+
+    // ── Drag rotation ──
     if (!interaction.isDragging) return;
     interaction.velY = -(e.clientX - interaction.prevX) * DRAG_SENSITIVITY;
     interaction.velX = (e.clientY - interaction.prevY) * DRAG_SENSITIVITY;
@@ -268,11 +342,20 @@
     document.body.classList.remove('is-dragging-tesseract');
   }
 
+  function onMouseLeave() {
+    cursorInside = false;
+    targetZoom = ZOOM_IDLE;
+  }
+
   function onTouchStart(e) {
     if (!e.touches.length) return;
     if (shouldIgnoreTarget(e.target)) return;
     var t = e.touches[0];
     if (!isWithinTesseractHitZone(t.clientX, t.clientY)) return;
+
+    // ── Impact pulse ──
+    impactVal = 1.0;
+
     interaction.isDragging = true;
     interaction.velX = 0;
     interaction.velY = 0;
@@ -336,10 +419,12 @@
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-    uRes   = gl.getUniformLocation(prog, 'iResolution');
-    uTime  = gl.getUniformLocation(prog, 'iTime');
-    uMouse = gl.getUniformLocation(prog, 'iMouse');
-    uZoom  = gl.getUniformLocation(prog, 'iZoom');
+    uRes    = gl.getUniformLocation(prog, 'iResolution');
+    uTime   = gl.getUniformLocation(prog, 'iTime');
+    uMouse  = gl.getUniformLocation(prog, 'iMouse');
+    uZoom   = gl.getUniformLocation(prog, 'iZoom');
+    uImpact = gl.getUniformLocation(prog, 'iImpact');
+    uHeat   = gl.getUniformLocation(prog, 'iHeat');
     return true;
   }
 
@@ -373,7 +458,9 @@
     gl.uniform2f(uRes, canvas.width, canvas.height);
     gl.uniform1f(uTime, t);
     gl.uniform2f(uMouse, interaction.rotationX, interaction.rotationY);
-    gl.uniform1f(uZoom, 1.0);
+    gl.uniform1f(uZoom, cursorZoom);
+    gl.uniform1f(uImpact, impactVal);
+    gl.uniform1f(uHeat, heatVal);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     rafId = requestAnimationFrame(frame);
@@ -408,6 +495,7 @@
     window.addEventListener('mousedown', onMouseDown, false);
     window.addEventListener('mousemove', onMouseMove, false);
     window.addEventListener('mouseup',   onMouseUp,   false);
+    document.addEventListener('mouseleave', onMouseLeave, false);
 
     window.addEventListener('touchstart',  onTouchStart, { passive: true });
     window.addEventListener('touchmove',   onTouchMove,  { passive: true });
@@ -419,6 +507,7 @@
     window.removeEventListener('mousedown', onMouseDown);
     window.removeEventListener('mousemove', onMouseMove);
     window.removeEventListener('mouseup',   onMouseUp);
+    document.removeEventListener('mouseleave', onMouseLeave);
 
     window.removeEventListener('touchstart',  onTouchStart);
     window.removeEventListener('touchmove',   onTouchMove);
@@ -509,12 +598,16 @@
   }
 
   function reset() {
-    // Reset interaction state
     interaction.rotationX = 0;
     interaction.rotationY = 0;
     interaction.velX = 0;
     interaction.velY = 0;
     interaction.isDragging = false;
+    cursorZoom   = ZOOM_IDLE;
+    targetZoom   = ZOOM_IDLE;
+    cursorInside = false;
+    impactVal    = 0.0;
+    heatVal      = 0.0;
   }
 
   function destroy() {
