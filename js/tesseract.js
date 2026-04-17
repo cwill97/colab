@@ -98,10 +98,10 @@
       '    vec3  qd = abs(cp) - vec3(1.55);\n' +
       '    float sd = length(max(qd, 0.0)) + min(max(qd.x, max(qd.y, qd.z)), 0.0);\n' +
       '    float rim = exp(-max(sd, 0.0) * 2.2);\n' +
-      '    float impBoost = 1.0 + iImpact * 2.5;\n' +
+      '    float impBoost = 1.0 + iImpact * 1.5;\n' +
       '    col += rim * vec3(0.15, 0.55, 0.95) * 0.55 * impBoost;\n' +
       '    // shift rim toward white-hot on impact\n' +
-      '    col += rim * vec3(0.45, 0.25, 0.05) * iImpact * 1.8;\n' +
+      '    col += rim * vec3(0.45, 0.25, 0.05) * iImpact * 1.5;\n' +
       '\n' +
       '    // fractal energy core (bounded inside tesseract envelope)\n' +
       '    vec2 tmm = iBox(ro, rd, vec3(1.55));\n' +
