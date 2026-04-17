@@ -22,7 +22,7 @@
   let active   = false;
   let animating = false;
 
-  const LERP = 0.055;
+  const LERP = 0.15;
 
   function lerp(a, b, t) { return a + (b - a) * t; }
 
