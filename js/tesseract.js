@@ -82,7 +82,7 @@
       '\n' +
       '    vec3 ro = iZoom * vec3(4.5);\n' +
       '    ro.yz *= rot(iMouse.y);\n' +
-      '    ro.xz *= rot(iMouse.x - 0.12*iTime);\n' +
+      '    ro.xz *= rot(iMouse.x + 0.12*iTime);\n' +
       '    vec3 ta = vec3(0.0);\n' +
       '    vec3 ww = normalize(ta - ro);\n' +
       '    vec3 uu = normalize(cross(ww, vec3(0.0,1.0,0.0)));\n' +
@@ -157,8 +157,8 @@
   /* ============================================================
      DRAG HEAT — velocity magnitude drives color temperature
      ============================================================ */
-  var HEAT_GAIN     = 8.0;    // how fast drag velocity builds heat
-  var HEAT_DECAY    = 0.97;   // per-frame decay back to cool (lower = faster)
+  var HEAT_GAIN     = 4.0;    // how fast drag velocity builds heat
+  var HEAT_DECAY    = 0.993;  // per-frame decay back to cool (closer to 1 = slower)
   var heatVal       = 0.0;    // current heat (0 = cool blue, 1 = white-hot)
 
   /* ============================================================
