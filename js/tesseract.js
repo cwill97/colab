@@ -28,6 +28,7 @@
       'uniform float iZoom;\n' +
       'uniform float iImpact;\n' +
       'uniform float iHeat;\n' +
+      'uniform float iProximity;\n' +
       '\n' +
       'mat2 rot(float a){ return mat2(cos(a),sin(a),-sin(a),cos(a)); }\n' +
       'vec2 csqr(vec2 a){ return vec2(a.x*a.x - a.y*a.y, 2.0*a.x*a.y); }\n' +
@@ -36,8 +37,9 @@
       'float map(in vec3 p){\n' +
       '    float res = 0.0;\n' +
       '    vec3  c   = p;\n' +
+      '    float fold = 0.7 + iProximity * 0.18;\n' +
       '    for(int i=0; i<8; ++i){\n' +
-      '        p = 0.7*abs(p)/dot(p,p) - 0.7;\n' +
+      '        p = fold*abs(p)/dot(p,p) - fold;\n' +
       '        p.yz = csqr(p.yz);\n' +
       '        p = p.zxy;\n' +
       '        res += exp(-15.0 * abs(dot(p,c)));\n' +
@@ -92,19 +94,24 @@
       '\n' +
       '    vec3 col = vec3(0.0);\n' +
       '\n' +
+      '    // dimensional bleed — proximity expands containment\n' +
+      '    float bounds = 1.55 + iProximity * 0.45;\n' +
+      '\n' +
       '    // outer cube rim glow\n' +
       '    float tc = max(-dot(ro, rd), 0.0);\n' +
       '    vec3  cp = ro + tc*rd;\n' +
-      '    vec3  qd = abs(cp) - vec3(1.55);\n' +
+      '    vec3  qd = abs(cp) - vec3(bounds);\n' +
       '    float sd = length(max(qd, 0.0)) + min(max(qd.x, max(qd.y, qd.z)), 0.0);\n' +
-      '    float rim = exp(-max(sd, 0.0) * 2.2);\n' +
+      '    // soften rim edge as it bleeds outward\n' +
+      '    float rimFall = mix(2.2, 1.4, iProximity);\n' +
+      '    float rim = exp(-max(sd, 0.0) * rimFall);\n' +
       '    float impBoost = 1.0 + iImpact * 1.5;\n' +
       '    col += rim * vec3(0.15, 0.55, 0.95) * 0.55 * impBoost;\n' +
       '    // shift rim toward white-hot on impact\n' +
       '    col += rim * vec3(0.45, 0.25, 0.05) * iImpact * 1.5;\n' +
       '\n' +
       '    // fractal energy core (bounded inside tesseract envelope)\n' +
-      '    vec2 tmm = iBox(ro, rd, vec3(1.55));\n' +
+      '    vec2 tmm = iBox(ro, rd, vec3(bounds));\n' +
       '    if(tmm.x > -0.5){\n' +
       '        col += raymarch(ro, rd, tmm) * impBoost;\n' +
       '    }\n' +
@@ -132,6 +139,7 @@
   var uZoom       = null;
   var uImpact     = null;
   var uHeat       = null;
+  var uProximity  = null;
   var rafId       = 0;
   var t0          = 0;
   var running     = false;
@@ -139,14 +147,13 @@
   var resizeBound = false;
 
   /* ============================================================
-     PROXIMITY ZOOM — cursor distance from center drives camera
+     PROXIMITY — cursor distance from center drives fractal
+     mutation and dimensional bleed
      ============================================================ */
-  var ZOOM_IDLE     = 1.0;    // default camera distance multiplier
-  var ZOOM_CLOSE    = 0.82;   // closest zoom when cursor is dead center
-  var ZOOM_LERP     = 0.04;   // per-frame blend toward target zoom
-  var cursorZoom    = ZOOM_IDLE;   // current interpolated zoom
-  var targetZoom    = ZOOM_IDLE;   // where we're heading
-  var cursorInside  = false;       // is cursor within the hit zone?
+  var PROX_LERP      = 0.04;   // per-frame blend toward target
+  var proximityVal   = 0.0;    // current interpolated proximity (0–1)
+  var targetProx     = 0.0;    // where we're heading
+  var cursorInside   = false;  // is cursor within the hit zone?
 
   /* ============================================================
      IMPACT PULSE — click/tap fires a flare that decays
@@ -206,8 +213,8 @@
       interaction.velY += (0 - interaction.velY) * SETTLE_LERP;
     }
 
-    // Proximity zoom — lerp toward target
-    cursorZoom += (targetZoom - cursorZoom) * ZOOM_LERP;
+    // Proximity — lerp toward target
+    proximityVal += (targetProx - proximityVal) * PROX_LERP;
 
     // Impact pulse — exponential decay toward zero
     if (impactVal > 0.001) {
@@ -277,19 +284,17 @@
     return Math.abs(dx) <= half && Math.abs(dy) <= half;
   }
 
-  /** Compute proximity zoom: 0 = cursor at center, 1 = at edge or beyond */
-  function computeProximityZoom(clientX, clientY) {
+  /** Compute proximity: 1 = cursor at center, 0 = at edge or beyond */
+  function computeProximity(clientX, clientY) {
     var vw = window.innerWidth;
     var vh = window.innerHeight;
     var dx = clientX - vw * 0.5;
     var dy = clientY - vh * 0.5;
     var dist = Math.sqrt(dx * dx + dy * dy);
-    // Normalize against half the smaller dimension (tesseract radius)
     var radius = Math.min(vw, vh) * 0.5;
     var t = Math.min(dist / radius, 1.0);
-    // Quadratic ease — fast zoom near center, gentle at edges
-    t = t * t;
-    return ZOOM_CLOSE + (ZOOM_IDLE - ZOOM_CLOSE) * t;
+    // Quadratic ease — intense near center, gentle at edges
+    return (1.0 - t) * (1.0 - t);
   }
 
   function onMouseDown(e) {
@@ -316,13 +321,13 @@
   }
 
   function onMouseMove(e) {
-    // ── Proximity zoom (always, even when not dragging) ──
+    // ── Proximity (always, even when not dragging) ──
     if (isWithinTesseractHitZone(e.clientX, e.clientY)) {
       cursorInside = true;
-      targetZoom = computeProximityZoom(e.clientX, e.clientY);
+      targetProx = computeProximity(e.clientX, e.clientY);
     } else {
       cursorInside = false;
-      targetZoom = ZOOM_IDLE;
+      targetProx = 0.0;
     }
 
     // ── Drag rotation ──
@@ -344,7 +349,7 @@
 
   function onMouseLeave() {
     cursorInside = false;
-    targetZoom = ZOOM_IDLE;
+    targetProx = 0.0;
   }
 
   function onTouchStart(e) {
@@ -425,6 +430,7 @@
     uZoom   = gl.getUniformLocation(prog, 'iZoom');
     uImpact = gl.getUniformLocation(prog, 'iImpact');
     uHeat   = gl.getUniformLocation(prog, 'iHeat');
+    uProximity = gl.getUniformLocation(prog, 'iProximity');
     return true;
   }
 
@@ -458,9 +464,10 @@
     gl.uniform2f(uRes, canvas.width, canvas.height);
     gl.uniform1f(uTime, t);
     gl.uniform2f(uMouse, interaction.rotationX, interaction.rotationY);
-    gl.uniform1f(uZoom, cursorZoom);
+    gl.uniform1f(uZoom, 1.0);
     gl.uniform1f(uImpact, impactVal);
     gl.uniform1f(uHeat, heatVal);
+    gl.uniform1f(uProximity, proximityVal);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 
     rafId = requestAnimationFrame(frame);
@@ -603,8 +610,8 @@
     interaction.velX = 0;
     interaction.velY = 0;
     interaction.isDragging = false;
-    cursorZoom   = ZOOM_IDLE;
-    targetZoom   = ZOOM_IDLE;
+    proximityVal = 0.0;
+    targetProx   = 0.0;
     cursorInside = false;
     impactVal    = 0.0;
     heatVal      = 0.0;
