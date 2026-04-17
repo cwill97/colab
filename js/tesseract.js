@@ -82,7 +82,7 @@
       '\n' +
       '    vec3 ro = iZoom * vec3(4.5);\n' +
       '    ro.yz *= rot(iMouse.y);\n' +
-      '    ro.xz *= rot(iMouse.x + 0.12*iTime);\n' +
+      '    ro.xz *= rot(iMouse.x - 0.12*iTime);\n' +
       '    vec3 ta = vec3(0.0);\n' +
       '    vec3 ww = normalize(ta - ro);\n' +
       '    vec3 uu = normalize(cross(ww, vec3(0.0,1.0,0.0)));\n' +
