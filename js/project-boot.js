@@ -297,20 +297,25 @@
 
   /* ============================================================
      RELATED PROJECT RAIL EVENTS
+     Bound inside init() so Barba-swapped containers get fresh
+     handlers — the IIFE runs once on script load, but the related
+     items don't exist yet when navigating from the homepage.
      ============================================================ */
-  document.querySelectorAll('[data-project-switch]').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      if (scrollHint) scrollHint.classList.add('is-hidden');
-      switchProject(parseInt(btn.dataset.projectSwitch, 10));
+  function bindRelatedRail() {
+    document.querySelectorAll('[data-project-switch]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (scrollHint) scrollHint.classList.add('is-hidden');
+        switchProject(parseInt(btn.dataset.projectSwitch, 10));
+      });
     });
-  });
 
-  document.querySelectorAll('[data-project-index]').forEach(function (item) {
-    item.addEventListener('click', function () {
-      switchProject(parseInt(item.dataset.projectIndex, 10));
+    document.querySelectorAll('[data-project-index]').forEach(function (item) {
+      item.addEventListener('click', function () {
+        switchProject(parseInt(item.dataset.projectIndex, 10));
+      });
     });
-  });
+  }
 
   /* ============================================================
      INIT
@@ -322,6 +327,9 @@
 
     /* Set initial meta */
     updateMeta(project, startIdx);
+
+    /* Wire up related-project click handlers for this container */
+    bindRelatedRail();
 
     /* Highlight active related project */
     document.querySelectorAll('[data-project-index]').forEach(function (el) {
