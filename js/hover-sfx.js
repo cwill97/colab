@@ -2,7 +2,8 @@
  * co:lab — Hover SFX
  *
  * Plays a short tick (assets/hover.mp3) when the pointer enters any
- * <li> inside .services-block or .contact-block on the homepage.
+ * <li> inside .services-block, .contact-block, .project-list, or
+ * .related-project-list.
  *
  * Gating (by design, matches the rest of the audio pipeline):
  *   - Desktop hover pointer only — mobile hides these blocks anyway
@@ -23,7 +24,7 @@
  *
  * Lifecycle:
  *   - Boots on DOMContentLoaded
- *   - Re-runs after Barba enters the 'home' namespace
+ *   - Re-runs after Barba enters the 'home' or 'project' namespace
  *   - Idempotent — data-hover-sfx-init on each <li> prevents double-bind
  */
 
@@ -142,7 +143,7 @@
 
   function init() {
     var items = document.querySelectorAll(
-      '.services-block li, .contact-block li'
+      '.services-block li, .contact-block li, .project-list li, .related-project-list li'
     );
     Array.prototype.forEach.call(items, bindItem);
   }
@@ -154,13 +155,14 @@
     init();
   }
 
-  // Re-init after Barba transitions into the home namespace — the home
-  // container is freshly inserted, so the previous <li>s are gone and
-  // the new ones carry no data-hover-sfx-init flag yet.
+  // Re-init after Barba transitions into the home or project namespace
+  // — the container is freshly inserted, so the previous <li>s are gone
+  // and the new ones carry no data-hover-sfx-init flag yet.
   function hookBarba(attempts) {
     if (typeof window.barba !== 'undefined' && window.barba.hooks) {
       window.barba.hooks.afterEnter(function (data) {
-        if (data && data.next && data.next.namespace === 'home') {
+        var ns = data && data.next && data.next.namespace;
+        if (ns === 'home' || ns === 'project') {
           init();
         }
       });
