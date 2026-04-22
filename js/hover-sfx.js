@@ -12,8 +12,8 @@
  *     single source of truth (set in visualizer.js: started && !muted).
  *   - Skips while the nav menu is open (body[data-menu-open]) — the
  *     overlay's own .contact-block copy shouldn't chirp.
- *   - Small global cooldown so a fast drag across all 9 rows doesn't
- *     stack 9 overlapping plays.
+ *   - Small global cooldown so a fast drag across all rows doesn't
+ *     stack overlapping plays.
  *
  * Engine:
  *   Web Audio — one AudioBuffer decoded once, a fresh BufferSource

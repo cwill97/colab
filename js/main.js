@@ -336,115 +336,6 @@
   }
 
   /* ----------------------------------------------------------
-     Project list — hover tick sound via Web Audio API
-     Frequency is derived from the machine's actual clock:
-       performance.now() → fractional ms → maps to 800–2400 Hz
-     Each project item gets its own pitch offset so they feel
-     distinct while remaining in the same tonal family.
-     ---------------------------------------------------------- */
-  function initProjectHoverSound() {
-    var items = document.querySelectorAll('.project-item');
-    if (!items.length) return;
-
-    /* Lazy-create a single AudioContext on first interaction
-       (browsers block AudioContext until a user gesture) */
-    var ctx = null;
-
-    function getCtx() {
-      if (ctx) return ctx;
-      try {
-        ctx = new (window.AudioContext || window.webkitAudioContext)();
-      } catch (e) {}
-      return ctx;
-    }
-
-    /* Core tick synthesiser
-       Uses performance.now() sub-millisecond fraction as the
-       "computer frequency" seed — genuinely machine-derived. */
-    function playTick(pitchOffset) {
-      var ac = getCtx();
-      if (!ac) return;
-
-      /* Derive base freq from current CPU clock tick fraction
-         performance.now() is high-resolution; its fractional part
-         oscillates with the machine's timer resolution. */
-      var now       = performance.now();
-      var fraction  = (now % 1);                     // 0–1 sub-ms fraction
-      var baseFreq  = 900;         // 900–2100 Hz machine-seeded
-      var freq      = baseFreq + pitchOffset;        // per-item offset
-
-      var t = ac.currentTime;
-
-      /* --- Click body: very short sine burst --- */
-      var osc = ac.createOscillator();
-      var gain = ac.createGain();
-
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, t);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.9, t + 0.19);
-
-      gain.gain.setValueAtTime(0.0, t);
-      gain.gain.linearRampToValueAtTime(0.1, t + 0.002);   // sharp attack
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.01); // fast decay
-
-      osc.connect(gain);
-      gain.connect(ac.destination);
-
-      osc.start(t);
-      osc.stop(t + 0.06);
-
-      /* --- Transient click: noise burst for tactile feel --- */
-      var bufLen  = Math.ceil(ac.sampleRate * 0.006); // 8ms of noise
-      var buf     = ac.createBuffer(1, bufLen, ac.sampleRate);
-      var data    = buf.getChannelData(0);
-      for (var i = 0; i < bufLen; i++) {
-        data[i] = (Math.random() * 2 - 1) * 0.6;
-      }
-
-      var noiseNode  = ac.createBufferSource();
-      var noiseGain  = ac.createGain();
-      var noiseFilter = ac.createBiquadFilter();
-
-      noiseNode.buffer = buf;
-      noiseFilter.type = 'lowpass';
-      noiseFilter.frequency.value = freq * 9.5;     // band it to the same register
-
-      noiseGain.gain.setValueAtTime(0.12, t);
-      noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.008);
-
-      noiseNode.connect(noiseFilter);
-      noiseFilter.connect(noiseGain);
-      noiseGain.connect(ac.destination);
-
-      noiseNode.start(t);
-      noiseNode.stop(t + 0.01);
-    }
-
-    /* Deduplicate: only fire when crossing into a new item */
-    var lastHovered = null;
-
-    items.forEach(function (item) {
-      item.addEventListener('mouseenter', function () {
-        if (item === lastHovered) return;
-        lastHovered = item;
-        playTick(0);
-      });
-
-      item.addEventListener('mouseleave', function () {
-        if (lastHovered === item) lastHovered = null;
-      });
-    });
-
-    /* Mobile: play tick on scroll-activated project change */
-    if (!initProjectHoverSound._mobileBound) {
-      initProjectHoverSound._mobileBound = true;
-      document.addEventListener('colab:mobileProjectActivate', function () {
-        playTick(0);
-      });
-    }
-  }
-
-  /* ----------------------------------------------------------
      Mobile project list — thumbnails + scroll activation
      On mobile (<768px), injects preview thumbnails into each
      project item and activates whichever item is nearest the
@@ -558,7 +449,6 @@
     initProjectLinks();
     initProjectImageReveal();
     initMobileProjects();
-    initProjectHoverSound();
     syncMenuCurrent();
   }
 
