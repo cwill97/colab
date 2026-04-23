@@ -127,6 +127,33 @@
       '}';
 
   /* ============================================================
+     QUALITY TIER — adapt to the device at boot
+     ------------------------------------------------------------
+     Low-end tier (any of: <4 CPU cores, <4 GB deviceMemory,
+     coarse pointer / mobile) gets:
+       - DPR capped at 1 (vs 2) — ~4× fewer pixels on retina
+       - 48 raymarch steps (vs 72) — ~33% less shader work
+       - 6 fractal fold iterations (vs 8) — nested inside raymarch
+     ============================================================ */
+  function detectLowEnd() {
+    var hw = navigator.hardwareConcurrency;
+    if (typeof hw === 'number' && hw > 0 && hw < 4) return true;
+    var mem = navigator.deviceMemory;
+    if (typeof mem === 'number' && mem > 0 && mem < 4) return true;
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+    return false;
+  }
+
+  var QUALITY_LOW    = detectLowEnd();
+  var DPR_CAP        = QUALITY_LOW ? 1  : 2;
+  var RAYMARCH_STEPS = QUALITY_LOW ? 48 : 72;
+  var FRACTAL_ITERS  = QUALITY_LOW ? 6  : 8;
+
+  FS = FS
+    .replace('for(int i=0; i<8; ++i)',  'for(int i=0; i<' + FRACTAL_ITERS  + '; ++i)')
+    .replace('for(int i=0; i<72; i++)', 'for(int i=0; i<' + RAYMARCH_STEPS + '; i++)');
+
+  /* ============================================================
      STATE
      ============================================================ */
   var wrap        = null;
@@ -145,6 +172,7 @@
   var running     = false;
   var initialized = false;
   var resizeBound = false;
+  var visObserver = null;   // IntersectionObserver — pauses when wrap isn't on-screen
 
   /* ============================================================
      PROXIMITY — cursor distance from center drives fractal
@@ -439,7 +467,7 @@
      ============================================================ */
   function resize() {
     if (!canvas || !gl) return;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
     var w = Math.max(1, Math.floor(canvas.clientWidth  * dpr));
     var h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
     if (canvas.width !== w || canvas.height !== h) {
@@ -582,6 +610,20 @@
     initialized = true;
     running = true;
     rafId = requestAnimationFrame(frame);
+
+    /* Pause the render loop whenever the wrap isn't visible on-screen
+       (e.g., project-page display:none, or any parent that collapses
+       layout). Resume automatically when it re-appears. Idempotent
+       with Barba's explicit pause/resume calls. */
+    if (!visObserver && 'IntersectionObserver' in window) {
+      visObserver = new IntersectionObserver(function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          if (entries[i].isIntersecting) resume();
+          else                           pause();
+        }
+      }, { threshold: 0 });
+      visObserver.observe(wrap);
+    }
   }
 
   /* ============================================================
@@ -620,6 +662,11 @@
   function destroy() {
     pause();
     unbindEvents();
+
+    if (visObserver) {
+      visObserver.disconnect();
+      visObserver = null;
+    }
 
     if (canvas) {
       canvas.removeEventListener('webglcontextlost',     onContextLost);
