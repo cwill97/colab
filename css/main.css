@@ -1699,7 +1699,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
      as unmistakably the focused one. */
   .project-item,
   .project-item:hover {
-    opacity: 0.08;
+    opacity: 0.12;
     padding-inline-start: 0;
     width: 80%;
     transform: translateX(0);
@@ -1723,7 +1723,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .project-list:hover .project-item:not(:hover) {
-    opacity: 0.08;
+    opacity: 0.12;
   }
 
   /* Scroll-activated state — clearly highlighted. The active card
