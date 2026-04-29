@@ -181,6 +181,10 @@
   function initAboutText() {
     var el = document.querySelector('[data-full-text]');
     if (!el) return;
+    // Homepage-only: the project page reuses .about-text for the active
+    // project's description (owned by project-boot.js), so skip when
+    // there's no mobile variant to swap to.
+    if (!el.hasAttribute('data-mobile-text')) return;
 
     var fullText   = el.getAttribute('data-full-text')   || el.textContent;
     var mobileText = el.getAttribute('data-mobile-text') || fullText;

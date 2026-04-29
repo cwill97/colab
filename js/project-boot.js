@@ -404,18 +404,23 @@
   /* Expose for Barba transitions */
   window.colabProject = {
     init: function () {
+      // Scope queries to the project container. The homepage also has a
+      // .about-text, and during a Barba swap both containers may briefly
+      // coexist — a bare document.querySelector would return the homepage's
+      // element and we'd write the project description into the wrong node.
+      var scope = document.querySelector('[data-barba-namespace="project"]') || document;
       isMobile = window.matchMedia('(max-width: 767px)').matches;
-      mobileTitle = document.querySelector('[data-mobile-title]');
-      canvas = document.querySelector('[data-depth-canvas]');
-      canvasWrap = document.querySelector('[data-project-canvas-wrap]');
-      metaNum = document.querySelector('[data-meta-num]');
-      metaTitle = document.querySelector('[data-meta-title]');
-      metaServices = document.querySelector('[data-meta-services]');
-      metaFill = document.querySelector('[data-meta-fill]');
-      metaCount = document.querySelector('[data-meta-count]');
-      scrollHint = document.querySelector('[data-scroll-hint]');
-      aboutText = document.querySelector('.about-text');
-      videoPreview = document.querySelector('[data-video-preview]');
+      mobileTitle = scope.querySelector('[data-mobile-title]');
+      canvas = scope.querySelector('[data-depth-canvas]');
+      canvasWrap = scope.querySelector('[data-project-canvas-wrap]');
+      metaNum = scope.querySelector('[data-meta-num]');
+      metaTitle = scope.querySelector('[data-meta-title]');
+      metaServices = scope.querySelector('[data-meta-services]');
+      metaFill = scope.querySelector('[data-meta-fill]');
+      metaCount = scope.querySelector('[data-meta-count]');
+      scrollHint = scope.querySelector('[data-scroll-hint]');
+      aboutText = scope.querySelector('.about-text');
+      videoPreview = scope.querySelector('[data-video-preview]');
       if (!canvas || !canvasWrap) return;
       (function waitForLibs() {
         if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') init();
