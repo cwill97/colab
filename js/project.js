@@ -58,7 +58,10 @@
         'assets/Project_Img_Rebel_04.webp',
         'assets/Project_Img_Rebel_05.webp',
         'assets/Project_Img_Rebel_06.webp',
-        'assets/Project_Img_Rebel_07.webp'
+        'assets/Project_Img_Rebel_07.webp',
+        'assets/Project_Img_Rebel_08.webp',
+        'assets/Project_Img_Rebel_09.webp',
+        'assets/Project_Img_Rebel_10.webp'
       ],
       aspects: [1.529, 0.567, 0.714, 1.358, 1.333, 1.000,
                 0.800, 1.600, 1.212, 0.750, 1.455, 0.900]

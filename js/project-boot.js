@@ -45,7 +45,10 @@
         '/assets/Project_Img_Rebel_04.webp',
         '/assets/Project_Img_Rebel_05.webp',
         '/assets/Project_Img_Rebel_06.webp',
-        '/assets/Project_Img_Rebel_07.webp'
+        '/assets/Project_Img_Rebel_07.webp',
+        '/assets/Project_Img_Rebel_08.webp',
+        '/assets/Project_Img_Rebel_09.webp',
+        '/assets/Project_Img_Rebel_10.webp'
       ]
     },
     {
