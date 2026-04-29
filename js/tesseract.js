@@ -38,11 +38,11 @@
       '    float res = 0.0;\n' +
       '    vec3  c   = p;\n' +
       '    float fold = 0.7 + iProximity * 0.18;\n' +
-      '    for(int i=0; i<8; ++i){\n' +
+      '    for(int i=0; i<6; ++i){\n' +
       '        p = fold*abs(p)/dot(p,p) - fold;\n' +
       '        p.yz = csqr(p.yz);\n' +
       '        p = p.zxy;\n' +
-      '        res += exp(-15.0 * abs(dot(p,c)));\n' +
+      '        res += exp(-22.0 * abs(dot(p,c)));\n' +
       '    }\n' +
       '    return res * 0.5;\n' +
       '}\n' +
