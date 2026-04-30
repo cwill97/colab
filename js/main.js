@@ -206,23 +206,11 @@
   }
 
   /* ----------------------------------------------------------
-     Project CTA handoff — store active project index before
-     navigating to project.html.
-     Entire card is clickable — clicks anywhere on .project-item
-     delegate to the inner [data-project-link] anchor.
+     Project card click — entire card is clickable; clicks
+     anywhere on .project-item delegate to the inner anchor so
+     Barba intercepts and runs the wipe transition.
      ---------------------------------------------------------- */
   function initProjectLinks() {
-    var links = document.querySelectorAll('[data-project-link]');
-    links.forEach(function (link) {
-      link.addEventListener('click', function () {
-        var idx = link.getAttribute('data-project-link');
-        if (idx !== null) {
-          try { sessionStorage.setItem('colab_activeProject', idx); } catch (err) {}
-        }
-      });
-    });
-
-    /* Card-level click → trigger inner link */
     var items = document.querySelectorAll('.project-item');
     items.forEach(function (item) {
       if (item._colabCardBound) return;

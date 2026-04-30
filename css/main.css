@@ -1970,3 +1970,119 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
 } /* end @media (max-width: 767px) */
+
+/* ----------------------------------------------------------
+   Projects index page — /project/
+   Minimal listing layout. Reuses .project-item visual cues
+   (line + opacity) but stacks at full width.
+   ---------------------------------------------------------- */
+.projects-index-page .projects-index-main {
+  padding: calc(var(--nav-height) + 80px) var(--m) 80px;
+  min-height: 100vh;
+}
+
+.projects-index-page .projects-index-header {
+  margin-block-end: 64px;
+  max-width: 720px;
+}
+
+.projects-index-page .projects-index-header h1 {
+  font-size: clamp(48px, 8vw, 96px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px;
+}
+
+.projects-index-page .projects-index-header p {
+  font-size: 18px;
+  line-height: 1.4;
+  opacity: 0.7;
+  margin: 0;
+}
+
+.projects-index-page .projects-index-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 880px;
+  /* Override homepage .project-list height/overflow rules */
+  height: auto;
+  overflow: visible;
+  padding-right: 0;
+}
+
+.projects-index-page .projects-index-list .project-item {
+  height: auto;
+  opacity: 1;
+  padding: 0;
+}
+
+.projects-index-page .project-card-link {
+  display: block;
+  padding: 24px 0 24px 16px;
+  border-inline-start: 1px solid rgba(255, 255, 255, 0.2);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.3s var(--ease-out),
+    padding 0.3s var(--ease-out);
+}
+
+.projects-index-page .project-card-link:hover {
+  border-inline-start-color: var(--color-fg);
+  padding-inline-start: 24px;
+}
+
+.projects-index-page .project-card-link .project-title {
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1;
+  margin: 0 0 8px;
+}
+
+.projects-index-page .project-card-link .project-detail {
+  font-size: 15px;
+  line-height: 1.4;
+  opacity: 0.6;
+  margin: 0 0 12px;
+  max-width: 56ch;
+}
+
+.projects-index-page .project-card-link .project-cta {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  transition: opacity 0.2s var(--ease-out);
+}
+
+.projects-index-page .project-card-link:hover .project-cta {
+  opacity: 1;
+}
+
+@media (max-width: 767px) {
+  .projects-index-page .projects-index-main {
+    padding: calc(var(--nav-height) + 48px) var(--m) 64px;
+  }
+  .projects-index-page .projects-index-header {
+    margin-block-end: 40px;
+  }
+}
+
+/* ----------------------------------------------------------
+   Project detail — related rail anchor styling.
+   Each rail row was a <button>; it's now an <a>. Make the
+   anchor sit cleanly inside the existing .related-project-item
+   and inherit the row's styling.
+   ---------------------------------------------------------- */
+.related-project-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.related-project-link:hover,
+.related-project-link:focus-visible {
+  color: inherit;
+}

@@ -11,12 +11,16 @@
   /* ============================================================
      PROJECT DATA
      ============================================================ */
+  /* NOTE: project metadata is mirrored in scripts/build-projects.js for static
+     HTML generation. If you add or rename a project, update both. */
   var PROJECTS = [
     {
+      slug:     'viking-gear',
       index:    '001',
       title:    'Viking Gear',
       services: 'Brand Development · Web Design · E-Commerce · 3D · Animation',
       hasVideo: true,
+      metaDescription: 'Brand development, web design, e-commerce, 3D and animation for Viking Gear — primal training tools reimagined as modern rituals of discipline and mastery.',
       description: 'Viking Gear forges strength through primal movement. Rooted in the warrior spirit, it reimagines ancient training tools such as maces, clubs, and hammers as modern extensions of discipline, flow, and mastery. Every piece honours resilience, balance, and raw power, turning training into ritual.\n\nWe built the brand from the ground up. We shaped the strategy, art direction, and complete visual identity, creating a bold, purposeful world where ancient form meets contemporary performance.',
       images: [
         '/assets/Project_Img_01.webp',
@@ -33,10 +37,12 @@
       ]
     },
     {
+      slug:     'rebel-kids-club',
       index:    '002',
       title:    'Rebel Kids Club',
       services: 'Brand Development · Photography · E-Commerce · Web Design',
       hasVideo: false,
+      metaDescription: 'Gender-neutral toddler fashion brand. Full identity system, photography direction and e-commerce design for Rebel Kids Club — bold, inclusive and unmistakably its own.',
       description: 'Rebel Kids Club breaks the pink and blue code. It redefines toddler fashion with gender neutral clothing that celebrates individuality, intention, and timeless style from day one. Bold yet grounded, modern yet wearable, every piece gives parents a fresh way to dress their little rebels.\n\nWe built the brand from the ground up. We created the full identity system, from name and positioning to visual language and guidelines, crafting a distinctive voice that feels confident, inclusive, and unmistakably its own.',
       images: [
         '/assets/Project_Img_02.webp',
@@ -52,10 +58,12 @@
       ]
     },
     {
+      slug:     'mannequin-films',
       index:    '003',
       title:    'Mannequin Films',
       services: 'Brand Development · Web Design · Motion',
       hasVideo: false,
+      metaDescription: 'Cinematic rebrand for Mannequin Films — brand identity, web design and motion that distil their visual storytelling into a timeless, alive language.',
       description: 'Mannequin Films captures the raw poetry of visual storytelling. Through photography and video, they transform fleeting moments into enduring narratives that resonate with authenticity and precision. Every frame is crafted with intention, blending creativity, emotion, and technical excellence to bring stories to life.\n\nWe led a full rebrand, forging a new identity that honours their cinematic roots while sharpening their contemporary edge. From the refined brandmark to the complete visual system, we distilled their essence into a cohesive language that feels both timeless and alive.',
       images: [
         '/assets/Project_Img_03.webp',
@@ -109,18 +117,40 @@
   }
 
   /* ============================================================
-     SESSION RESTORE
+     SLUG → INDEX RESOLUTION
+     Each per-project HTML stamps its slug onto the Barba container
+     (data-project-slug). Falls back to the first project if missing
+     or unknown. Legacy sessionStorage handoff is supported for any
+     in-flight tabs from the previous deploy.
      ============================================================ */
+  function indexFromSlug(slug) {
+    if (!slug) return -1;
+    for (var i = 0; i < PROJECTS.length; i++) {
+      if (PROJECTS[i].slug === slug) return i;
+    }
+    return -1;
+  }
+
   function getInitialIndex() {
+    var scope = document.querySelector('[data-barba-namespace="project"]') || document.body;
+    var slug = scope && scope.getAttribute && scope.getAttribute('data-project-slug');
+    var idx = indexFromSlug(slug);
+    if (idx >= 0) return idx;
+
+    /* Legacy fallback — drain stale sessionStorage from older deploys. */
     try {
       var s = sessionStorage.getItem('colab_activeProject');
       if (s !== null) {
         sessionStorage.removeItem('colab_activeProject');
-        var idx = parseInt(s, 10);
-        return (idx >= 0 && idx < PROJECTS.length) ? idx : 0;
+        var legacy = parseInt(s, 10);
+        if (legacy >= 0 && legacy < PROJECTS.length) return legacy;
       }
     } catch (e) {}
     return 0;
+  }
+
+  function projectUrl(project) {
+    return '/project/' + project.slug + '/';
   }
 
   /* ============================================================
@@ -296,26 +326,49 @@
     if (direction === 'backward') {
       gallery.scrollToEnd();
     }
+
+    /* Reflect the active project in the URL + title without a full
+       Barba navigation. Keeps each project independently shareable
+       even when reached via swipe-to-next, without re-running the
+       whole transition pipeline. */
+    try {
+      var newUrl = projectUrl(project);
+      if (window.location.pathname !== newUrl) {
+        window.history.replaceState({}, '', newUrl);
+      }
+    } catch (e) {}
+    document.title = project.title + ' — co:lab';
+
+    /* Sync the active state on the rail (used as anchor links now). */
+    var scope = document.querySelector('[data-barba-namespace="project"]') || document;
+    scope.querySelectorAll('[data-project-slug]').forEach(function (el) {
+      el.classList.toggle('is-active', el.getAttribute('data-project-slug') === project.slug);
+    });
   }
 
   /* ============================================================
      RELATED PROJECT RAIL EVENTS
-     Bound inside init() so Barba-swapped containers get fresh
-     handlers — the IIFE runs once on script load, but the related
-     items don't exist yet when navigating from the homepage.
+     Each rail item is a real <a href="/project/<slug>/"> — Barba
+     intercepts the click and runs the shader-wipe transition. We
+     only need to delegate "click anywhere on the row" to its inner
+     anchor and hide the scroll hint on click.
      ============================================================ */
   function bindRelatedRail() {
-    document.querySelectorAll('[data-project-switch]').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        if (scrollHint) scrollHint.classList.add('is-hidden');
-        switchProject(parseInt(btn.dataset.projectSwitch, 10));
+    var scope = document.querySelector('[data-barba-namespace="project"]') || document;
+
+    scope.querySelectorAll('.related-project-item').forEach(function (item) {
+      if (item._colabRailBound) return;
+      item._colabRailBound = true;
+      item.addEventListener('click', function (e) {
+        if (e.target.closest('a')) return;
+        var anchor = item.querySelector('a.related-project-link, a.related-project-cta');
+        if (anchor) anchor.click();
       });
     });
 
-    document.querySelectorAll('[data-project-index]').forEach(function (item) {
-      item.addEventListener('click', function () {
-        switchProject(parseInt(item.dataset.projectIndex, 10));
+    scope.querySelectorAll('a.related-project-cta, a.related-project-link').forEach(function (a) {
+      a.addEventListener('click', function () {
+        if (scrollHint) scrollHint.classList.add('is-hidden');
       });
     });
   }

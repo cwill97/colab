@@ -25,19 +25,11 @@
 
   function initBarba() {
 
-    /* ── Helper: store project index from clicked link ── */
-    function storeProjectIndex(trigger) {
-      if (!trigger || !trigger.getAttribute) return;
-      var idx = trigger.getAttribute('data-project-link');
-      if (idx !== null) {
-        try { sessionStorage.setItem('colab_activeProject', idx); } catch (e) {}
-      }
-    }
-
     /* ── Helper: toggle persistent elements for each view ── */
     function enterHome() {
       document.body.classList.remove('project-page');
       document.body.classList.remove('about-page');
+      document.body.classList.remove('projects-index-page');
 
       /* Show tesseract */
       var tesseract = document.querySelector('[data-tesseract]');
@@ -63,6 +55,7 @@
     function enterProject() {
       document.body.classList.add('project-page');
       document.body.classList.remove('about-page');
+      document.body.classList.remove('projects-index-page');
 
       /* Hide tesseract on project page (CSS handles it, but ensure display) */
       var tesseract = document.querySelector('[data-tesseract]');
@@ -86,8 +79,27 @@
       if (window.colabMainBoot) window.colabMainBoot();
     }
 
+    function enterProjectsIndex() {
+      document.body.classList.remove('project-page');
+      document.body.classList.remove('about-page');
+      document.body.classList.add('projects-index-page');
+
+      var tesseract = document.querySelector('[data-tesseract]');
+      if (tesseract) tesseract.style.display = 'none';
+
+      var viz = document.querySelector('[data-visualizer]');
+      if (viz) {
+        viz.style.display = 'none';
+        viz.setAttribute('aria-hidden', 'true');
+      }
+
+      if (window.colabTesseract) window.colabTesseract.pause();
+      if (window.colabMainBoot) window.colabMainBoot();
+    }
+
     function enterAbout() {
       document.body.classList.remove('project-page');
+      document.body.classList.remove('projects-index-page');
       document.body.classList.add('about-page');
 
       /* Hide tesseract on about page */
@@ -136,11 +148,6 @@
       transitions: [{
         name: 'shader-wipe',
 
-        /* Store project index before anything happens */
-        before: function (data) {
-          storeProjectIndex(data.trigger);
-        },
-
         leave: function (data) {
           var done = this.async();
           var ST = window.ShaderTransition;
@@ -184,6 +191,8 @@
             enterHome();
           } else if (entering === 'project') {
             enterProject();
+          } else if (entering === 'projects-index') {
+            enterProjectsIndex();
           } else if (entering === 'about') {
             enterAbout();
           }
