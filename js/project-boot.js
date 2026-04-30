@@ -131,8 +131,25 @@
     return -1;
   }
 
+  /* Module-level pointer to the active project container. Set by
+     colabProject.init(scope) during Barba transitions. Falls back to
+     a query — but during project→project swaps, both old and new
+     containers exist briefly and the old one is first in document
+     order, so the explicit scope passed by barba-init is the only
+     reliable source. */
+  var activeContainer = null;
+
+  function getActiveContainer() {
+    if (activeContainer && activeContainer.isConnected) return activeContainer;
+    /* Cold-load fallback: prefer the last-in-document match, since
+       Barba appends new containers after old ones. */
+    var nodes = document.querySelectorAll('[data-barba-namespace="project"]');
+    if (nodes.length) return nodes[nodes.length - 1];
+    return document.body;
+  }
+
   function getInitialIndex() {
-    var scope = document.querySelector('[data-barba-namespace="project"]') || document.body;
+    var scope = getActiveContainer();
     var slug = scope && scope.getAttribute && scope.getAttribute('data-project-slug');
     var idx = indexFromSlug(slug);
     if (idx >= 0) return idx;
@@ -340,7 +357,7 @@
     document.title = project.title + ' — co:lab';
 
     /* Sync the active state on the rail (used as anchor links now). */
-    var scope = document.querySelector('[data-barba-namespace="project"]') || document;
+    var scope = getActiveContainer();
     scope.querySelectorAll('[data-project-slug]').forEach(function (el) {
       el.classList.toggle('is-active', el.getAttribute('data-project-slug') === project.slug);
     });
@@ -354,7 +371,7 @@
      anchor and hide the scroll hint on click.
      ============================================================ */
   function bindRelatedRail() {
-    var scope = document.querySelector('[data-barba-namespace="project"]') || document;
+    var scope = getActiveContainer();
 
     scope.querySelectorAll('.related-project-item').forEach(function (item) {
       if (item._colabRailBound) return;
@@ -454,14 +471,18 @@
     })();
   }
 
-  /* Expose for Barba transitions */
+  /* Expose for Barba transitions.
+     Accepts the new container explicitly (data.next.container) so we
+     scope to the right one — during a project→project swap the old
+     container is still in the DOM and would otherwise win the query. */
   window.colabProject = {
-    init: function () {
-      // Scope queries to the project container. The homepage also has a
-      // .about-text, and during a Barba swap both containers may briefly
-      // coexist — a bare document.querySelector would return the homepage's
-      // element and we'd write the project description into the wrong node.
-      var scope = document.querySelector('[data-barba-namespace="project"]') || document;
+    init: function (nextContainer) {
+      var scope = nextContainer
+        || document.querySelectorAll('[data-barba-namespace="project"]')[
+             document.querySelectorAll('[data-barba-namespace="project"]').length - 1
+           ]
+        || document;
+      activeContainer = scope;
       isMobile = window.matchMedia('(max-width: 767px)').matches;
       mobileTitle = scope.querySelector('[data-mobile-title]');
       canvas = scope.querySelector('[data-depth-canvas]');

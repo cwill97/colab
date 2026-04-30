@@ -52,7 +52,7 @@
       if (window.colabMainBoot) window.colabMainBoot();
     }
 
-    function enterProject() {
+    function enterProject(nextContainer) {
       document.body.classList.add('project-page');
       document.body.classList.remove('about-page');
       document.body.classList.remove('projects-index-page');
@@ -71,8 +71,9 @@
       /* Pause tesseract animation to save GPU */
       if (window.colabTesseract) window.colabTesseract.pause();
 
-      /* Init project page JS (depth gallery, video preview, etc.) */
-      if (window.colabProject) window.colabProject.init();
+      /* Init project page JS — pass the new container so queries
+         resolve to it, not the still-attached leaving container. */
+      if (window.colabProject) window.colabProject.init(nextContainer);
       if (window.colabVideoPreview) window.colabVideoPreview.init();
 
       /* Re-bind nav toggle for the new container context */
@@ -190,7 +191,7 @@
           if (entering === 'home') {
             enterHome();
           } else if (entering === 'project') {
-            enterProject();
+            enterProject(data.next.container);
           } else if (entering === 'projects-index') {
             enterProjectsIndex();
           } else if (entering === 'about') {
