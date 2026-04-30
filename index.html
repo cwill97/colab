@@ -75,9 +75,23 @@
   <div id="site-menu" class="site-menu" role="dialog" aria-modal="true" aria-label="Navigation menu" aria-hidden="true" data-nav-menu>
     <div class="bg-hover-layer" aria-hidden="true"></div>
     <nav class="menu-nav" aria-label="Primary menu">
-      <p class="menu-nav-text">
-        <a href="/" class="menu-nav-link" data-menu-home data-nav="home">HOME</a><span class="menu-nav-sep" data-sep-after="home"> / </span><a href="/about/" class="menu-nav-link" data-menu-about data-nav="about">ABOUT</a><span class="menu-nav-sep is-inactive"> / </span><span class="menu-nav-link is-inactive" aria-disabled="true">SHOP</span><span class="menu-nav-sep is-inactive"> / </span><span class="menu-nav-link is-inactive" aria-disabled="true">EXPERIMENTS</span>
-      </p>
+      <ul class="menu-nav-list">
+        <li class="menu-nav-item" data-nav="home">
+          <span class="menu-active-square" aria-hidden="true"></span><a href="/" class="menu-nav-link" data-menu-home data-nav="home">Index</a><span class="menu-coords" aria-hidden="true">26.2056° S, 28.0337° E</span>
+        </li>
+        <li class="menu-nav-item" data-nav="about">
+          <span class="menu-active-square" aria-hidden="true"></span><a href="/about/" class="menu-nav-link" data-menu-about data-nav="about">About</a>
+        </li>
+        <li class="menu-nav-item" data-nav="research">
+          <span class="menu-active-square" aria-hidden="true"></span><a href="/research" class="menu-nav-link" data-nav="research">Research/</a>
+        </li>
+        <li class="menu-nav-item" data-nav="experiment">
+          <span class="menu-active-square" aria-hidden="true"></span><a href="/experiment" class="menu-nav-link" data-nav="experiment">Experiment</a>
+        </li>
+        <li class="menu-nav-item is-inactive">
+          <span class="menu-active-square" aria-hidden="true"></span><span class="menu-nav-link is-inactive" aria-disabled="true">Marketplace<sup class="menu-soon-tag">(SOON)</sup></span>
+        </li>
+      </ul>
     </nav>
     <div class="menu-footer">
       <div class="menu-footer-col">

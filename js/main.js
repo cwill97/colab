@@ -155,25 +155,10 @@
   }
 
   /* ----------------------------------------------------------
-     Square button glitch
+     Square button — hard blink is now driven entirely by CSS
+     (body[data-menu-open] .nav-toggle-icon). No JS needed.
      ---------------------------------------------------------- */
-  function initButtonGlitch() {
-    var icon = document.querySelector('.nav-toggle-icon');
-    if (!icon) return;
-
-    /* Guard: only start one interval */
-    if (icon._colabGlitch) return;
-    icon._colabGlitch = true;
-
-    function triggerGlitch() {
-      var toggle = document.querySelector('[data-nav-toggle]');
-      if (toggle && toggle.getAttribute('aria-expanded') === 'true') return;
-      icon.classList.add('is-glitching');
-      setTimeout(function () { icon.classList.remove('is-glitching'); }, 600);
-    }
-
-    setInterval(triggerGlitch, 3000);
-  }
+  function initButtonGlitch() { /* deprecated — kept as a no-op */ }
 
   /* ----------------------------------------------------------
      About text — swap between full and mobile versions
@@ -452,31 +437,16 @@
   function syncMenuCurrent() {
     var container = document.querySelector('[data-barba="container"]');
     var ns = container && container.getAttribute('data-barba-namespace');
-    var links = document.querySelectorAll('.menu-nav-link[data-nav]');
-    var seps  = document.querySelectorAll('.menu-nav-sep[data-sep-after]');
+    /* Project pages (and projects-index) don't claim a top-menu slot —
+       no item should appear active when on those routes. */
+    var menuNs = (ns === 'home' || ns === 'about') ? ns : null;
 
-    links.forEach(function (link) {
-      if (link.getAttribute('data-nav') === ns) {
-        link.classList.add('is-current');
-      } else {
-        link.classList.remove('is-current');
-      }
-    });
-
-    /* Separator after a link is "active" (white) only when that link
-       OR the next link is the current page. Otherwise dim. */
-    seps.forEach(function (sep) {
-      var afterNav = sep.getAttribute('data-sep-after');
-      var leftLink = document.querySelector('.menu-nav-link[data-nav="' + afterNav + '"]');
-      /* Find next link sibling */
-      var next = sep.nextElementSibling;
-      var leftCurrent  = leftLink && leftLink.classList.contains('is-current');
-      var rightCurrent = next && next.classList && next.classList.contains('is-current');
-      if (leftCurrent || rightCurrent) {
-        sep.classList.remove('is-inactive');
-      } else {
-        sep.classList.add('is-inactive');
-      }
+    var items = document.querySelectorAll('.menu-nav-item[data-nav]');
+    items.forEach(function (item) {
+      var matches = item.getAttribute('data-nav') === menuNs;
+      item.classList.toggle('is-current', matches);
+      var link = item.querySelector('.menu-nav-link[data-nav]');
+      if (link) link.classList.toggle('is-current', matches);
     });
   }
 
