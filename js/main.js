@@ -22,6 +22,10 @@
     var menuTransitioning = false;
 
     function showMenu() {
+      /* Re-resolve the active page right before the menu paints, so the
+         flashing square always lands on the correct row even if the
+         page changed without main.js's boot re-running. */
+      if (window.colabSyncMenuCurrent) window.colabSyncMenuCurrent();
       toggle.setAttribute('aria-expanded', 'true');
       menu.setAttribute('aria-hidden', 'false');
       document.body.setAttribute('data-menu-open', '');
@@ -435,11 +439,25 @@
      Called on boot and after every Barba transition.
      ---------------------------------------------------------- */
   function syncMenuCurrent() {
+    /* Resolve the active menu slot from two signals (whichever wins):
+       1. Barba namespace on the active container (set per-page in HTML).
+       2. URL pathname — covers cold loads and pages that don't initialise
+          Barba (e.g. about.html as a standalone destination).
+       Project / projects-index routes intentionally don't claim a slot. */
     var container = document.querySelector('[data-barba="container"]');
     var ns = container && container.getAttribute('data-barba-namespace');
-    /* Project pages (and projects-index) don't claim a top-menu slot —
-       no item should appear active when on those routes. */
-    var menuNs = (ns === 'home' || ns === 'about') ? ns : null;
+    var path = (window.location.pathname || '').toLowerCase();
+
+    var menuNs = null;
+    if (ns === 'home' || ns === 'about') {
+      menuNs = ns;
+    } else if (ns === 'project' || ns === 'projects-index') {
+      menuNs = null;
+    } else if (/^\/about(\b|\/|\.html)/.test(path)) {
+      menuNs = 'about';
+    } else if (path === '/' || /\/index\.html$/.test(path)) {
+      menuNs = 'home';
+    }
 
     var items = document.querySelectorAll('.menu-nav-item[data-nav]');
     items.forEach(function (item) {
