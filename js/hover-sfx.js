@@ -102,10 +102,12 @@
   }
 
   // ── Play one tick ──────────────────────────────────────────────────
-  function play() {
+  // playOpts.allowDuringMenu — when true (set by menu-list items),
+  //   skip the menu-open gate so the overlay's own nav rows can chirp.
+  function play(playOpts) {
     if (!canHover())    return;
     if (!audioEnabled()) return;
-    if (menuOpen())     return;
+    if (menuOpen() && !(playOpts && playOpts.allowDuringMenu)) return;
 
     var now = performance.now();
     if (now - lastPlayAt < MIN_INTERVAL) return;
@@ -135,17 +137,27 @@
   }
 
   // ── Per-item binding ───────────────────────────────────────────────
-  function bindItem(li) {
+  function bindItem(li, opts) {
     if (li.hasAttribute('data-hover-sfx-init')) return;
     li.setAttribute('data-hover-sfx-init', '');
-    li.addEventListener('mouseenter', play);
+    var fromMenu = !!(opts && opts.fromMenu);
+    li.addEventListener('mouseenter', function () {
+      play(fromMenu ? { allowDuringMenu: true } : null);
+    });
   }
 
   function init() {
-    var items = document.querySelectorAll(
+    var bodyItems = document.querySelectorAll(
       '.services-block li, .contact-block li, .project-list li, .related-project-list li'
     );
-    Array.prototype.forEach.call(items, bindItem);
+    Array.prototype.forEach.call(bodyItems, function (li) { bindItem(li); });
+
+    var menuItems = document.querySelectorAll(
+      '.menu-nav-list li:not(.is-inactive)'
+    );
+    Array.prototype.forEach.call(menuItems, function (li) {
+      bindItem(li, { fromMenu: true });
+    });
   }
 
   // Initial boot

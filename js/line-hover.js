@@ -126,25 +126,24 @@
     if (li.hasAttribute('data-line-hover-init')) return;
     li.setAttribute('data-line-hover-init', '');
 
-    var originalText = li.textContent.replace(/\s+/g, ' ').trim();
-    if (!originalText) return;
-
-    // Decide host: if the only meaningful child is an anchor, use it;
-    // otherwise wrap all <li> contents in a <span class="line-hover">.
-    var meaningful = Array.prototype.filter.call(li.childNodes, function (n) {
-      return !(n.nodeType === Node.TEXT_NODE && !n.nodeValue.trim());
-    });
-    var anchor = (meaningful.length === 1 &&
-                  meaningful[0].nodeType === 1 &&
-                  meaningful[0].tagName === 'A')
-                 ? meaningful[0] : null;
-
+    // Decide host:
+    //   1. If the <li> has any <a> child (direct or nested), use the
+    //      first one as host. Sibling decoration (e.g. the menu's
+    //      active-square or coordinates label) is left untouched.
+    //   2. Otherwise wrap all <li> contents in a <span class="line-hover">.
+    var anchor = li.querySelector('a');
     var host;
+    var originalText;
+
     if (anchor) {
       host = anchor;
+      originalText = anchor.textContent.replace(/\s+/g, ' ').trim();
+      if (!originalText) return;
       host.classList.add('line-hover');
       host.setAttribute('aria-label', originalText);
     } else {
+      originalText = li.textContent.replace(/\s+/g, ' ').trim();
+      if (!originalText) return;
       host = document.createElement('span');
       host.className = 'line-hover';
       while (li.firstChild) host.appendChild(li.firstChild);
@@ -233,7 +232,9 @@
   function init() {
     awaitFonts().then(function () {
       var items = document.querySelectorAll(
-        '.services-block li, .contact-block li'
+        '.services-block li, ' +
+        '.contact-block li, ' +
+        '.menu-nav-list li:not(.is-inactive)'
       );
       Array.prototype.forEach.call(items, enhanceItem);
 

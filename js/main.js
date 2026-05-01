@@ -159,10 +159,28 @@
   }
 
   /* ----------------------------------------------------------
-     Square button — hard blink is now driven entirely by CSS
-     (body[data-menu-open] .nav-toggle-icon). No JS needed.
+     Square button — fires the 3-layer glitch (blink + RGB split
+     + crash) every 3s while the menu is closed. The active-page
+     hard-blink lives elsewhere; we skip glitching when the menu
+     is open so the two effects don't fight.
      ---------------------------------------------------------- */
-  function initButtonGlitch() { /* deprecated — kept as a no-op */ }
+  function initButtonGlitch() {
+    var icon = document.querySelector('.nav-toggle-icon');
+    if (!icon) return;
+
+    if (icon._colabGlitch) return;
+    icon._colabGlitch = true;
+
+    function triggerGlitch() {
+      var toggle = document.querySelector('[data-nav-toggle]');
+      if (toggle && toggle.getAttribute('aria-expanded') === 'true') return;
+      icon.classList.add('is-glitching');
+      setTimeout(function () { icon.classList.remove('is-glitching'); }, 600);
+    }
+
+    setInterval(triggerGlitch, 3000);
+  }
+
 
   /* ----------------------------------------------------------
      About text — swap between full and mobile versions
