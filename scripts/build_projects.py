@@ -256,6 +256,7 @@ PROJECT_SCRIPTS = """  <script src="/js/shader-reveal.js"></script>
   <script src="/js/project-boot.js" defer></script>
   <script src="/js/line-hover.js" defer></script>
   <script src="/js/hover-sfx.js" defer></script>
+  <script src="/js/marketplace-buzz.js" defer></script>
   <script src="/js/barba-init.js" defer></script>"""
 
 
@@ -452,6 +453,7 @@ def projects_index_html() -> str:
   <script src="/js/menu-ripple.js" defer></script>
   <script src="/js/line-hover.js" defer></script>
   <script src="/js/hover-sfx.js" defer></script>
+  <script src="/js/marketplace-buzz.js" defer></script>
   <script src="/js/barba-init.js" defer></script>
 
 </body>
