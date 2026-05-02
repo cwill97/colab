@@ -680,7 +680,6 @@ main {
 .project-list-wrap {
   grid-column: 1 / 3;
   position: relative;
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .project-list {
@@ -710,6 +709,7 @@ main {
 
 /* Custom scroll thumb — sits on top of the 1px right-edge track */
 .project-scroll-thumb {
+  display: none;
   position: absolute;
   inset-inline-end: -1px;
   inset-block-start: 0;

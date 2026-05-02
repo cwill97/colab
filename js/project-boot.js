@@ -78,6 +78,28 @@
         '/assets/Project_Img_Mannequin_10.webp',
         '/assets/Project_Img_Mannequin_10.webp'
       ]
+    },
+    {
+      slug:     'hyde-park-ventures',
+      index:    '004',
+      title:    'Hyde Park Ventures (Five Guys)',
+      services: 'Web Design · Web Development · Brand Consolidation',
+      hasVideo: false,
+      metaDescription: 'Website consolidation and digital modernisation for Hyde Park Ventures — a unified platform that brings clarity to a diverse portfolio.',
+      description: 'Website consolidation and digital modernisation for Hyde Park Ventures, creating a unified platform that brings clarity to a diverse portfolio. Delivered a streamlined, future-ready experience that improves navigation, strengthens brand consistency, and supports ongoing growth.',
+      images: [
+        '/assets/Project_Img_04.webp',
+        '/assets/Project_Img_HydePark_02.webp',
+        '/assets/Project_Img_HydePark_03.webp',
+        '/assets/Project_Img_HydePark_04.webp',
+        '/assets/Project_Img_HydePark_05.webp',
+        '/assets/Project_Img_HydePark_06.webp',
+        '/assets/Project_Img_HydePark_07.webp',
+        '/assets/Project_Img_HydePark_08.webp',
+        '/assets/Project_Text_HydePark_01.webp',
+        '/assets/Project_Text_HydePark_02.webp',
+        '/assets/Project_Text_HydePark_03.webp'
+      ]
     }
   ];
 
