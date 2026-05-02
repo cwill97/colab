@@ -1761,7 +1761,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
      as unmistakably the focused one. */
   .project-item,
   .project-item:hover {
-    opacity: 0.12;
+    opacity: 0.50;
     padding-inline-start: 0;
     width: 80%;
     transform: translateX(0);
