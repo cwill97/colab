@@ -1785,7 +1785,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .project-list:hover .project-item:not(:hover) {
-    opacity: 0.12;
+    opacity: 0.50;
   }
 
   /* Scroll-activated state — clearly highlighted. The active card
