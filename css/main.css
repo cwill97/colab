@@ -97,6 +97,12 @@
   --services-height:  173px;  /* 9 items × 8px × 2.4lh ≈ 173px */
   --contact-gap:      90px;   /* gap below services to contact */
 
+  /* Section labels — small muted heading above each block.
+     Label sits inside the gap above its section; total label-block
+     (height + gap-to-content) is carved out of the existing gap. */
+  --section-label-height: 9px;
+  --section-label-gap:    12px;
+
   /* Motion */
   --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast:  150ms;
@@ -701,7 +707,7 @@ main {
   font-family: var(--font-display);
   font-size: 33px;
   font-weight: 400;
-  line-height: 0.8;
+  line-height: 0.9;
   text-align: left;
   text-transform: uppercase;
   color: var(--color-fg);
@@ -750,6 +756,8 @@ main {
     - var(--title-gap)
     - var(--title-height)
     - var(--projects-gap)
+    - var(--section-label-height)
+    - var(--section-label-gap)
     - var(--image-gap)
     - var(--image-height)
     - var(--bottom-padding)
@@ -795,7 +803,7 @@ main {
 
 /* All items start at same dim opacity — hover promotes one */
 .project-item {
-  opacity: 0.2;
+  opacity: 0.8;
 }
 
 .project-item + .project-item {
@@ -1058,6 +1066,77 @@ main {
 
   display: flex;
   gap: var(--grid-gutter);
+}
+
+/* ------------------------------------------------------------
+   14a. Section Labels
+   Small muted heading above Projects, About Us, Services, Contact.
+   Right-column labels (about/services/contact) are fixed-positioned
+   inside the existing gap above each block. The Projects label sits
+   inside .section-projects .container as a grid item.
+   ------------------------------------------------------------ */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: var(--section-label-height);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--color-muted);
+  text-transform: uppercase;
+}
+
+.section-label--about,
+.section-label--services,
+.section-label--contact {
+  position: fixed;
+  inset-inline-end: var(--grid-margin);
+  width: var(--viz-width);
+  z-index: 50;
+}
+
+.section-label--about {
+  inset-block-start: calc(
+    var(--nav-height)
+    + var(--title-gap)
+    + var(--viz-height)
+    + var(--about-gap)
+    - var(--section-label-height)
+    - var(--section-label-gap)
+  );
+}
+
+.section-label--services {
+  inset-block-start: calc(
+    var(--nav-height)
+    + var(--title-gap)
+    + var(--viz-height)
+    + var(--about-gap)
+    + var(--about-height)
+    + var(--services-gap)
+    - var(--section-label-height)
+    - var(--section-label-gap)
+  );
+}
+
+.section-label--contact {
+  inset-block-start: calc(
+    var(--nav-height)
+    + var(--title-gap)
+    + var(--viz-height)
+    + var(--about-gap)
+    + var(--about-height)
+    + var(--services-gap)
+    + var(--services-height)
+    + var(--contact-gap)
+    - var(--section-label-height)
+    - var(--section-label-gap)
+  );
+}
+
+.section-label--projects {
+  display: block;
+  grid-column: 1 / 3;
+  margin-block-end: var(--section-label-gap);
 }
 
 /* ------------------------------------------------------------
@@ -1372,6 +1451,9 @@ body.loader-active [data-visualizer],
 body.loader-active .about-text,
 body.loader-active .services-block,
 body.loader-active .contact-block,
+body.loader-active .section-label--about,
+body.loader-active .section-label--services,
+body.loader-active .section-label--contact,
 body.loader-active [data-tesseract] {
   opacity: 0;
   pointer-events: none;
@@ -1382,7 +1464,10 @@ body:not(.loader-active) header,
 body:not(.loader-active) [data-visualizer],
 body:not(.loader-active) .about-text,
 body:not(.loader-active) .services-block,
-body:not(.loader-active) .contact-block {
+body:not(.loader-active) .contact-block,
+body:not(.loader-active) .section-label--about,
+body:not(.loader-active) .section-label--services,
+body:not(.loader-active) .section-label--contact {
   opacity: 1;
 }
 
@@ -1404,7 +1489,10 @@ body.page-entering header,
 body.page-entering [data-visualizer],
 body.page-entering .about-text,
 body.page-entering .services-block,
-body.page-entering .contact-block {
+body.page-entering .contact-block,
+body.page-entering .section-label--about,
+body.page-entering .section-label--services,
+body.page-entering .section-label--contact {
   opacity: 0;
 }
 
@@ -1420,7 +1508,10 @@ body.page-entering.page-revealed main,
 body.page-entering.page-revealed [data-visualizer],
 body.page-entering.page-revealed .about-text,
 body.page-entering.page-revealed .services-block,
-body.page-entering.page-revealed .contact-block {
+body.page-entering.page-revealed .contact-block,
+body.page-entering.page-revealed .section-label--about,
+body.page-entering.page-revealed .section-label--services,
+body.page-entering.page-revealed .section-label--contact {
   opacity: 1;
 }
 
@@ -1745,8 +1836,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
   /* --------------------------------------------------------
      M-7. About Text — hidden on mobile
+     Right-column labels follow their sections.
      -------------------------------------------------------- */
-  .about-text {
+  .about-text,
+  .section-label--about,
+  .section-label--services,
+  .section-label--contact {
     display: none;
   }
 
@@ -1766,15 +1861,23 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .section-projects .container {
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: 100%;
     padding-inline: var(--m);
+  }
+
+  .section-label--projects {
+    grid-column: unset;
+    flex: 0 0 auto;
   }
 
   .project-list-wrap {
     display: block !important;
     position: relative;
-    height: 100%;
+    flex: 1;
+    height: auto;
+    min-height: 0;
     border-right: 1px solid rgba(255, 255, 255, 0.2);
     grid-column: unset;
   }
