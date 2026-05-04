@@ -40,7 +40,7 @@
     this.scrollTarget  = 0;
     this.scrollCurrent = 0;
     this.scrollSmoothing      = 0.21;
-    this.scrollToWorldFactor  = 0.02;
+    this.scrollToWorldFactor  = 0.03;
     this.prevScrollCurrent    = 0;
     this.rawVelocity   = 0;
     this.velocity      = 0;
@@ -51,7 +51,7 @@
     this.maxCameraZ    =  Infinity;
 
     /* Plane config — from Gallery.js */
-    this.planeGap       = 3;
+    this.planeGap       = 7;
     this.planeFadeSmoothing = 0.14;
 
     /* Parallax — from Gallery.js */
