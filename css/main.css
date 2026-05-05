@@ -84,8 +84,8 @@
   /* Layout spacing tokens — all content must fit within 100vh */
   --title-gap:        25px;   /* nav bottom → display title */
   --title-height:     80px;   /* 3 lines × 33px × 0.8lh ≈ 79px, rounded up */
-  --projects-gap:     70px;   /* display title → project list */
-  --image-gap:        80px;   /* project list → image */
+  --projects-gap:     50px;   /* display title → project list (aligns [Featured Projects] with [Manifesto]) */
+  --image-gap:        50px;   /* project list → image */
   --image-height:     190px;  /* fixed image container height */
   --bottom-padding:   20px;   /* breathing room at viewport bottom */
 
@@ -101,7 +101,7 @@
      Label sits inside the gap above its section; total label-block
      (height + gap-to-content) is carved out of the existing gap. */
   --section-label-height: 9px;
-  --section-label-gap:    12px;
+  --section-label-gap:    6px;
 
   /* Motion */
   --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
