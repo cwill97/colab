@@ -1911,6 +1911,17 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
   .project-list::-webkit-scrollbar { display: none; }
 
+  /* Trailing spacer — without this the last items can never reach
+     their snap-start position because scrollHeight - clientHeight
+     (the max scroll distance) is shorter than their offset.
+     Height = container minus one item so every item can snap to top. */
+  .project-list::after {
+    content: '';
+    flex-shrink: 0;
+    display: block;
+    min-height: calc(100% - 100px);
+  }
+
   .project-item:nth-child(n+5) { display: flex; }
 
   .project-item {
