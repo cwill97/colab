@@ -1816,6 +1816,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     text-align: center;
     z-index: 50;
     overflow: visible;
+    transition:
+      opacity   0.4s var(--ease-out),
+      transform 0.4s var(--ease-out);
   }
 
   /* One span per line — guaranteed, never wraps across lines */
@@ -1841,6 +1844,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     height: var(--h-tesseract);
     z-index: 10;
     overflow: visible;
+    transition:
+      height            0.5s var(--ease-out),
+      inset-block-start 0.5s var(--ease-out);
   }
 
   /* --------------------------------------------------------
@@ -1867,6 +1873,25 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     inset-inline: 0;
     z-index: 50;
     padding: 0 !important;
+    transition: inset-block-start 0.5s var(--ease-out);
+  }
+
+  /* --------------------------------------------------------
+     M-8b. Projects expanded — scroll-activated state.
+     When the user scrolls inside .project-list, JS adds
+     `is-projects-expanded` to <body>. Tesseract shrinks ~50%,
+     hero title fades, and projects list grows to ~65vh.
+     -------------------------------------------------------- */
+  body.is-projects-expanded {
+    --h-tesseract: 19vh;
+    --t-tesseract: 56px;
+    --t-projects:  32vh;
+  }
+
+  body.is-projects-expanded .display-title {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
   }
 
   .section-projects .container {

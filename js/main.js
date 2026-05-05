@@ -341,7 +341,10 @@
      top of the scroll area (mirrors desktop hover behaviour).
      ---------------------------------------------------------- */
   function initMobileProjects() {
-    if (window.innerWidth >= 768) return;
+    if (window.innerWidth >= 768) {
+      document.body.classList.remove('is-projects-expanded');
+      return;
+    }
 
     var items = document.querySelectorAll('.project-item');
     var list  = document.querySelector('[data-scroll-list]');
@@ -369,6 +372,25 @@
       item.appendChild(img);
       item.appendChild(wrapper);
     });
+
+    /* ── Scroll-driven expand: shrink tesseract + grow project list
+       once the user starts scrolling. Hysteresis prevents flicker
+       at the threshold. Reset on (re)init in case body class
+       persisted from a prior visit. ── */
+    document.body.classList.remove('is-projects-expanded');
+
+    var EXPAND_ON  = 14;
+    var EXPAND_OFF = 4;
+
+    function updateExpanded() {
+      var st = list.scrollTop;
+      var isOn = document.body.classList.contains('is-projects-expanded');
+      if (!isOn && st > EXPAND_ON) {
+        document.body.classList.add('is-projects-expanded');
+      } else if (isOn && st < EXPAND_OFF) {
+        document.body.classList.remove('is-projects-expanded');
+      }
+    }
 
     /* ── Scroll-based activation ── */
     var activeItem = null;
@@ -423,6 +445,7 @@
     /* Update on scroll — fires during momentum */
     var snapTimer = null;
     list.addEventListener('scroll', function () {
+      updateExpanded();
       requestAnimationFrame(updateActive);
 
       /* Debounced fallback: re-check 120ms after scroll stops
