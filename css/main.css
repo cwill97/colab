@@ -752,7 +752,7 @@ main {
   display: flex;
   flex-direction: column;
   height: calc(
-    900px
+    100vh
     - var(--nav-height)
     - var(--title-gap)
     - var(--title-height)
