@@ -423,7 +423,6 @@
     /* Update on scroll — fires during momentum */
     var snapTimer = null;
     list.addEventListener('scroll', function () {
-      updateExpanded();
       requestAnimationFrame(updateActive);
 
       /* Debounced fallback: re-check 120ms after scroll stops
