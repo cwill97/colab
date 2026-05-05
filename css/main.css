@@ -101,7 +101,8 @@
      Label sits inside the gap above its section; total label-block
      (height + gap-to-content) is carved out of the existing gap. */
   --section-label-height: 9px;
-  --section-label-gap:    6px;
+  --section-label-gap:    6px;    /* gap below [Featured Projects] label */
+  --side-label-gap:       12px;   /* gap below right-column labels: [Manifesto], [Our Services], [Contact Us] */
 
   /* Motion */
   --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
@@ -976,6 +977,8 @@ main {
     + var(--title-gap)
     + var(--viz-height)
     + var(--about-gap)
+    + var(--side-label-gap)
+    - var(--section-label-gap)
   );
   inset-inline-end: var(--grid-margin);
   width: var(--viz-width);
@@ -1019,6 +1022,8 @@ main {
     + var(--about-gap)
     + var(--about-height)
     + var(--services-gap)
+    + var(--side-label-gap)
+    - var(--section-label-gap)
   );
   inset-inline-end: var(--grid-margin);
   width: var(--viz-width);   /* same 255px envelope as above components */
@@ -1059,6 +1064,8 @@ main {
     + var(--services-gap)
     + var(--services-height)
     + var(--contact-gap)
+    + var(--side-label-gap)
+    - var(--section-label-gap)
   );
   inset-inline-end: var(--grid-margin);
   width: var(--viz-width);
