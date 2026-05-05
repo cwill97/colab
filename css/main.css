@@ -752,7 +752,7 @@ main {
   display: flex;
   flex-direction: column;
   height: calc(
-    100vh
+    900px
     - var(--nav-height)
     - var(--title-gap)
     - var(--title-height)
@@ -900,8 +900,10 @@ main {
    80px below project list, cols 1–2, fixed height 190px.
    ------------------------------------------------------------ */
 .section-project-image {
-  padding-block-start: var(--image-gap);
-  padding-block-end: var(--bottom-padding);
+  position: fixed;
+  inset-block-end: var(--bottom-padding);
+  inset-inline: 0;
+  z-index: 10;
 }
 
 .section-project-image .container {
