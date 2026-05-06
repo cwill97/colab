@@ -152,16 +152,25 @@
 
       for (var i = 0; i < text.length; i++) {
         var ch = text.charAt(i);
+        var code = ch.charCodeAt(0);
+        /* Whitespace is appended as a plain text node so the browser
+           can wrap lines at word boundaries. Wrapping each space in a
+           <span> previously left the run unbreakable (and any NBSP
+           that slipped in collapsed wrapping entirely). */
+        if (code === 0x20 || code === 0x09 || code === 0x0A ||
+            code === 0x0D || code === 0xA0) {
+          el.appendChild(document.createTextNode(code === 0x0A ? '\n' : ' '));
+          continue;
+        }
         var span = document.createElement('span');
-        var isSpace = ch === ' ' || ch === '\t' || ch === '\n';
-        span.textContent = isSpace ? ' ' : _scrambleGlyph();
-        if (!isSpace) span.style.color = _scrambleColor();
+        span.textContent = _scrambleGlyph();
+        span.style.color = _scrambleColor();
         el.appendChild(span);
 
         allChars.push({
           el: span,
           final: ch,
-          resolved: isSpace,
+          resolved: false,
           threshold: (r * 0.6) + (i * 0.15) + (Math.random() * 8)
         });
       }
@@ -187,7 +196,7 @@
         var c2 = allChars[j];
         if (c2.resolved) continue;
         if (resolvedThisTick < SCRAMBLE_RESOLVES_PER_TICK && tickCount >= c2.threshold) {
-          c2.el.textContent = c2.final === ' ' ? ' ' : c2.final;
+          c2.el.textContent = c2.final;
           c2.el.style.color = '';
           c2.resolved = true;
           resolvedThisTick++;
