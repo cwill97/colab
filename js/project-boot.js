@@ -371,6 +371,7 @@
     overviewModal.classList.add('is-open');
     overviewModal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('has-overview-modal-open');
+    if (gallery && gallery.pauseIdle) gallery.pauseIdle();
   }
 
   function closeOverviewModal() {
@@ -378,6 +379,7 @@
     overviewModal.classList.remove('is-open');
     overviewModal.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('has-overview-modal-open');
+    if (gallery && gallery.resumeIdle) gallery.resumeIdle();
   }
 
   function bindOverviewModal() {

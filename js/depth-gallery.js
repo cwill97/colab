@@ -92,6 +92,7 @@
        deliberately at larger viewports. 0.8 × 0.7 = 0.56. */
     var _isMobile = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
     this._idleSpeed       = _isMobile ? 0.8 : 0.56; /* px per frame — positive = forward */
+    this._idlePaused      = false;  /* external pause (e.g. overview modal open) */
 
     /* End-of-gallery overscroll detection */
     this.onReachEnd      = null;    /* callback fired once when scrolling past end */
@@ -454,8 +455,8 @@
     if (this._autoScrolling) {
       this.scrollTarget += this._autoScrollSpeed;
     }
-    /* Idle auto-scroll: always running */
-    else {
+    /* Idle auto-scroll: always running (unless externally paused) */
+    else if (!this._idlePaused) {
       this.scrollTarget += this._idleSpeed;
     }
 
@@ -487,6 +488,17 @@
   DepthGallery.prototype.stop = function () {
     this.running = false;
     if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; }
+  };
+
+  /* Pause the idle auto-scroll without halting the render loop, so the
+     gallery stays alive (drift, hover, etc.) but stops advancing on its
+     own. Used when the mobile overview modal is open. */
+  DepthGallery.prototype.pauseIdle = function () {
+    this._idlePaused = true;
+  };
+
+  DepthGallery.prototype.resumeIdle = function () {
+    this._idlePaused = false;
   };
 
   DepthGallery.prototype.destroy = function () {
