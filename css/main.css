@@ -1622,45 +1622,232 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 }
 
 /* ============================================================
-   About page — fixed full-viewport layout
-   Text top-left, sculpture image anchored bottom-right
+   About / Studio page — editorial multi-column layout.
+   Background sculpture image + blurred display manifesto behind,
+   pillar labels top, intro stack top-right, three figure blocks
+   along the bottom row, ( 47 ) mark at centre.
    Base `main` rule already sets position:fixed below nav.
    ============================================================ */
 .about-main {
-  padding-block-start: 8px;
+  position: fixed;
+  inset-block-start: var(--nav-height);
+  inset-inline: 0;
+  height: calc(100vh - var(--nav-height));
+  padding-block: 18px 24px;
   padding-inline: var(--grid-margin);
-  pointer-events: none;
+  overflow: hidden;
   z-index: 10;
+  pointer-events: none;
 }
 
-.about-copy {
-  position: relative;
-  z-index: 2;
+/* Anything inside that should still receive clicks must opt back in */
+.about-main a,
+.about-main button {
+  pointer-events: auto;
+}
+
+/* ── Sculpture background ──────────────────────────────────── */
+.about-bg {
+  position: absolute;
+  inset: 0;
   margin: 0;
-  max-width: 58%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.about-bg-image {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  opacity: 0.35;
+  filter: brightness(0.55) contrast(1.1);
+}
+
+/* ── Blurred display manifesto ─────────────────────────────── */
+.about-manifesto {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
   font-family: var(--font-display);
-  font-size: 33px;
+  font-weight: 200;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: rgba(255, 255, 255, 0.18);
+  filter: blur(6px);
+}
+
+.about-manifesto-line {
+  position: absolute;
+  inset-inline-start: var(--grid-margin);
+  inset-inline-end: var(--grid-margin);
+  margin: 0;
+  font-size: clamp(72px, 9.6vw, 168px);
+  line-height: 0.92;
+}
+
+.about-manifesto-line--top {
+  inset-block-start: 28%;
+}
+
+.about-manifesto-line--bottom {
+  inset-block-end: 8%;
+}
+
+/* ── ( 47 ) centre mark ────────────────────────────────────── */
+.about-mark {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(72px, 7vw, 120px);
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.55);
+  filter: blur(0.6px);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+/* ── Pillars: FORM · CULTURE · LIGHT ───────────────────────── */
+.about-pillars {
+  position: absolute;
+  inset-block-start: 18px;
+  inset-inline-start: var(--grid-margin);
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--grid-gutter);
+  width: calc((100% - 2 * var(--grid-margin)) * 0.6);
+}
+
+.about-pillar {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.about-pillar-title {
+  font-family: var(--font-display);
   font-weight: 400;
-  line-height: 1.0;
-  letter-spacing: 0;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  margin: 0;
+}
+
+.about-pillar-sub,
+.about-fig-sub {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ── Intro stack — top-right ───────────────────────────────── */
+.about-intro {
+  position: absolute;
+  inset-block-start: 18px;
+  inset-inline-end: var(--grid-margin);
+  z-index: 3;
+  width: calc((100% - 2 * var(--grid-margin)) * 0.32);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-fg);
 }
 
-.about-image-wrap {
-  position: absolute;
-  inset-block-end: 98px;
-  inset-inline-end: 0;
-  width: 42%;
-  max-width: 720px;
-  line-height: 0;
-  pointer-events: none;
+.about-intro-stanza,
+.about-intro-passage {
+  margin: 0;
 }
 
-.about-image {
-  display: block;
-  width: 100%;
-  height: auto;
+.about-intro-passage {
+  margin-block-start: 6px;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Figure row — bottom three columns ────────────────────── */
+.about-fig {
+  position: absolute;
+  inset-block-end: 24px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+}
+
+/* Column widths align to the 10-col grid (excluding margins).
+   col-w  = (100% - 2*margin - 9*gutter) / 10
+   col-3  = 3*col-w + 2*gutter
+   col-9  = 9*col-w + 8*gutter
+   We position by inline-start using column offsets. */
+.about-fig--001 {
+  inset-block-start: 56%;
+  inset-block-end: auto;
+  inset-inline-start: calc(var(--grid-margin) + (100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 2 + var(--grid-gutter) * 2);
+  width: calc((100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 2 + var(--grid-gutter));
+}
+
+.about-fig--002 {
+  inset-block-start: 56%;
+  inset-block-end: 24px;
+  inset-inline-start: calc(var(--grid-margin) + (100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 4 + var(--grid-gutter) * 4);
+  width: calc((100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 2 + var(--grid-gutter));
+  overflow: hidden;
+}
+
+.about-fig--003 {
+  inset-block-start: 56%;
+  inset-block-end: 24px;
+  inset-inline-end: var(--grid-margin);
+  width: calc((100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 2 + var(--grid-gutter));
+  overflow: hidden;
+}
+
+.about-fig-title {
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  margin: 0;
+}
+
+.about-fig-stanza {
+  margin: 0;
+}
+
+.about-fig-stanza--refrain {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 @media (max-width: 767px) {
@@ -2207,26 +2394,139 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   /* --------------------------------------------------------
-     M-14. About page — mobile layout
-     Text top-left full width, image anchored bottom-right
+     M-14. About / Studio page — mobile editorial layout
+     Page becomes scrollable; content stacks in a 5-col grid.
      -------------------------------------------------------- */
+  body.about-page,
+  body.about-page html {
+    position: static;
+    overflow: auto;
+    height: auto;
+  }
+
+  .about-page main {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
   .about-main {
-    padding-inline: var(--m);
-    padding-block-start: 100px;
+    position: relative;
+    inset: auto;
+    height: auto;
+    min-height: 100vh;
+    padding: calc(var(--nav-height) + 16px) var(--m) 48px;
+    overflow: visible;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    column-gap: var(--g);
+    row-gap: 28px;
   }
 
-  .about-copy {
-    max-width: 100%;
-    font-size: 26px;
-    line-height: 0.9;
-    letter-spacing: -0.01em;
+  /* Background sculpture covers full document */
+  .about-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
   }
 
-  .about-image-wrap {
-    width: 62%;
-    max-width: none;
-    inset-block-end: 88px;
-    inset-inline-end: 0;
+  .about-bg-image {
+    object-position: center 25%;
+    opacity: 0.3;
+  }
+
+  /* Manifesto becomes much smaller and sits behind content */
+  .about-manifesto {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    filter: blur(4px);
+  }
+
+  .about-manifesto-line {
+    inset-inline-start: var(--m);
+    inset-inline-end: var(--m);
+    font-size: clamp(36px, 11vw, 64px);
+    line-height: 0.92;
+  }
+
+  .about-manifesto-line--top {
+    inset-block-start: 22%;
+  }
+
+  .about-manifesto-line--bottom {
+    inset-block-end: 22%;
+  }
+
+  /* ( 47 ) sits inline between the pillars row and FIG row.
+     Grid rows are auto-flowed; we explicitly slot the mark to row 3. */
+  .about-mark {
+    position: relative;
+    inset: auto;
+    transform: none;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: center;
+    font-size: 64px;
+    margin-block: 50px 30px;
+    filter: blur(1px);
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* Pillars span left half — row 1 */
+  .about-pillars {
+    position: relative;
+    inset: auto;
+    grid-column: 1 / 4;
+    grid-row: 1;
+    width: auto;
+    align-self: start;
+  }
+
+  .about-pillar-title,
+  .about-pillar-sub,
+  .about-fig-title,
+  .about-fig-sub {
+    font-size: 9px;
+  }
+
+  /* Intro stack — right column, row 2 (alongside pillars) */
+  .about-intro {
+    position: relative;
+    inset: auto;
+    grid-column: 3 / -1;
+    grid-row: 2;
+    width: auto;
+    font-size: 10px;
+    line-height: 1.4;
+    gap: 12px;
+  }
+
+  /* Figure blocks — placed below the ( 47 ) mark in rows 4+ */
+  .about-fig {
+    position: relative;
+    inset: auto;
+    width: auto;
+    max-height: none;
+    overflow: visible;
+    font-size: 10px;
+    line-height: 1.4;
+    gap: 12px;
+  }
+
+  .about-fig--001 {
+    grid-column: 1 / -1;
+    grid-row: 4;
+  }
+
+  .about-fig--002 {
+    grid-column: 1 / 4;
+    grid-row: 5;
+  }
+
+  .about-fig--003 {
+    grid-column: 4 / -1;
+    grid-row: 5;
   }
 
 } /* end @media (max-width: 767px) */

@@ -589,10 +589,12 @@
   .project-overview-modal-inner {
     display: flex;
     flex-direction: column;
-    padding: calc(var(--nav-height) + 32px) var(--m) 40px;
-    gap: 32px;
-    min-height: 100vh;
+    padding: calc(var(--nav-height) + 2vh) var(--m) 3vh;
+    gap: clamp(12px, 2.5vh, 32px);
+    height: 100vh;
+    height: 100dvh;
     box-sizing: border-box;
+    overflow: hidden;
   }
 
   .project-overview-modal-logo {
@@ -600,46 +602,58 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-block-start: 24px;
-    margin-block-end: 24px;
+    margin-block-start: clamp(8px, 1.5vh, 24px);
+    margin-block-end: clamp(8px, 1.5vh, 24px);
+    flex-shrink: 1;
+    min-height: 0;
   }
 
   .project-overview-modal-logo img {
     display: block;
-    max-width: 220px;
-    width: 100%;
+    max-width: clamp(120px, 28vw, 220px);
+    max-height: clamp(40px, 8vh, 100px);
+    width: auto;
     height: auto;
+    object-fit: contain;
   }
 
   .project-overview-modal-logo .project-logo-text {
-    font-size: 32px;
+    font-size: clamp(20px, 4vw, 32px);
   }
 
   .project-overview-modal-content {
     display: flex;
     flex-direction: column;
-    gap: 36px;
+    gap: clamp(12px, 2.5vh, 36px);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .project-overview-modal-section {
     display: grid;
     grid-template-columns: 110px 1fr;
-    gap: 24px;
+    gap: clamp(12px, 2vw, 24px);
     align-items: flex-start;
+    flex-shrink: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .project-overview-modal-section .project-info-label {
     margin-block-end: 0;
+    font-size: clamp(7px, 1.2vw, 9px);
   }
 
   .project-overview-modal-section .project-info-text {
-    font-size: 11px;
+    font-size: clamp(9px, 1.4vw, 11px);
     line-height: 1.55;
   }
 
   .project-overview-live-link {
     display: inline-block;
     align-self: center;
+    flex-shrink: 0;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.1em;
@@ -647,8 +661,8 @@
     color: var(--color-fg);
     text-decoration: none;
     opacity: 0.75;
-    padding: 8px 0;
-    margin-block-start: 36px;
+    padding: clamp(4px, 0.8vh, 8px) 0;
+    margin-block-start: auto;
     transition: opacity 0.2s ease;
   }
 
@@ -657,22 +671,20 @@
   }
 
   .project-overview-close {
-    position: sticky;
-    bottom: 0;
     margin-inline: auto;
-    background: var(--color-bg);
+    flex-shrink: 0;
+    background: none;
     border: none;
     color: var(--color-fg);
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.1em;
     cursor: pointer;
-    padding: 16px 24px 24px;
-    margin-block-start: 36px;
+    padding: clamp(8px, 1.5vh, 16px) 24px;
+    margin-block-start: clamp(8px, 1.5vh, 24px);
     text-transform: uppercase;
     opacity: 0.75;
     transition: opacity 0.2s ease;
-    z-index: 1;
   }
 
   .project-overview-close:active {
