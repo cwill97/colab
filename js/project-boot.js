@@ -19,7 +19,8 @@
       index:    '001',
       title:    'Viking Gear',
       services: 'Brand Development · Web Design · E-Commerce · 3D · Animation',
-      hasVideo: true,
+      logoSrc:  '/assets/Project_Logo_Viking.svg',
+      timeline: 'October 2025 — May 2026',
       metaDescription: 'Brand development, web design, e-commerce, 3D and animation for Viking Gear — primal training tools reimagined as modern rituals of discipline and mastery.',
       description: 'Viking Gear forges strength through primal movement. Rooted in the warrior spirit, it reimagines ancient training tools such as maces, clubs, and hammers as modern extensions of discipline, flow, and mastery. Every piece honours resilience, balance, and raw power, turning training into ritual.\n\nWe built the brand from the ground up. We shaped the strategy, art direction, and complete visual identity, creating a bold, purposeful world where ancient form meets contemporary performance.',
       images: [
@@ -41,7 +42,8 @@
       index:    '002',
       title:    'Rebel Kids Club',
       services: 'Brand Development · Photography · E-Commerce · Web Design',
-      hasVideo: false,
+      logoSrc:  '',
+      timeline: 'TBD',
       metaDescription: 'Gender-neutral toddler fashion brand. Full identity system, photography direction and e-commerce design for Rebel Kids Club — bold, inclusive and unmistakably its own.',
       description: 'Rebel Kids Club breaks the pink and blue code. It redefines toddler fashion with gender neutral clothing that celebrates individuality, intention, and timeless style from day one. Bold yet grounded, modern yet wearable, every piece gives parents a fresh way to dress their little rebels.\n\nWe built the brand from the ground up. We created the full identity system, from name and positioning to visual language and guidelines, crafting a distinctive voice that feels confident, inclusive, and unmistakably its own.',
       images: [
@@ -62,7 +64,8 @@
       index:    '003',
       title:    'Mannequin Films',
       services: 'Brand Development · Web Design · Motion',
-      hasVideo: false,
+      logoSrc:  '',
+      timeline: 'TBD',
       metaDescription: 'Cinematic rebrand for Mannequin Films — brand identity, web design and motion that distil their visual storytelling into a timeless, alive language.',
       description: 'Mannequin Films captures the raw poetry of visual storytelling. Through photography and video, they transform fleeting moments into enduring narratives that resonate with authenticity and precision. Every frame is crafted with intention, blending creativity, emotion, and technical excellence to bring stories to life.\n\nWe led a full rebrand, forging a new identity that honours their cinematic roots while sharpening their contemporary edge. From the refined brandmark to the complete visual system, we distilled their essence into a cohesive language that feels both timeless and alive.',
       images: [
@@ -84,7 +87,8 @@
       index:    '004',
       title:    'Hyde Park Ventures (Five Guys)',
       services: 'Web Design · Web Development · Brand Consolidation',
-      hasVideo: false,
+      logoSrc:  '',
+      timeline: 'TBD',
       metaDescription: 'Website consolidation and digital modernisation for Hyde Park Ventures — a unified platform that brings clarity to a diverse portfolio.',
       description: 'Website consolidation and digital modernisation for Hyde Park Ventures, creating a unified platform that brings clarity to a diverse portfolio. Delivered a streamlined, future-ready experience that improves navigation, strengthens brand consistency, and supports ongoing growth.',
       images: [
@@ -103,6 +107,19 @@
     }
   ];
 
+  /* Split a description into (projectDetail, strategy) on the first
+     paragraph break. Single-paragraph descriptions go to projectDetail
+     and leave strategy empty. */
+  function splitDescription(text) {
+    if (!text) return { detail: '', strategy: '' };
+    var idx = text.indexOf('\n\n');
+    if (idx < 0) return { detail: text.trim(), strategy: '' };
+    return {
+      detail:   text.slice(0, idx).trim(),
+      strategy: text.slice(idx + 2).trim()
+    };
+  }
+
   /* ============================================================
      DOM REFS
      ============================================================ */
@@ -114,12 +131,43 @@
   var metaFill     = document.querySelector('[data-meta-fill]');
   var metaCount    = document.querySelector('[data-meta-count]');
   var scrollHint   = document.querySelector('[data-scroll-hint]');
-  var aboutText    = document.querySelector('.about-text');
-  var videoPreview = document.querySelector('[data-video-preview]');
+
+  /* New right-rail panel + mobile overlay */
+  var projectLogo      = document.querySelector('[data-project-logo]');
+  var projectDetailEl  = document.querySelector('[data-project-detail]');
+  var projectStrategy  = document.querySelector('[data-project-strategy]');
+  var projectTimeline  = document.querySelector('[data-project-timeline]');
+  var nextProjectLink  = document.querySelector('[data-next-project]');
+  var overviewModal    = document.querySelector('[data-overview-modal]');
+  var overviewLogo     = document.querySelector('[data-overview-modal-logo]');
+  var overviewDetail   = document.querySelector('[data-overview-detail]');
+  var overviewStrategy = document.querySelector('[data-overview-strategy]');
+  var overviewTimeline = document.querySelector('[data-overview-timeline]');
+  var overviewTrigger  = document.querySelector('[data-mobile-overview-trigger]');
+  var overviewClose    = document.querySelector('[data-overview-close]');
 
   /* ============================================================
-     META OVERLAY
+     META + RIGHT-RAIL OVERLAY
      ============================================================ */
+  function setLogo(target, project) {
+    if (!target) return;
+    target.innerHTML = '';
+    if (project.logoSrc) {
+      var img = document.createElement('img');
+      if (target === projectLogo) img.className = 'project-logo-img';
+      img.src = project.logoSrc;
+      img.alt = project.title;
+      target.appendChild(img);
+      target.classList.remove('project-logo--text');
+    } else {
+      var span = document.createElement('span');
+      span.className = 'project-logo-text';
+      span.textContent = project.title;
+      target.appendChild(span);
+      if (target === projectLogo) target.classList.add('project-logo--text');
+    }
+  }
+
   function updateMeta(project, index) {
     if (metaNum)      metaNum.textContent     = project.index;
     if (metaServices) metaServices.textContent = project.services;
@@ -127,15 +175,25 @@
     if (metaFill)     metaFill.style.width     = ((index / Math.max(PROJECTS.length - 1, 1)) * 100) + '%';
     if (metaTitle)    metaTitle.textContent    = project.title;
 
-    /* Update about-text with project-specific description */
-    if (aboutText && project.description) {
-      aboutText.textContent = project.description;
+    /* Right-rail panel */
+    var parts = splitDescription(project.description);
+    if (projectDetailEl)  projectDetailEl.textContent  = parts.detail;
+    if (projectStrategy)  projectStrategy.textContent  = parts.strategy;
+    if (projectTimeline)  projectTimeline.textContent  = project.timeline || '';
+    setLogo(projectLogo, project);
+
+    /* Next-project anchor */
+    var nextIdx = (index + 1) % PROJECTS.length;
+    var next = PROJECTS[nextIdx];
+    if (nextProjectLink && next) {
+      nextProjectLink.setAttribute('href', '/project/' + next.slug + '/');
     }
 
-    /* Show/hide video preview based on project */
-    if (videoPreview) {
-      videoPreview.style.display = project.hasVideo ? '' : 'none';
-    }
+    /* Mobile overlay mirrors the same fields */
+    if (overviewDetail)   overviewDetail.textContent   = parts.detail;
+    if (overviewStrategy) overviewStrategy.textContent = parts.strategy;
+    if (overviewTimeline) overviewTimeline.textContent = project.timeline || '';
+    setLogo(overviewLogo, project);
   }
 
   /* ============================================================
@@ -198,93 +256,6 @@
   var isMobile = window.matchMedia('(max-width: 767px)').matches;
   var mobileTitle = document.querySelector('[data-mobile-title]');
 
-  /* ============================================================
-     MOBILE HELPERS
-     ============================================================ */
-
-  /**
-   * Inject thumbnail images into related project list items.
-   * Uses same class names as homepage: .project-thumb-mobile + .project-content-mobile
-   */
-  function injectRelatedThumbnails() {
-    document.querySelectorAll('[data-project-index]').forEach(function (item) {
-      var idx = parseInt(item.dataset.projectIndex, 10);
-      var project = PROJECTS[idx];
-      if (!project) return;
-      if (item.querySelector('.project-thumb-mobile')) return;
-
-      /* Create thumbnail — same class as homepage */
-      var thumb = document.createElement('img');
-      thumb.className = 'project-thumb-mobile';
-      thumb.src = project.images[0];
-      thumb.alt = '';
-      thumb.setAttribute('aria-hidden', 'true');
-
-      /* Wrap existing children — same class as homepage */
-      var wrapper = document.createElement('div');
-      wrapper.className = 'project-content-mobile';
-      while (item.firstChild) {
-        wrapper.appendChild(item.firstChild);
-      }
-
-      item.appendChild(thumb);
-      item.appendChild(wrapper);
-    });
-  }
-
-  /**
-   * Scroll-based activation — identical to homepage initMobileProjects().
-   * Activates whichever related-project-item is nearest the top of the
-   * scroll area, toggling .is-scrolled-active.
-   */
-  function initScrollActivation() {
-    var items = document.querySelectorAll('.related-project-item');
-    var list  = document.querySelector('.related-project-list');
-    if (!items.length || !list) return;
-
-    var activeItem = null;
-
-    function updateActive() {
-      var listRect = list.getBoundingClientRect();
-      var best     = null;
-      var bestDist = Infinity;
-
-      for (var i = 0; i < items.length; i++) {
-        var rect = items[i].getBoundingClientRect();
-        if (rect.bottom < listRect.top || rect.top > listRect.bottom) continue;
-        var dist = Math.abs(rect.top - listRect.top);
-        if (dist < bestDist) {
-          bestDist = dist;
-          best = items[i];
-        }
-      }
-
-      if (best && best !== activeItem) {
-        if (activeItem) activeItem.classList.remove('is-scrolled-active');
-        best.classList.add('is-scrolled-active');
-        activeItem = best;
-
-        /* Also update the gallery + title when scroll changes active item */
-        var idx = parseInt(best.dataset.projectIndex, 10);
-        if (idx !== currentIndex && gallery) {
-          currentIndex = idx;
-          var project = PROJECTS[idx];
-          updateMeta(project, idx);
-          updateMobileTitle(project);
-          gallery.loadImages(project.images);
-        }
-      }
-    }
-
-    /* Initial activation */
-    requestAnimationFrame(updateActive);
-
-    /* Update on scroll */
-    list.addEventListener('scroll', function () {
-      requestAnimationFrame(updateActive);
-    }, { passive: true });
-  }
-
   /** Update the mobile-only title heading */
   function updateMobileTitle(project) {
     if (mobileTitle) mobileTitle.textContent = project.title;
@@ -300,13 +271,6 @@
   function switchProject(index) {
     if (index === currentIndex || !gallery) return;
     currentIndex = index;
-
-    /* Desktop uses is-active; mobile relies on is-scrolled-active from scroll observer */
-    if (!isMobile) {
-      document.querySelectorAll('[data-project-index]').forEach(function (el) {
-        el.classList.toggle('is-active', parseInt(el.dataset.projectIndex, 10) === index);
-      });
-    }
 
     var project = PROJECTS[index];
     updateMeta(project, index);
@@ -352,12 +316,6 @@
     updateMeta(project, index);
     if (isMobile) updateMobileTitle(project);
 
-    if (!isMobile) {
-      document.querySelectorAll('[data-project-index]').forEach(function (el) {
-        el.classList.toggle('is-active', parseInt(el.dataset.projectIndex, 10) === index);
-      });
-    }
-
     /* Load new images (resets scroll to start) */
     gallery.loadImages(project.images);
 
@@ -378,69 +336,90 @@
     } catch (e) {}
     document.title = project.title + ' — co:lab';
 
-    /* Sync the active state on the rail (used as anchor links now). */
+    /* Update the container slug so future _doSwap-after-Barba calls
+       resolve to the right project. */
     var scope = getActiveContainer();
-    scope.querySelectorAll('[data-project-slug]').forEach(function (el) {
-      el.classList.toggle('is-active', el.getAttribute('data-project-slug') === project.slug);
+    if (scope && scope.setAttribute) {
+      scope.setAttribute('data-project-slug', project.slug);
+    }
+  }
+
+  /* ============================================================
+     NEXT PROJECT LINK
+     Use the same shader-wipe transition as gallery scroll-past-end
+     instead of letting Barba handle the navigation, so the next
+     project loads in-place with the existing animation.
+     ============================================================ */
+  function bindNextProjectLink() {
+    if (!nextProjectLink || nextProjectLink._colabBound) return;
+    nextProjectLink._colabBound = true;
+    nextProjectLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (scrollHint) scrollHint.classList.add('is-hidden');
+      var nextIdx = (currentIndex + 1) % PROJECTS.length;
+      transitionToProject(nextIdx, 'forward');
     });
   }
 
   /* ============================================================
-     RELATED PROJECT RAIL EVENTS
-     Each rail item is a real <a href="/project/<slug>/"> — Barba
-     intercepts the click and runs the shader-wipe transition. We
-     only need to delegate "click anywhere on the row" to its inner
-     anchor and hide the scroll hint on click.
+     MOBILE OVERVIEW MODAL
+     Tap "read overview" → modal slides in. Close via [ CLOSE PROJECT ]
+     button. Click outside the inner content also dismisses.
      ============================================================ */
-  function bindRelatedRail() {
-    var scope = getActiveContainer();
+  function openOverviewModal() {
+    if (!overviewModal) return;
+    overviewModal.classList.add('is-open');
+    overviewModal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('has-overview-modal-open');
+  }
 
-    scope.querySelectorAll('.related-project-item').forEach(function (item) {
-      if (item._colabRailBound) return;
-      item._colabRailBound = true;
-      item.addEventListener('click', function (e) {
-        if (e.target.closest('a')) return;
-        var anchor = item.querySelector('a.related-project-link, a.related-project-cta');
-        if (anchor) anchor.click();
-      });
-    });
+  function closeOverviewModal() {
+    if (!overviewModal) return;
+    overviewModal.classList.remove('is-open');
+    overviewModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('has-overview-modal-open');
+  }
 
-    scope.querySelectorAll('a.related-project-cta, a.related-project-link').forEach(function (a) {
-      a.addEventListener('click', function () {
-        if (scrollHint) scrollHint.classList.add('is-hidden');
+  function bindOverviewModal() {
+    if (overviewTrigger && !overviewTrigger._colabBound) {
+      overviewTrigger._colabBound = true;
+      overviewTrigger.addEventListener('click', function (e) {
+        e.preventDefault();
+        openOverviewModal();
       });
-    });
+    }
+    if (overviewClose && !overviewClose._colabBound) {
+      overviewClose._colabBound = true;
+      overviewClose.addEventListener('click', function (e) {
+        e.preventDefault();
+        closeOverviewModal();
+      });
+    }
   }
 
   /* ============================================================
-     INIT
+     INIT — UI (no gallery deps)
+     Runs as soon as the DOM is in place so the right-rail panel,
+     next-project link, and mobile overview modal are functional
+     even on cold loads where THREE.js hasn't been pulled in yet.
      ============================================================ */
-  function init() {
+  function initUI() {
     var startIdx = getInitialIndex();
     currentIndex = startIdx;
     var project  = PROJECTS[startIdx];
 
-    /* Set initial meta */
     updateMeta(project, startIdx);
+    bindNextProjectLink();
+    bindOverviewModal();
 
-    /* Wire up related-project click handlers for this container */
-    bindRelatedRail();
+    if (isMobile) updateMobileTitle(project);
+  }
 
-    /* Highlight active related project */
-    document.querySelectorAll('[data-project-index]').forEach(function (el) {
-      el.classList.toggle('is-active', parseInt(el.dataset.projectIndex, 10) === startIdx);
-    });
-
-    /* Mobile-specific setup */
-    if (isMobile) {
-      injectRelatedThumbnails();
-      updateMobileTitle(project);
-
-      /* Remove desktop is-active classes — mobile uses is-scrolled-active */
-      document.querySelectorAll('[data-project-index]').forEach(function (el) {
-        el.classList.remove('is-active');
-      });
-    }
+  /* ============================================================
+     INIT — GALLERY (waits for THREE + DepthGallery)
+     ============================================================ */
+  function initGallery() {
+    var project = PROJECTS[currentIndex];
 
     /* Show the depth canvas */
     canvas.style.display = 'block';
@@ -463,13 +442,6 @@
 
     gallery.start();
 
-    /* Scroll activation after gallery is ready (mobile only) */
-    if (isMobile) {
-      requestAnimationFrame(function () {
-        initScrollActivation();
-      });
-    }
-
     /* Signal page ready */
     requestAnimationFrame(function () {
       document.body.classList.add('is-ready');
@@ -483,12 +455,14 @@
     }
     currentIndex = 0;
     document.body.classList.remove('is-ready');
+    document.body.classList.remove('has-overview-modal-open');
   }
 
-  /* Auto-init only if we're on the project page at load time */
+  /* Auto-init on cold load: UI immediately, gallery once libs land. */
   if (document.body.classList.contains('project-page')) {
+    initUI();
     (function waitForLibs() {
-      if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') init();
+      if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') initGallery();
       else setTimeout(waitForLibs, 50);
     })();
   }
@@ -515,11 +489,22 @@
       metaFill = scope.querySelector('[data-meta-fill]');
       metaCount = scope.querySelector('[data-meta-count]');
       scrollHint = scope.querySelector('[data-scroll-hint]');
-      aboutText = scope.querySelector('.about-text');
-      videoPreview = scope.querySelector('[data-video-preview]');
+      projectLogo      = scope.querySelector('[data-project-logo]');
+      projectDetailEl  = scope.querySelector('[data-project-detail]');
+      projectStrategy  = scope.querySelector('[data-project-strategy]');
+      projectTimeline  = scope.querySelector('[data-project-timeline]');
+      nextProjectLink  = scope.querySelector('[data-next-project]');
+      overviewModal    = scope.querySelector('[data-overview-modal]');
+      overviewLogo     = scope.querySelector('[data-overview-modal-logo]');
+      overviewDetail   = scope.querySelector('[data-overview-detail]');
+      overviewStrategy = scope.querySelector('[data-overview-strategy]');
+      overviewTimeline = scope.querySelector('[data-overview-timeline]');
+      overviewTrigger  = scope.querySelector('[data-mobile-overview-trigger]');
+      overviewClose    = scope.querySelector('[data-overview-close]');
       if (!canvas || !canvasWrap) return;
+      initUI();
       (function waitForLibs() {
-        if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') init();
+        if (typeof THREE !== 'undefined' && typeof DepthGallery !== 'undefined') initGallery();
         else setTimeout(waitForLibs, 50);
       })();
     },

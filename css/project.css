@@ -21,25 +21,19 @@
 
 /* Body enters with fade — content fades in after nav stays fixed */
 .project-page main,
-.project-page .about-text,
 .project-page .audio-visualizer,
-.project-page .related-projects {
+.project-page .project-logo,
+.project-page .project-info {
   opacity: 0;
 }
 
 .project-page.is-ready main,
-.project-page.is-ready .about-text,
 .project-page.is-ready .audio-visualizer,
-.project-page.is-ready .related-projects {
+.project-page.is-ready .project-logo,
+.project-page.is-ready .project-info {
   opacity: 1;
   /* No CSS transition — the shader overlay handles the visual reveal */
 }
-
-/* No staggered delays needed — shader reveal is the transition */
-.project-page.is-ready .audio-visualizer   { }
-.project-page.is-ready .about-text         { }
-.project-page.is-ready .related-projects   { }
-.project-page.is-ready main                { }
 
 /* ------------------------------------------------------------
    Main layout — full-height, no overflow
@@ -214,165 +208,122 @@
 }
 
 /* ------------------------------------------------------------
-   Related Projects — right rail
-   Positioned below about-text, mirrors services-block position.
+   Project Logo — top-right slot (replaces audio visualizer)
+   Same position + envelope as the old video preview.
    ------------------------------------------------------------ */
-.related-projects {
+.project-logo {
+  position: fixed;
+  inset-block-start: calc(var(--nav-height) + var(--title-gap));
+  inset-inline-end: var(--grid-margin);
+  width: var(--viz-width);
+  height: var(--viz-height);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.project-logo-img {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Fallback when no logo SVG is supplied — render the project name */
+.project-logo-text {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 200;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  text-align: center;
+  line-height: 1;
+}
+
+/* ------------------------------------------------------------
+   Project Info Panel — right rail
+   Replaces about-text + related-projects.
+   Project Detail → Strategy → Timeline → Next Project (anchored bottom).
+   ------------------------------------------------------------ */
+.project-info {
   position: fixed;
   inset-block-start: calc(
     var(--nav-height)
     + var(--title-gap)
     + var(--viz-height)
     + var(--about-gap)
-    + var(--about-height)
-    + var(--services-gap)
   );
+  inset-block-end: 80px;          /* leaves room for the audio toggle */
   inset-inline-end: var(--grid-margin);
   width: var(--viz-width);
   z-index: 50;
-}
-
-.related-project-list {
-  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 28px;
+  overflow: hidden;
 }
 
-/* Individual related project entry */
-.related-project-item {
-  padding-block: 20px 0;
-  padding-inline-start: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
-  /* All items dimmed — none selected by default */
-  opacity: 0.25;
-  cursor: pointer;
-  transition:
-    opacity              0.3s var(--ease-out),
-    padding-inline-start 0.3s var(--ease-out);
+.project-info-section {
+  display: block;
 }
 
-/* Drawn line — pseudo-element paints top→bottom on hover */
-.related-project-item::before {
-  content: '';
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline-start: 0;
-  width: 1px;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.5);
-  transform: scaleY(0);
-  transform-origin: top center;
-  transition: transform 0.55s var(--ease-out);
-}
-
-/* Hover: line draws, item nudges, opacity lifts */
-.related-project-item:hover {
-  opacity: 1;
-  padding-inline-start: 8px;
-}
-
-.related-project-item:hover::before {
-  transform: scaleY(1);
-}
-
-/* When list is hovered, dim all non-hovered items further */
-.related-project-list:hover .related-project-item:not(:hover) {
-  opacity: 0.1;
-}
-
-/* is-active — current project indicator on desktop */
-.related-project-item.is-active {
-  opacity: 0.7;
-  padding-inline-start: 8px;
-}
-
-.related-project-item.is-active::before {
-  transform: scaleY(1);
-  background: rgba(255, 255, 255, 0.35);
-}
-
-/* When hovering the list, active item dims with the rest (hover takes priority) */
-.related-project-list:hover .related-project-item.is-active:not(:hover) {
-  opacity: 0.15;
-}
-
-.related-project-item:last-child {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding-block-end: 20px;
-}
-
-.related-project-num {
+.project-info-label {
   display: block;
   font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  color: var(--color-fg);
-  opacity: 0.4;
-  margin-block-end: 6px;
-}
-
-.related-project-title {
-  font-family: var(--font-display);
   font-size: 9px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-fg);
-  line-height: 1;
-  margin-block-end: 7px;
-  transition: letter-spacing 0.3s var(--ease-out);
+  color: var(--color-terminal);
+  opacity: 0.75;
+  margin-block-end: 12px;
 }
 
-.related-project-item:hover .related-project-title {
-  letter-spacing: 0.06em;
-}
-
-.related-project-detail {
+.project-info-text {
   font-family: var(--font-display);
   font-size: 9px;
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
   color: var(--color-fg);
-  max-width: 36ch;
-  margin-block-end: 10px;
 }
 
-.related-project-cta {
+.project-info-section--timeline .project-info-text {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+.project-next-link {
+  margin-block-start: auto;       /* push to bottom of flex column */
+  align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 8px;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  color: var(--color-fg);
+  font-size: 9px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  opacity: 0;
+  color: var(--color-fg);
+  opacity: 0.6;
+  text-decoration: none;
+  padding-block: 4px;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-/* CTA reveals on hover only */
-.related-project-item:hover .related-project-cta {
+.project-next-link:hover {
   opacity: 1;
 }
 
-.related-project-cta:hover {
-  opacity: 0.55;
-}
-
-/* Active item has no CTA — you're already viewing this project */
-.related-project-item.is-active .related-project-cta {
+/* ------------------------------------------------------------
+   Mobile-only elements — hidden on desktop by default.
+   Activated inside the @media (max-width: 767px) block below.
+   ------------------------------------------------------------ */
+.project-mobile-overview-trigger,
+.project-overview-modal {
   display: none;
 }
-
-/* ------------------------------------------------------------
-   About text override for project page
-   Same position, same width — no changes needed.
-   ------------------------------------------------------------ */
 
 /* ------------------------------------------------------------
    Thin vertical rule separating canvas from right rail
@@ -435,146 +386,6 @@
 }
 
 /* ============================================================
-   PROJECT VIDEO PREVIEW
-   Replaces audio-visualizer on project page.
-   Exact same position + size as .audio-visualizer in main.css:
-     fixed, top = nav-height + title-gap, right = grid-margin
-     width = --viz-width (255px), height = --viz-height (115px)
-   ============================================================ */
-.project-video-preview {
-  position: fixed;
-  inset-block-start: calc(var(--nav-height) + var(--title-gap));
-  inset-inline-end: var(--grid-margin);
-  width: var(--viz-width);
-  height: var(--viz-height);
-  z-index: 50;
-  cursor: pointer;
-  overflow: hidden;
-  outline: 1px solid rgba(255, 255, 255, 0.15);
-  transition: outline-color 0.2s ease;
-}
-
-.project-video-preview:hover {
-  outline-color: rgba(255, 255, 255, 0.4);
-}
-
-/* Vimeo background player iframe */
-.project-video-thumb {
-  position: absolute;
-  /* Vimeo iframes have a fixed 16:9 aspect — we need to crop to fill
-     the 255×115 container (aspect ~2.22:1, wider than 16:9 ~1.78:1)
-     Scale up the iframe so its width fills, then centre vertically */
-  width: 100%;
-  height: 200%;         /* oversized height so 16:9 content fills width */
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%);
-  border: none;
-  pointer-events: none; /* clicks pass through to the preview div */
-}
-
-/* Play cue overlay */
-.project-video-cue {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  padding: 8px 10px;
-  background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.project-video-preview:hover .project-video-cue {
-  opacity: 1;
-}
-
-.project-video-cue-label {
-  font-family: var(--font-mono);
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.85);
-  text-transform: uppercase;
-}
-
-/* Fade the preview in with the rest of the page */
-.project-page .project-video-preview {
-  opacity: 0;
-}
-
-.project-page.is-ready .project-video-preview {
-  opacity: 1;
-}
-
-/* ============================================================
-   PROJECT VIDEO LIGHTBOX
-   Full-screen overlay. Hidden until preview is clicked.
-   ============================================================ */
-.project-video-lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: rgba(0, 0, 0, 0.92);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
-}
-
-.project-video-lightbox.is-open {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Inner wrapper — max 90vw × 90vh, 16:9 */
-.project-video-lightbox-inner {
-  position: relative;
-  width: min(90vw, 160vh);   /* 16:9 at 90vh = 160vh wide */
-  aspect-ratio: 16 / 9;
-  max-width: 90vw;
-  max-height: 90vh;
-  transform: scale(0.96);
-  transition: transform 0.35s var(--ease-out);
-}
-
-.project-video-lightbox.is-open .project-video-lightbox-inner {
-  transform: scale(1);
-}
-
-/* Full Vimeo iframe inside lightbox */
-.project-video-lightbox-frame iframe {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* Close button — top-right, Space Mono */
-.project-video-close {
-  position: absolute;
-  inset-block-start: 24px;
-  inset-inline-end: 24px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.5);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  transition: color 0.15s ease;
-  text-transform: uppercase;
-}
-
-.project-video-close:hover {
-  color: rgba(255, 255, 255, 1);
-}
-
-/* ============================================================
    MOBILE PROJECT TITLE — hidden on desktop
    ============================================================ */
 .project-mobile-title {
@@ -609,8 +420,8 @@
   /* --------------------------------------------------------
      M-P1. Hide desktop-only elements
      -------------------------------------------------------- */
-  .project-page .project-video-preview,
-  .project-page .project-video-lightbox,
+  .project-page .project-logo,
+  .project-page .project-info,
   .project-page .project-scroll-hint,
   .project-page .audio-visualizer {
     display: none !important;
@@ -677,39 +488,42 @@
   }
 
   /* --------------------------------------------------------
-     M-P4. About text — visible on mobile project page
-     Overrides main.css `display:none` for .about-text
+     M-P4. "read overview" trigger — sits below the title,
+     above the scroll/hold hint. Opens the overview modal.
      -------------------------------------------------------- */
-  .project-page .related-project-detail {
-    display: none !important;
+  .project-page .project-mobile-overview-trigger {
+    display: block;
     position: fixed;
     inset-block-start: calc(
       var(--mp-info-top) + var(--mp-title-h) + var(--mp-about-gap)
     );
     inset-inline-start: var(--m);
-    inset-inline-end: calc(100vw * 0.28);
-    width: auto;
-    height: var(--mp-about-h);
-    overflow: hidden;
     z-index: 50;
-    font-family: var(--font-display);
-    font-size: 9px;
-    font-weight: 400;
-    line-height: 1.55;
-    letter-spacing: 0.02em;
-    text-align: justify;
+    background: none;
+    border: none;
+    padding: 4px 0;
+    margin: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--color-fg);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .project-page.is-ready .project-mobile-overview-trigger {
+    opacity: 0.75;
+  }
+
+  .project-page .project-mobile-overview-trigger:active {
+    opacity: 1;
   }
 
   /* --------------------------------------------------------
-     M-P5. Related projects — hidden on mobile
-     -------------------------------------------------------- */
-  .project-page .related-projects {
-    display: none !important;
-  }
-
-  /* --------------------------------------------------------
-     M-P6. Mobile scroll hint — below about text
+     M-P5. Mobile scroll hint — bottom-left
      -------------------------------------------------------- */
   .project-page .project-mobile-hint {
     display: block;
@@ -723,6 +537,109 @@
     text-transform: uppercase;
     color: var(--color-fg);
     opacity: 0.3;
+  }
+
+  /* --------------------------------------------------------
+     M-P6. Mobile overview modal — full-screen overlay
+     -------------------------------------------------------- */
+  .project-page .project-overview-modal {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--color-bg);
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+
+  .project-page .project-overview-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .project-overview-modal-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--nav-height) + 32px) var(--m) 40px;
+    gap: 32px;
+    min-height: 100%;
+  }
+
+  .project-overview-modal-logo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-block-start: 24px;
+    margin-block-end: 24px;
+  }
+
+  .project-overview-modal-logo img {
+    display: block;
+    max-width: 220px;
+    width: 100%;
+    height: auto;
+  }
+
+  .project-overview-modal-logo .project-logo-text {
+    font-size: 32px;
+  }
+
+  .project-overview-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+
+  .project-overview-modal-section {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .project-overview-modal-section .project-info-label {
+    margin-block-end: 0;
+  }
+
+  .project-overview-modal-section .project-info-text {
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+  .project-overview-close {
+    margin-block-start: auto;
+    margin-inline: auto;
+    background: none;
+    border: none;
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    padding: 16px 24px;
+    margin-block-start: 60px;
+    text-transform: uppercase;
+    opacity: 0.75;
+    transition: opacity 0.2s ease;
+  }
+
+  .project-overview-close:active {
+    opacity: 1;
+  }
+
+  /* Hide background chrome while overlay is open */
+  body.has-overview-modal-open .audio-toggle,
+  body.has-overview-modal-open .project-mobile-hint,
+  body.has-overview-modal-open .project-mobile-title,
+  body.has-overview-modal-open .project-mobile-overview-trigger {
+    visibility: hidden;
   }
 
 } /* end @media (max-width: 767px) — project page */

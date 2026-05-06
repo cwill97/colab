@@ -28,11 +28,8 @@ PROJECTS = [
         "index": "001",
         "title": "Viking Gear",
         "services": "Brand Development · Web Design · E-Commerce · 3D · Animation",
-        "hasVideo": True,
-        "videoSrc": (
-            "https://player.vimeo.com/video/1171733635"
-            "?background=1&autoplay=1&loop=1&muted=1&byline=0&title=0&portrait=0"
-        ),
+        "logoSrc": "/assets/Project_Logo_Viking.svg",
+        "timeline": "October 2025 — May 2026",
         "metaDescription": (
             "Brand development, web design, e-commerce, 3D and animation for "
             "Viking Gear — primal training tools reimagined as modern rituals "
@@ -54,7 +51,8 @@ PROJECTS = [
         "index": "002",
         "title": "Rebel Kids Club",
         "services": "Brand Development · Photography · E-Commerce · Web Design",
-        "hasVideo": False,
+        "logoSrc": "",
+        "timeline": "TBD",
         "metaDescription": (
             "Gender-neutral toddler fashion brand. Full identity system, photography "
             "direction and e-commerce design for Rebel Kids Club — bold, inclusive and "
@@ -76,7 +74,8 @@ PROJECTS = [
         "index": "003",
         "title": "Mannequin Films",
         "services": "Brand Development · Web Design · Motion",
-        "hasVideo": False,
+        "logoSrc": "",
+        "timeline": "TBD",
         "metaDescription": (
             "Cinematic rebrand for Mannequin Films — brand identity, web design and motion "
             "that distil their visual storytelling into a timeless, alive language."
@@ -99,7 +98,8 @@ PROJECTS = [
         "index": "004",
         "title": "Hyde Park Ventures (Five Guys)",
         "services": "Web Design · Web Development · Brand Consolidation",
-        "hasVideo": False,
+        "logoSrc": "",
+        "timeline": "TBD",
         "metaDescription": (
             "Website consolidation and digital modernisation for Hyde Park Ventures — "
             "a unified platform that brings clarity to a diverse portfolio."
@@ -113,6 +113,17 @@ PROJECTS = [
         "heroImage": "/assets/Project_Img_04.webp",
     },
 ]
+
+
+def split_description(text: str) -> tuple[str, str]:
+    """Split description into (project_detail, strategy) on the first \\n\\n.
+
+    Single-paragraph descriptions go to project_detail; strategy stays empty.
+    """
+    parts = text.split("\n\n", 1)
+    detail = parts[0].strip()
+    strategy = parts[1].strip() if len(parts) > 1 else ""
+    return detail, strategy
 
 
 # ───────────────────────────────────────────── helpers ──
@@ -262,27 +273,80 @@ PROJECT_SCRIPTS = """  <script src="/js/shader-reveal.js"></script>
 
 # ─────────────────────────────────────── per-project ──
 
-def related_rail_html(active_slug: str) -> str:
-    rows = []
-    for p in PROJECTS:
-        active_cls = " is-active" if p["slug"] == active_slug else ""
-        rows.append(
-            f'          <li class="related-project-item{active_cls}" data-project-slug="{esc(p["slug"])}">\n'
-            f'            <a class="related-project-link" href="/project/{esc(p["slug"])}/">\n'
-            f'              <span class="related-project-num">{esc(p["index"])}</span>\n'
-            f'              <h3 class="related-project-title">{esc(p["title"])}</h3>\n'
-            f'              <p class="related-project-detail">{esc(p["services"])}</p>\n'
-            f'              <span class="related-project-cta">[ View Project ]</span>\n'
-            f'            </a>\n'
-            f'          </li>'
+def project_logo_html(p: dict) -> str:
+    """Logo block — top-right of project page (replaces video preview slot)."""
+    if p.get("logoSrc"):
+        return (
+            '      <div class="project-logo" data-project-logo>\n'
+            f'        <img class="project-logo-img" src="{esc(p["logoSrc"])}" alt="{esc(p["title"])}" />\n'
+            '      </div>'
         )
-    items = "\n".join(rows)
+    # Fallback — title in display type until a logo SVG is supplied.
     return (
-        '      <nav class="related-projects" aria-label="More projects" data-related-projects>\n'
-        '        <ul class="related-project-list">\n'
-        f'{items}\n'
-        '        </ul>\n'
-        '      </nav>'
+        '      <div class="project-logo project-logo--text" data-project-logo>\n'
+        f'        <span class="project-logo-text">{esc(p["title"])}</span>\n'
+        '      </div>'
+    )
+
+
+def project_info_html(p: dict, next_p: dict) -> str:
+    """Right-rail info panel — Project Detail / Strategy / Timeline / Next Project."""
+    detail, strategy = split_description(p["description"])
+    timeline = p.get("timeline", "")
+    return (
+        '      <aside class="project-info" aria-label="Project information" data-project-info>\n'
+        '        <section class="project-info-section">\n'
+        '          <span class="project-info-label">[ PROJECT DETAIL ]</span>\n'
+        f'          <p class="project-info-text" data-project-detail>{esc(detail)}</p>\n'
+        '        </section>\n'
+        '        <section class="project-info-section">\n'
+        '          <span class="project-info-label">[ STRATEGY ]</span>\n'
+        f'          <p class="project-info-text" data-project-strategy>{esc(strategy)}</p>\n'
+        '        </section>\n'
+        '        <section class="project-info-section project-info-section--timeline">\n'
+        '          <span class="project-info-label">[ TIMELINE ]</span>\n'
+        f'          <p class="project-info-text" data-project-timeline>{esc(timeline)}</p>\n'
+        '        </section>\n'
+        f'        <a class="project-next-link" href="/project/{esc(next_p["slug"])}/" data-next-project>[ NEXT PROJECT ]</a>\n'
+        '      </aside>'
+    )
+
+
+def project_overview_modal_html(p: dict) -> str:
+    """Mobile-only full-screen overview modal."""
+    detail, strategy = split_description(p["description"])
+    timeline = p.get("timeline", "")
+    if p.get("logoSrc"):
+        logo_inner = (
+            f'          <img src="{esc(p["logoSrc"])}" alt="{esc(p["title"])}" />\n'
+        )
+    else:
+        logo_inner = (
+            f'          <span class="project-logo-text">{esc(p["title"])}</span>\n'
+        )
+    return (
+        '      <div class="project-overview-modal" data-overview-modal aria-hidden="true" role="dialog" aria-label="Project overview">\n'
+        '        <div class="project-overview-modal-inner">\n'
+        '          <div class="project-overview-modal-logo" data-overview-modal-logo>\n'
+        f'{logo_inner}'
+        '          </div>\n'
+        '          <div class="project-overview-modal-content">\n'
+        '            <section class="project-overview-modal-section">\n'
+        '              <span class="project-info-label">[ PROJECT DETAIL ]</span>\n'
+        f'              <p class="project-info-text" data-overview-detail>{esc(detail)}</p>\n'
+        '            </section>\n'
+        '            <section class="project-overview-modal-section">\n'
+        '              <span class="project-info-label">[ STRATEGY ]</span>\n'
+        f'              <p class="project-info-text" data-overview-strategy>{esc(strategy)}</p>\n'
+        '            </section>\n'
+        '            <section class="project-overview-modal-section">\n'
+        '              <span class="project-info-label">[ TIMELINE ]</span>\n'
+        f'              <p class="project-info-text" data-overview-timeline>{esc(timeline)}</p>\n'
+        '            </section>\n'
+        '          </div>\n'
+        '          <button class="project-overview-close" type="button" data-overview-close>[ CLOSE PROJECT ]</button>\n'
+        '        </div>\n'
+        '      </div>'
     )
 
 
@@ -304,35 +368,17 @@ def project_html(p: dict, idx: int, total: int) -> str:
     canonical = f"{SITE_ORIGIN}/project/{p['slug']}/"
     counter = f"0{idx + 1} / 0{total}"
 
-    if p["hasVideo"]:
-        video_block = (
-            '      <div class="project-video-preview" data-video-preview aria-label="Play project video">\n'
-            f'        <iframe class="project-video-thumb" data-video-thumb src="{esc(p["videoSrc"])}" frameborder="0" allow="autoplay; fullscreen" aria-hidden="true"></iframe>\n'
-            '        <div class="project-video-cue" aria-hidden="true">\n'
-            '          <span class="project-video-cue-label">[ PLAY ]</span>\n'
-            '        </div>\n'
-            '      </div>\n\n'
-            '      <div class="project-video-lightbox" data-video-lightbox aria-modal="true" aria-label="Video player" aria-hidden="true">\n'
-            '        <div class="project-video-lightbox-inner" data-lightbox-inner>\n'
-            '          <div class="project-video-lightbox-frame" data-lightbox-frame></div>\n'
-            '        </div>\n'
-            '        <button class="project-video-close" data-video-close type="button" aria-label="Close video">\n'
-            '          <span aria-hidden="true">[ CLOSE ]</span>\n'
-            '        </button>\n'
-            '      </div>\n\n'
-        )
-    else:
-        video_block = ""
-
     head = site_head(
         title=f'{p["title"]} — co:lab',
         description=p["metaDescription"],
         canonical=canonical,
         og_image=p["heroImage"],
     )
-    rail = related_rail_html(p["slug"])
+    next_p = PROJECTS[(idx + 1) % total]
+    logo_block = project_logo_html(p)
+    info_panel = project_info_html(p, next_p)
+    overview_modal = project_overview_modal_html(p)
     jsonld = project_jsonld(p, canonical)
-    desc_html = description_to_html(p["description"])
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -351,13 +397,17 @@ def project_html(p: dict, idx: int, total: int) -> str:
   <div data-barba="wrapper">
     <div data-barba="container" data-barba-namespace="project" data-project-slug="{esc(p['slug'])}">
 
-{video_block}      <h2 class="project-mobile-title" data-mobile-title>{esc(p['title'])}</h2>
+{logo_block}
 
-      <p class="about-text" data-full-text="{esc(p['description'])}">{desc_html}</p>
+      <h2 class="project-mobile-title" data-mobile-title>{esc(p['title'])}</h2>
+
+      <button class="project-mobile-overview-trigger" type="button" data-mobile-overview-trigger>read overview</button>
 
       <span class="project-mobile-hint" aria-hidden="true">scroll / hold to explore</span>
 
-{rail}
+{info_panel}
+
+{overview_modal}
 
       <main id="main-content" class="project-main" data-project-main>
         <div class="project-canvas-wrap" data-project-canvas-wrap>
