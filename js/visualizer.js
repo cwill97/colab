@@ -20,7 +20,14 @@
     else setTimeout(function () { waitForLibs(cb); }, 50);
   }
 
-  var AUDIO_SRC = 'assets/ambient.mp3';
+  /* Default site-wide ambient bed; the about page swaps in its own track
+     via colabAudio.setTrack() (see barba-init.js + cold-load resolver
+     below). */
+  var DEFAULT_AUDIO_SRC = '/assets/ambient.mp3';
+  var ABOUT_AUDIO_SRC   = '/assets/Colab_Studio-v2.mp3';
+  var AUDIO_SRC = (document.body && document.body.classList.contains('about-page'))
+    ? ABOUT_AUDIO_SRC
+    : DEFAULT_AUDIO_SRC;
   var FFT_SIZE  = 512;
   var NUM_BANDS = 32;
 
@@ -66,22 +73,34 @@
     gainNode.connect(lpFilter);
     lpFilter.connect(analyser);
     analyser.connect(audioCtx.destination);
-
-    window.colabAudio = {
-      submerge: function (dur) {
-        if (!lpFilter) return;
-        var d = dur || 0.8;
-        gsap.to(lpFilter.frequency, { duration: d, value: 400, ease: 'power2.in' });
-        gsap.to(lpFilter.Q, { duration: d, value: 3.5, ease: 'power2.in' });
-      },
-      surface: function (dur) {
-        if (!lpFilter) return;
-        var d = dur || 0.6;
-        gsap.to(lpFilter.frequency, { duration: d, value: 22000, ease: 'power2.out' });
-        gsap.to(lpFilter.Q, { duration: d, value: 0.7, ease: 'power2.out' });
-      }
-    };
   }
+
+  /* Module-scope colabAudio so setTrack() works whether or not the
+     user has activated audio yet. submerge/surface no-op until
+     setupAudio() runs and lpFilter exists. */
+  window.colabAudio = {
+    setTrack: function (src) {
+      if (!src || src === AUDIO_SRC) return;
+      AUDIO_SRC = src;
+      if (audioEl) {
+        var resume = started && !muted && !audioEl.paused;
+        try { audioEl.src = src; audioEl.load(); } catch (e) {}
+        if (resume) audioEl.play().catch(function () {});
+      }
+    },
+    submerge: function (dur) {
+      if (!lpFilter) return;
+      var d = dur || 0.8;
+      gsap.to(lpFilter.frequency, { duration: d, value: 400, ease: 'power2.in' });
+      gsap.to(lpFilter.Q, { duration: d, value: 3.5, ease: 'power2.in' });
+    },
+    surface: function (dur) {
+      if (!lpFilter) return;
+      var d = dur || 0.6;
+      gsap.to(lpFilter.frequency, { duration: d, value: 22000, ease: 'power2.out' });
+      gsap.to(lpFilter.Q, { duration: d, value: 0.7, ease: 'power2.out' });
+    }
+  };
 
   function startPlayback() {
     audioCtx.resume().then(function () {

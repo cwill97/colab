@@ -121,6 +121,97 @@
   }
 
   /* ============================================================
+     TEXT SCRAMBLE — same rain-style decode used by the preloader.
+     Animates a group of elements in lockstep so resolves cascade
+     across the whole panel rather than each paragraph independently.
+     Re-running on the same elements cancels any in-flight tick.
+     ============================================================ */
+  var SCRAMBLE_GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWX1234567890!@#$%^&*()_+{}[]?/><';
+  var SCRAMBLE_COLORS = ['rgba(255,255,255,1)', 'rgba(255,255,255,0.5)'];
+  var SCRAMBLE_TICK_MS = 600 / 35;
+  var SCRAMBLE_RESOLVES_PER_TICK = 9;
+
+  function _scrambleGlyph() {
+    return SCRAMBLE_GLYPHS[(Math.random() * SCRAMBLE_GLYPHS.length) | 0];
+  }
+  function _scrambleColor() {
+    return SCRAMBLE_COLORS[(Math.random() * SCRAMBLE_COLORS.length) | 0];
+  }
+
+  function scrambleElements(items) {
+    var allChars = [];
+
+    for (var r = 0; r < items.length; r++) {
+      var el = items[r] && items[r].el;
+      if (!el) continue;
+      var text = items[r].text == null ? '' : String(items[r].text);
+
+      /* Cancel any prior scramble bound to this element */
+      if (el._scrambleTimer) { clearInterval(el._scrambleTimer); el._scrambleTimer = null; }
+      el.textContent = '';
+
+      for (var i = 0; i < text.length; i++) {
+        var ch = text.charAt(i);
+        var span = document.createElement('span');
+        var isSpace = ch === ' ' || ch === '\t' || ch === '\n';
+        span.textContent = isSpace ? ' ' : _scrambleGlyph();
+        if (!isSpace) span.style.color = _scrambleColor();
+        el.appendChild(span);
+
+        allChars.push({
+          el: span,
+          final: ch,
+          resolved: isSpace,
+          threshold: (r * 0.6) + (i * 0.15) + (Math.random() * 8)
+        });
+      }
+    }
+
+    if (!allChars.length) return;
+
+    var tickCount = 0;
+    var timer = setInterval(function () {
+      tickCount++;
+
+      for (var i = 0; i < allChars.length; i++) {
+        var c = allChars[i];
+        if (!c.resolved) {
+          c.el.textContent = _scrambleGlyph();
+          c.el.style.color = _scrambleColor();
+        }
+      }
+
+      var resolvedThisTick = 0;
+      var anyUnresolved = false;
+      for (var j = 0; j < allChars.length; j++) {
+        var c2 = allChars[j];
+        if (c2.resolved) continue;
+        if (resolvedThisTick < SCRAMBLE_RESOLVES_PER_TICK && tickCount >= c2.threshold) {
+          c2.el.textContent = c2.final === ' ' ? ' ' : c2.final;
+          c2.el.style.color = '';
+          c2.resolved = true;
+          resolvedThisTick++;
+        } else {
+          anyUnresolved = true;
+        }
+      }
+
+      if (!anyUnresolved) {
+        clearInterval(timer);
+        for (var k = 0; k < items.length; k++) {
+          if (items[k] && items[k].el && items[k].el._scrambleTimer === timer) {
+            items[k].el._scrambleTimer = null;
+          }
+        }
+      }
+    }, SCRAMBLE_TICK_MS);
+
+    for (var n = 0; n < items.length; n++) {
+      if (items[n] && items[n].el) items[n].el._scrambleTimer = timer;
+    }
+  }
+
+  /* ============================================================
      DOM REFS
      ============================================================ */
   var canvas     = document.querySelector('[data-depth-canvas]');
@@ -175,11 +266,13 @@
     if (metaFill)     metaFill.style.width     = ((index / Math.max(PROJECTS.length - 1, 1)) * 100) + '%';
     if (metaTitle)    metaTitle.textContent    = project.title;
 
-    /* Right-rail panel */
+    /* Right-rail panel — text decodes in via the preloader scramble */
     var parts = splitDescription(project.description);
-    if (projectDetailEl)  projectDetailEl.textContent  = parts.detail;
-    if (projectStrategy)  projectStrategy.textContent  = parts.strategy;
-    if (projectTimeline)  projectTimeline.textContent  = project.timeline || '';
+    scrambleElements([
+      { el: projectDetailEl, text: parts.detail },
+      { el: projectStrategy, text: parts.strategy },
+      { el: projectTimeline, text: project.timeline || '' }
+    ]);
     setLogo(projectLogo, project);
 
     /* Next-project anchor */
@@ -372,6 +465,18 @@
     overviewModal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('has-overview-modal-open');
     if (gallery && gallery.pauseIdle) gallery.pauseIdle();
+
+    /* Re-run the scramble decode each time the overview opens so the
+       text reveals in like the preloader rather than appearing flat. */
+    var p = PROJECTS[currentIndex];
+    if (p) {
+      var parts = splitDescription(p.description);
+      scrambleElements([
+        { el: overviewDetail,   text: parts.detail },
+        { el: overviewStrategy, text: parts.strategy },
+        { el: overviewTimeline, text: p.timeline || '' }
+      ]);
+    }
   }
 
   function closeOverviewModal() {

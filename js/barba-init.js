@@ -25,6 +25,16 @@
 
   function initBarba() {
 
+    /* Per-page audio routing. About uses a dedicated track; every other
+       view falls back to the site-wide ambient bed. setTrack() handles
+       both pre- and post-activation states. */
+    var DEFAULT_TRACK = '/assets/ambient.mp3';
+    var ABOUT_TRACK   = '/assets/Colab_Studio-v2.mp3';
+    function routeAudio(namespace) {
+      if (!window.colabAudio || !window.colabAudio.setTrack) return;
+      window.colabAudio.setTrack(namespace === 'about' ? ABOUT_TRACK : DEFAULT_TRACK);
+    }
+
     /* ── Helper: toggle persistent elements for each view ── */
     function enterHome() {
       document.body.classList.remove('project-page');
@@ -197,6 +207,9 @@
           } else if (entering === 'about') {
             enterAbout();
           }
+
+          /* Route the ambient bed to the per-page track */
+          routeAudio(entering);
         },
 
         after: function (data) {
