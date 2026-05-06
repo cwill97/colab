@@ -1623,18 +1623,31 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
 /* ============================================================
    About / Studio page — editorial multi-column layout.
+   Snapped to the site's 10-column grid (1440 master artboard).
+     col-w   = (100% - 2*margin - 9*gutter) / 10
+     col(n)  = margin + (n-1) * (col-w + gutter)   (column n start)
+     span(n) = n * col-w + (n-1) * gutter           (n-column width)
    Background sculpture image + blurred display manifesto behind,
    pillar labels top, intro stack top-right, three figure blocks
    along the bottom row, ( 47 ) mark at centre.
-   Base `main` rule already sets position:fixed below nav.
    ============================================================ */
 .about-main {
+  /* Local layout tokens — derived from the existing site grid. */
+  --col-w:   calc((100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10);
+  --col-1:   var(--grid-margin);
+  --col-3:   calc(var(--grid-margin) + 2  * (var(--col-w) + var(--grid-gutter)));
+  --col-5:   calc(var(--grid-margin) + 4  * (var(--col-w) + var(--grid-gutter)));
+  --col-7:   calc(var(--grid-margin) + 6  * (var(--col-w) + var(--grid-gutter)));
+  --col-9:   calc(var(--grid-margin) + 8  * (var(--col-w) + var(--grid-gutter)));
+  --span-2:  calc(2 * var(--col-w) + 1 * var(--grid-gutter));
+  --span-3:  calc(3 * var(--col-w) + 2 * var(--grid-gutter));
+  --span-4:  calc(4 * var(--col-w) + 3 * var(--grid-gutter));
+
   position: fixed;
   inset-block-start: var(--nav-height);
   inset-inline: 0;
   height: calc(100vh - var(--nav-height));
-  padding-block: 18px 24px;
-  padding-inline: var(--grid-margin);
+  padding: 0;
   overflow: hidden;
   z-index: 10;
   pointer-events: none;
@@ -1665,7 +1678,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   height: 100%;
   object-fit: cover;
   object-position: center 30%;
-  opacity: 0.35;
+  opacity: 0.32;
   filter: brightness(0.55) contrast(1.1);
 }
 
@@ -1717,23 +1730,27 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   pointer-events: none;
 }
 
-/* ── Pillars: FORM · CULTURE · LIGHT ───────────────────────── */
+/* ── Pillars: FORM (col 1) · CULTURE (col 3) · LIGHT (col 5) ─ */
 .about-pillars {
   position: absolute;
   inset-block-start: 18px;
-  inset-inline-start: var(--grid-margin);
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   z-index: 3;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--grid-gutter);
-  width: calc((100% - 2 * var(--grid-margin)) * 0.6);
 }
 
 .about-pillar {
+  position: absolute;
+  inset-block-start: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  width: var(--span-2);
 }
+
+.about-pillar:nth-child(1) { inset-inline-start: var(--col-1); }
+.about-pillar:nth-child(2) { inset-inline-start: var(--col-3); }
+.about-pillar:nth-child(3) { inset-inline-start: var(--col-5); }
 
 .about-pillar-title {
   font-family: var(--font-display);
@@ -1757,13 +1774,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   color: var(--color-muted);
 }
 
-/* ── Intro stack — top-right ───────────────────────────────── */
+/* ── Intro stack — cols 7–10 (top-right) ───────────────────── */
 .about-intro {
   position: absolute;
   inset-block-start: 18px;
-  inset-inline-end: var(--grid-margin);
+  inset-inline-start: var(--col-7);
+  width: var(--span-4);
   z-index: 3;
-  width: calc((100% - 2 * var(--grid-margin)) * 0.32);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1787,10 +1804,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* ── Figure row — bottom three columns ────────────────────── */
+/* ── Figure row — bottom three blocks, snapped to grid ─────── */
 .about-fig {
   position: absolute;
-  inset-block-end: 24px;
   z-index: 3;
   display: flex;
   flex-direction: column;
@@ -1804,31 +1820,28 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   color: var(--color-fg);
 }
 
-/* Column widths align to the 10-col grid (excluding margins).
-   col-w  = (100% - 2*margin - 9*gutter) / 10
-   col-3  = 3*col-w + 2*gutter
-   col-9  = 9*col-w + 8*gutter
-   We position by inline-start using column offsets. */
+/* FIG 001 — col 3, label only (no body in this state) */
 .about-fig--001 {
   inset-block-start: 56%;
-  inset-block-end: auto;
-  inset-inline-start: calc(var(--grid-margin) + (100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 2 + var(--grid-gutter) * 2);
-  width: calc((100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 2 + var(--grid-gutter));
+  inset-inline-start: var(--col-3);
+  width: var(--span-2);
 }
 
+/* FIG 002 — cols 5–7, body extends to bottom of viewport */
 .about-fig--002 {
   inset-block-start: 56%;
   inset-block-end: 24px;
-  inset-inline-start: calc(var(--grid-margin) + (100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 4 + var(--grid-gutter) * 4);
-  width: calc((100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 2 + var(--grid-gutter));
+  inset-inline-start: var(--col-5);
+  width: var(--span-3);
   overflow: hidden;
 }
 
+/* FIG 003 — cols 9–10, body extends to bottom of viewport */
 .about-fig--003 {
   inset-block-start: 56%;
   inset-block-end: 24px;
-  inset-inline-end: var(--grid-margin);
-  width: calc((100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10 * 2 + var(--grid-gutter));
+  inset-inline-start: var(--col-9);
+  width: var(--span-2);
   overflow: hidden;
 }
 
@@ -2473,7 +2486,8 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     color: rgba(255, 255, 255, 0.6);
   }
 
-  /* Pillars span left half — row 1 */
+  /* Pillars span left half — row 1. Children become inline flex items
+     so the desktop col-X absolute positioning is neutralised. */
   .about-pillars {
     position: relative;
     inset: auto;
@@ -2481,6 +2495,16 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     grid-row: 1;
     width: auto;
     align-self: start;
+    display: flex;
+    gap: var(--g);
+  }
+
+  .about-pillar {
+    position: relative;
+    inset: auto;
+    width: auto;
+    flex: 1 1 0;
+    min-width: 0;
   }
 
   .about-pillar-title,
