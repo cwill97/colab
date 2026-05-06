@@ -255,7 +255,9 @@ PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
   <div class="tesseract-wrap" aria-hidden="true" data-tesseract></div>"""
 
 
-PROJECT_SCRIPTS = """  <script src="/js/shader-reveal.js?v=2"></script>
+PROJECT_SCRIPTS = """  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="/js/shader-reveal.js?v=2"></script>
   <script src="/js/barba.umd.js?v=2"></script>
   <script src="/js/main.js?v=2" defer></script>
   <script src="/js/visualizer.js?v=2" defer></script>

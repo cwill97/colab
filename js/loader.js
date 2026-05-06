@@ -330,6 +330,8 @@
   /* ----------------------------------------------------------
      Enable the CTA button once complete
   ---------------------------------------------------------- */
+  var autoEnterTimer = null;
+
   function enableCta() {
     setProgress(100);
     ctaEl.disabled = false;
@@ -340,6 +342,13 @@
 
     /* Allow tapping anywhere on the loader to enter (mobile) */
     loader.addEventListener('touchend', handleTouchEnter);
+
+    /* Auto-enter after 5s if the user hasn't dismissed the loader.
+       Audio is muted on auto-enter to respect browsers that block
+       unsolicited playback without a user gesture. */
+    autoEnterTimer = setTimeout(function () {
+      if (!dismissed) dismissLoader(false);
+    }, 5000);
   }
 
   function handleKeyEnter() {
@@ -367,6 +376,7 @@
     /* Remove all entry listeners */
     document.removeEventListener('keydown', handleKeyEnter);
     loader.removeEventListener('touchend', handleTouchEnter);
+    if (autoEnterTimer) { clearTimeout(autoEnterTimer); autoEnterTimer = null; }
 
     /* Mark session as visited so subsequent page loads skip the loader */
     try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (e) {}

@@ -1687,14 +1687,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     --nav-btn-size: 18px;
 
     /* TOP-DOWN — tesseract → title → gap → projects.
-       Tesseract trimmed (38vh → 30vh) and title-proj-gap tightened
-       (40px → 20px) so 3 project items fit above the fold on
-       common mobile heights (~800px+) without scrolling. */
+       Sized so 2 project items fit above the fold on common mobile
+       heights — bigger tesseract + wider title-proj-gap. */
     --t-tesseract: 70px;
-    --h-tesseract: 30vh;
+    --h-tesseract: 38vh;
     --t-title:     calc(var(--t-tesseract) + var(--h-tesseract) + 10px);
     --h-title:     80px;
-    --title-proj-gap: 20px;
+    --title-proj-gap: 40px;
     --t-projects:  calc(var(--t-title) + var(--h-title) + var(--title-proj-gap));
   }
 
