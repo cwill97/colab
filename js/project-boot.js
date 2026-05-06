@@ -121,140 +121,6 @@
   }
 
   /* ============================================================
-     TEXT SCRAMBLE — same rain-style decode used by the preloader.
-     Animates a group of elements in lockstep so resolves cascade
-     across the whole panel rather than each paragraph independently.
-     Re-running on the same elements cancels any in-flight tick.
-     ============================================================ */
-  var SCRAMBLE_GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWX1234567890!@#$%^&*()_+{}[]?/><';
-  var SCRAMBLE_COLORS = ['rgba(255,255,255,1)', 'rgba(255,255,255,0.5)'];
-  var SCRAMBLE_TICK_MS = 600 / 35;
-  var SCRAMBLE_RESOLVES_PER_TICK = 9;
-
-  function _scrambleGlyph() {
-    return SCRAMBLE_GLYPHS[(Math.random() * SCRAMBLE_GLYPHS.length) | 0];
-  }
-  function _scrambleColor() {
-    return SCRAMBLE_COLORS[(Math.random() * SCRAMBLE_COLORS.length) | 0];
-  }
-
-  function scrambleElements(items) {
-    var allChars = [];
-
-    for (var r = 0; r < items.length; r++) {
-      var el = items[r] && items[r].el;
-      if (!el) continue;
-      var text = items[r].text == null ? '' : String(items[r].text);
-
-      /* Cancel any prior scramble bound to this element */
-      if (el._scrambleTimer) { clearInterval(el._scrambleTimer); el._scrambleTimer = null; }
-      el.textContent = '';
-
-      for (var i = 0; i < text.length; i++) {
-        var ch = text.charAt(i);
-        var code = ch.charCodeAt(0);
-        /* Whitespace stays as a plain text node so the browser can
-           wrap lines at word boundaries. */
-        if (code === 0x20 || code === 0x09 || code === 0x0A ||
-            code === 0x0D || code === 0xA0) {
-          el.appendChild(document.createTextNode(code === 0x0A ? '\n' : ' '));
-          continue;
-        }
-        /* Seed with the FINAL char so we can measure each slot's
-           natural width before swapping in random glyphs. */
-        var span = document.createElement('span');
-        span.textContent = ch;
-        el.appendChild(span);
-
-        allChars.push({
-          el: span,
-          final: ch,
-          resolved: false,
-          threshold: (r * 0.6) + (i * 0.15) + (Math.random() * 8)
-        });
-      }
-    }
-
-    if (!allChars.length) return;
-
-    /* Pin each character slot to its natural width. Inline-block plus a
-       measured width prevents wider scramble glyphs from nudging
-       neighbouring characters during the cycle. Letter-spacing is added
-       to each slot so wrap points match the un-locked layout. */
-    var letterSpacingPx = 0;
-    var firstParent = allChars[0].el.parentNode;
-    if (firstParent) {
-      var ls = parseFloat(getComputedStyle(firstParent).letterSpacing);
-      if (!isNaN(ls)) letterSpacingPx = ls;
-    }
-    for (var p = 0; p < allChars.length; p++) {
-      var sp = allChars[p].el;
-      var w = sp.offsetWidth;
-      if (w > 0) {
-        sp.style.display = 'inline-block';
-        sp.style.width = (w + letterSpacingPx) + 'px';
-        sp.style.textAlign = 'left';
-        sp.style.verticalAlign = 'baseline';
-        sp.style.overflow = 'hidden';
-      }
-      sp.textContent = _scrambleGlyph();
-      sp.style.color = _scrambleColor();
-    }
-
-    var tickCount = 0;
-    var timer = setInterval(function () {
-      tickCount++;
-
-      for (var i = 0; i < allChars.length; i++) {
-        var c = allChars[i];
-        if (!c.resolved) {
-          c.el.textContent = _scrambleGlyph();
-          c.el.style.color = _scrambleColor();
-        }
-      }
-
-      var resolvedThisTick = 0;
-      var anyUnresolved = false;
-      for (var j = 0; j < allChars.length; j++) {
-        var c2 = allChars[j];
-        if (c2.resolved) continue;
-        if (resolvedThisTick < SCRAMBLE_RESOLVES_PER_TICK && tickCount >= c2.threshold) {
-          c2.el.textContent = c2.final;
-          c2.el.style.color = '';
-          c2.resolved = true;
-          resolvedThisTick++;
-        } else {
-          anyUnresolved = true;
-        }
-      }
-
-      if (!anyUnresolved) {
-        clearInterval(timer);
-        /* Restore natural inline rendering once everything has resolved
-           so letter-spacing applies normally and the final layout
-           matches what the page would render without the scramble. */
-        for (var u = 0; u < allChars.length; u++) {
-          var rs = allChars[u].el;
-          rs.style.display = '';
-          rs.style.width = '';
-          rs.style.textAlign = '';
-          rs.style.verticalAlign = '';
-          rs.style.overflow = '';
-        }
-        for (var k = 0; k < items.length; k++) {
-          if (items[k] && items[k].el && items[k].el._scrambleTimer === timer) {
-            items[k].el._scrambleTimer = null;
-          }
-        }
-      }
-    }, SCRAMBLE_TICK_MS);
-
-    for (var n = 0; n < items.length; n++) {
-      if (items[n] && items[n].el) items[n].el._scrambleTimer = timer;
-    }
-  }
-
-  /* ============================================================
      DOM REFS
      ============================================================ */
   var canvas     = document.querySelector('[data-depth-canvas]');
@@ -309,13 +175,11 @@
     if (metaFill)     metaFill.style.width     = ((index / Math.max(PROJECTS.length - 1, 1)) * 100) + '%';
     if (metaTitle)    metaTitle.textContent    = project.title;
 
-    /* Right-rail panel — text decodes in via the preloader scramble */
+    /* Right-rail panel */
     var parts = splitDescription(project.description);
-    scrambleElements([
-      { el: projectDetailEl, text: parts.detail },
-      { el: projectStrategy, text: parts.strategy },
-      { el: projectTimeline, text: project.timeline || '' }
-    ]);
+    if (projectDetailEl)  projectDetailEl.textContent  = parts.detail;
+    if (projectStrategy)  projectStrategy.textContent  = parts.strategy;
+    if (projectTimeline)  projectTimeline.textContent  = project.timeline || '';
     setLogo(projectLogo, project);
 
     /* Next-project anchor */
@@ -508,18 +372,6 @@
     overviewModal.setAttribute('aria-hidden', 'false');
     document.body.classList.add('has-overview-modal-open');
     if (gallery && gallery.pauseIdle) gallery.pauseIdle();
-
-    /* Re-run the scramble decode each time the overview opens so the
-       text reveals in like the preloader rather than appearing flat. */
-    var p = PROJECTS[currentIndex];
-    if (p) {
-      var parts = splitDescription(p.description);
-      scrambleElements([
-        { el: overviewDetail,   text: parts.detail },
-        { el: overviewStrategy, text: parts.strategy },
-        { el: overviewTimeline, text: p.timeline || '' }
-      ]);
-    }
   }
 
   function closeOverviewModal() {
