@@ -1638,7 +1638,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   --col-3:   calc(var(--grid-margin) + 2  * (var(--col-w) + var(--grid-gutter)));
   --col-5:   calc(var(--grid-margin) + 4  * (var(--col-w) + var(--grid-gutter)));
   --col-7:   calc(var(--grid-margin) + 6  * (var(--col-w) + var(--grid-gutter)));
+  --col-8:   calc(var(--grid-margin) + 7  * (var(--col-w) + var(--grid-gutter)));
   --col-9:   calc(var(--grid-margin) + 8  * (var(--col-w) + var(--grid-gutter)));
+  --span-1:  var(--col-w);
   --span-2:  calc(2 * var(--col-w) + 1 * var(--grid-gutter));
   --span-3:  calc(3 * var(--col-w) + 2 * var(--grid-gutter));
   --span-4:  calc(4 * var(--col-w) + 3 * var(--grid-gutter));
@@ -1691,9 +1693,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   font-family: var(--font-display);
   font-weight: 200;
   text-transform: uppercase;
-  letter-spacing: -0.02em;
-  color: rgba(255, 255, 255, 0.18);
-  filter: blur(6px);
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.28);
+  filter: blur(5px);
 }
 
 .about-manifesto-line {
@@ -1701,16 +1703,18 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   inset-inline-start: var(--grid-margin);
   inset-inline-end: var(--grid-margin);
   margin: 0;
-  font-size: clamp(72px, 9.6vw, 168px);
+  font-size: clamp(40px, 5.4vw, 80px);
   line-height: 0.92;
 }
 
+/* Top line sits in the upper-middle band */
 .about-manifesto-line--top {
-  inset-block-start: 28%;
+  inset-block-start: 14%;
 }
 
+/* Bottom line sits in the lower band */
 .about-manifesto-line--bottom {
-  inset-block-end: 8%;
+  inset-block-end: 4%;
 }
 
 /* ── ( 47 ) centre mark ────────────────────────────────────── */
@@ -1722,10 +1726,10 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   z-index: 2;
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: clamp(72px, 7vw, 120px);
+  font-size: clamp(96px, 9.5vw, 148px);
   line-height: 1;
-  color: rgba(255, 255, 255, 0.55);
-  filter: blur(0.6px);
+  color: rgba(255, 255, 255, 0.7);
+  filter: blur(0.3px);
   letter-spacing: 0.04em;
   pointer-events: none;
 }
@@ -1745,7 +1749,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: var(--span-2);
+  width: var(--span-1);
 }
 
 .about-pillar:nth-child(1) { inset-inline-start: var(--col-1); }
@@ -1774,12 +1778,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   color: var(--color-muted);
 }
 
-/* ── Intro stack — cols 7–10 (top-right) ───────────────────── */
+/* ── Intro stack — cols 8–10 (top-right) ───────────────────── */
 .about-intro {
   position: absolute;
   inset-block-start: 18px;
-  inset-inline-start: var(--col-7);
-  width: var(--span-4);
+  inset-inline-start: var(--col-8);
+  width: var(--span-3);
   z-index: 3;
   display: flex;
   flex-direction: column;
@@ -2428,12 +2432,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     inset: auto;
     height: auto;
     min-height: 100vh;
-    padding: calc(var(--nav-height) + 16px) var(--m) 48px;
+    padding: calc(var(--nav-height) + 12px) var(--m) 40px;
     overflow: visible;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     column-gap: var(--g);
-    row-gap: 28px;
+    row-gap: 18px;
   }
 
   /* Background sculpture covers full document */
@@ -2480,10 +2484,10 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     grid-column: 1 / -1;
     grid-row: 3;
     justify-self: center;
-    font-size: 64px;
-    margin-block: 50px 30px;
-    filter: blur(1px);
-    color: rgba(255, 255, 255, 0.6);
+    font-size: 80px;
+    margin-block: 8px 8px;
+    filter: blur(0.4px);
+    color: rgba(255, 255, 255, 0.7);
   }
 
   /* Pillars span left half — row 1. Children become inline flex items
