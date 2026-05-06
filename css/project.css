@@ -226,8 +226,8 @@
 
 .project-logo-img {
   display: block;
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 75%;
+  max-height: 75%;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -298,8 +298,29 @@
   letter-spacing: 0.02em;
 }
 
+/* ------------------------------------------------------------
+   "View Live Project" link — sits after timeline
+   ------------------------------------------------------------ */
+.project-live-link {
+  align-self: flex-start;
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  opacity: 0.6;
+  text-decoration: none;
+  padding-block: 4px;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.project-live-link:hover {
+  opacity: 1;
+}
+
 .project-next-link {
-  margin-block-start: auto;       /* push to bottom of flex column */
+  margin-block-start: 250px;
   align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
@@ -614,8 +635,26 @@
     line-height: 1.55;
   }
 
+  .project-overview-live-link {
+    display: inline-block;
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    text-decoration: none;
+    opacity: 0.75;
+    padding: 8px 0;
+    margin-block-start: 36px;
+    transition: opacity 0.2s ease;
+  }
+
+  .project-overview-live-link:active {
+    opacity: 1;
+  }
+
   .project-overview-close {
-    margin-block-start: auto;
     margin-inline: auto;
     background: none;
     border: none;
@@ -625,7 +664,7 @@
     letter-spacing: 0.1em;
     cursor: pointer;
     padding: 16px 24px;
-    margin-block-start: 60px;
+    margin-block-start: 36px;
     text-transform: uppercase;
     opacity: 0.75;
     transition: opacity 0.2s ease;
