@@ -276,10 +276,11 @@
   display: block;
   font-family: var(--font-mono);
   font-size: 9px;
-  letter-spacing: 0.12em;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: var(--color-terminal);
-  opacity: 0.75;
+  color: var(--color-muted);
   margin-block-end: 12px;
 }
 
