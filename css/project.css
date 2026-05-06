@@ -563,6 +563,9 @@
 
   /* --------------------------------------------------------
      M-P6. Mobile overview modal — full-screen overlay
+     Designed to ALWAYS fit the viewport, no scrolling.
+     All internal sizing uses vh/clamp so content compresses
+     down to short screens (iPhone SE etc.) without overflow.
      -------------------------------------------------------- */
   .project-page .project-overview-modal {
     display: flex;
@@ -573,8 +576,7 @@
     flex-direction: column;
     opacity: 0;
     visibility: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
     overscroll-behavior: contain;
     transition: opacity 0.35s ease, visibility 0.35s ease;
   }
@@ -585,12 +587,12 @@
   }
 
   .project-overview-modal-inner {
-    flex: 1;
     display: flex;
     flex-direction: column;
     padding: calc(var(--nav-height) + 32px) var(--m) 40px;
     gap: 32px;
-    min-height: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
   }
 
   .project-overview-modal-logo {
@@ -655,19 +657,22 @@
   }
 
   .project-overview-close {
+    position: sticky;
+    bottom: 0;
     margin-inline: auto;
-    background: none;
+    background: var(--color-bg);
     border: none;
     color: var(--color-fg);
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.1em;
     cursor: pointer;
-    padding: 16px 24px;
+    padding: 16px 24px 24px;
     margin-block-start: 36px;
     text-transform: uppercase;
     opacity: 0.75;
     transition: opacity 0.2s ease;
+    z-index: 1;
   }
 
   .project-overview-close:active {
