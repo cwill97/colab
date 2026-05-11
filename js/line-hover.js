@@ -182,9 +182,16 @@
     // we'll retry on the next init pass.
     lockCharWidths(li._lhChars);
 
-    // Hover triggers on the <li> so the whole row reacts
-    li.addEventListener('mouseenter', function () { activate(li, true);  });
-    li.addEventListener('mouseleave', function () { activate(li, false); });
+    // Hover target: menu nav items narrow to the anchor itself so the
+    // hover region matches the text glyphs (the <li> stretches to the
+    // full menu column width and would otherwise fire on empty space).
+    // Services/contact rows keep the wider <li> target so the whole
+    // row remains interactive.
+    var hoverTarget = (anchor && li.classList.contains('menu-nav-item'))
+      ? anchor
+      : li;
+    hoverTarget.addEventListener('mouseenter', function () { activate(li, true);  });
+    hoverTarget.addEventListener('mouseleave', function () { activate(li, false); });
 
     // Keyboard focus parity for anchor rows
     if (anchor) {

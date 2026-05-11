@@ -94,14 +94,23 @@
     this._idleSpeed       = _isMobile ? 0.8 : 0.56; /* px per frame — positive = forward */
     this._idlePaused      = false;  /* external pause (e.g. overview modal open) */
 
-    /* End-of-gallery overscroll detection */
-    this.onReachEnd      = null;    /* callback fired once when scrolling past end */
-    this.onReachStart    = null;    /* callback fired once when scrolling before start */
-    this._endFired       = false;   /* guard: only fire once per image set */
-    this._startFired     = false;
-    this._overscrollAccum = 0;      /* accumulated overscroll past the end */
-    this._underscrollAccum = 0;     /* accumulated overscroll before the start */
-    this._overscrollThreshold = 80; /* px of extra scroll needed to trigger */
+    /* End-of-gallery overscroll detection.
+       Single-stage (desktop default): onReachEnd fires once the overscroll
+       accumulator passes _overscrollThreshold. Two-stage (mobile): set
+       _overscrollCommitThreshold to a higher value — onEndLabelReveal then
+       fires at the lower threshold (UI cue), and onReachEnd defers until
+       overscroll reaches the commit threshold. */
+    this.onReachEnd       = null;
+    this.onReachStart     = null;
+    this.onEndLabelReveal = null;   /* first-stage cue (mobile two-stage flow) */
+    this.onEndLabelHide   = null;   /* fires when user retreats before commit */
+    this._endFired        = false;
+    this._startFired      = false;
+    this._labelRevealed   = false;
+    this._overscrollAccum = 0;
+    this._underscrollAccum = 0;
+    this._overscrollThreshold       = 80;   /* px — first stage / single-stage trigger */
+    this._overscrollCommitThreshold = null; /* px — when set, transition defers to this higher value */
 
     /* Bound handlers */
     this._onWheel       = this._onWheel.bind(this);
@@ -309,6 +318,7 @@
       this.camera.position.z = this.cameraStartZ;
       this._endFired       = false;
       this._startFired     = false;
+      this._labelRevealed  = false;
       this._overscrollAccum = 0;
       this._underscrollAccum = 0;
     }
@@ -322,19 +332,37 @@
     var minScroll = (this.cameraStartZ - this.maxCameraZ) / this.scrollToWorldFactor;
     var maxScroll = (this.cameraStartZ - this.minCameraZ) / this.scrollToWorldFactor;
 
-    /* ── End-of-gallery overscroll detection ── */
+    /* ── End-of-gallery overscroll detection ──
+       Two stages: reveal label at _overscrollThreshold, commit transition
+       at _overscrollCommitThreshold (falls back to the same threshold
+       when commit is null — preserves single-stage desktop behavior). */
     if (this.scrollTarget > maxScroll && !this._endFired) {
-      /* User is trying to scroll past the last image */
       this._overscrollAccum += (this.scrollTarget - maxScroll);
-      if (this._overscrollAccum >= this._overscrollThreshold) {
+
+      if (this._overscrollAccum >= this._overscrollThreshold && !this._labelRevealed) {
+        this._labelRevealed = true;
+        if (typeof this.onEndLabelReveal === 'function') {
+          this.onEndLabelReveal();
+        }
+      }
+
+      var commit = (this._overscrollCommitThreshold != null)
+        ? this._overscrollCommitThreshold
+        : this._overscrollThreshold;
+      if (this._overscrollAccum >= commit) {
         this._endFired = true;
         if (typeof this.onReachEnd === 'function') {
           this.onReachEnd();
         }
       }
     } else if (this.scrollTarget <= maxScroll) {
-      /* Reset accumulator if user scrolls back */
       this._overscrollAccum = 0;
+      if (this._labelRevealed) {
+        this._labelRevealed = false;
+        if (typeof this.onEndLabelHide === 'function') {
+          this.onEndLabelHide();
+        }
+      }
     }
 
     /* ── Start-of-gallery underscroll detection ── */

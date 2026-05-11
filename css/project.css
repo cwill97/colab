@@ -208,6 +208,46 @@
 }
 
 /* ------------------------------------------------------------
+   Scroll-to-next label — mobile only, revealed when gallery
+   overscroll passes its first-stage threshold. Continued scroll
+   then commits the project transition.
+   ------------------------------------------------------------ */
+.project-scroll-next {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .project-scroll-next {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 50%;
+    transform: translate(-50%, 6px);
+    padding-block-end: 42px;
+    z-index: 11;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+  }
+
+  .project-scroll-next.is-revealed {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .project-scroll-next span {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--color-fg);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+}
+
+/* ------------------------------------------------------------
    Project Logo — top-right slot (replaces audio visualizer)
    Same position + envelope as the old video preview.
    ------------------------------------------------------------ */

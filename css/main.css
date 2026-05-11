@@ -1692,7 +1692,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   pointer-events: none;
   font-family: var(--font-display);
   font-weight: 200;
-  text-transform: uppercase;
+  text-transform: lowercase;
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.28);
   filter: blur(5px);
@@ -1762,7 +1762,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   font-size: 11px;
   line-height: 1;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-fg);
   margin: 0;
 }
@@ -1774,7 +1774,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   font-size: 11px;
   line-height: 1;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-muted);
 }
 
@@ -1793,7 +1793,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   font-size: 11px;
   line-height: 1.35;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-fg);
 }
 
@@ -1820,7 +1820,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   font-size: 11px;
   line-height: 1.35;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-fg);
 }
 
@@ -1854,7 +1854,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   font-size: 11px;
   line-height: 1;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--color-fg);
   margin: 0;
 }

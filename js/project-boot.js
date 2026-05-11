@@ -135,6 +135,7 @@
   var metaFill     = document.querySelector('[data-meta-fill]');
   var metaCount    = document.querySelector('[data-meta-count]');
   var scrollHint   = document.querySelector('[data-scroll-hint]');
+  var nextLabel    = null;
 
   /* New right-rail panel + mobile overlay */
   var projectLogo      = document.querySelector('[data-project-logo]');
@@ -311,6 +312,8 @@
     if (transitioning || !gallery) return;
     transitioning = true;
 
+    if (nextLabel) nextLabel.classList.remove('is-revealed');
+
     var ST = window.ShaderTransition;
     if (!ST) {
       /* No shader — instant swap */
@@ -438,7 +441,29 @@
     bindNextProjectLink();
     bindOverviewModal();
 
-    if (isMobile) updateMobileTitle(project);
+    if (isMobile) {
+      updateMobileTitle(project);
+      ensureNextLabel();
+    }
+  }
+
+  /* Inject the "scroll to next" overscroll cue inside the canvas wrap.
+     Mobile-only: hidden by default, revealed when gallery overscroll
+     passes its first stage threshold, then hidden again on retreat or
+     when the transition commits. */
+  function ensureNextLabel() {
+    if (!canvasWrap) return;
+    var existing = canvasWrap.querySelector('[data-scroll-next]');
+    if (existing) { nextLabel = existing; return; }
+    nextLabel = document.createElement('div');
+    nextLabel.className = 'project-scroll-next';
+    nextLabel.setAttribute('data-scroll-next', '');
+    nextLabel.setAttribute('aria-hidden', 'true');
+    nextLabel.innerHTML =
+      '<div class="scroll-hint-line"></div>' +
+      '<span>scroll to next</span>' +
+      '<div class="scroll-hint-line"></div>';
+    canvasWrap.appendChild(nextLabel);
   }
 
   /* ============================================================
@@ -454,17 +479,31 @@
     gallery = new DepthGallery();
     gallery.init(canvas, canvasWrap, project.images);
 
-    /* ── Scroll past end → next project ── */
+    /* ── Scroll past end → next project ──
+       Mobile uses a two-stage overscroll: the "scroll to next" label
+       reveals at the first threshold (UI cue), and the actual project
+       transition commits only after the user keeps scrolling past a
+       higher threshold. Backward auto-transition is disabled on mobile
+       (no onReachStart) — the start of a project simply blocks. */
     gallery.onReachEnd = function () {
       var nextIdx = (currentIndex + 1) % PROJECTS.length;
       transitionToProject(nextIdx, 'forward');
     };
 
-    /* ── Scroll before start → previous project ── */
-    gallery.onReachStart = function () {
-      var prevIdx = (currentIndex - 1 + PROJECTS.length) % PROJECTS.length;
-      transitionToProject(prevIdx, 'backward');
-    };
+    if (isMobile) {
+      gallery._overscrollCommitThreshold = 220;
+      gallery.onEndLabelReveal = function () {
+        if (nextLabel) nextLabel.classList.add('is-revealed');
+      };
+      gallery.onEndLabelHide = function () {
+        if (nextLabel) nextLabel.classList.remove('is-revealed');
+      };
+    } else {
+      gallery.onReachStart = function () {
+        var prevIdx = (currentIndex - 1 + PROJECTS.length) % PROJECTS.length;
+        transitionToProject(prevIdx, 'backward');
+      };
+    }
 
     gallery.start();
 
@@ -515,6 +554,7 @@
       metaFill = scope.querySelector('[data-meta-fill]');
       metaCount = scope.querySelector('[data-meta-count]');
       scrollHint = scope.querySelector('[data-scroll-hint]');
+      nextLabel  = scope.querySelector('[data-scroll-next]');
       projectLogo      = scope.querySelector('[data-project-logo]');
       projectDetailEl  = scope.querySelector('[data-project-detail]');
       projectStrategy  = scope.querySelector('[data-project-strategy]');
