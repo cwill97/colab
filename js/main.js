@@ -31,8 +31,6 @@
       document.body.setAttribute('data-menu-open', '');
       /* Submerge audio — underwater muffle */
       if (window.colabAudio) window.colabAudio.submerge();
-      /* Start liquid ripple overlay */
-      if (window.colabMenuRipple) window.colabMenuRipple.start();
     }
 
     function hideMenu() {
@@ -47,8 +45,6 @@
           window.colabAudio.surface();
         }
       }
-      /* Stop liquid ripple overlay */
-      if (window.colabMenuRipple) window.colabMenuRipple.stop();
     }
 
     function doTransition(showOrHide) {
@@ -130,7 +126,6 @@
       toggle.setAttribute('aria-expanded', 'false');
       menu.setAttribute('aria-hidden', 'true');
       document.body.removeAttribute('data-menu-open');
-      if (window.colabMenuRipple) window.colabMenuRipple.stop();
     };
   }
 
@@ -405,15 +400,6 @@
         if (activeItem) activeItem.classList.remove('is-scrolled-active');
         best.classList.add('is-scrolled-active');
         activeItem = best;
-
-        /* Extract the project index from the link inside this item */
-        var linkEl = best.querySelector('[data-project-link]');
-        var projIdx = linkEl ? parseInt(linkEl.getAttribute('data-project-link'), 10) : -1;
-
-        /* Fire event so globe + sound respond */
-        document.dispatchEvent(new CustomEvent('colab:mobileProjectActivate', {
-          detail: { index: projIdx }
-        }));
       }
     }
 

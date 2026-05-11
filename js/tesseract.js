@@ -2,11 +2,11 @@
  * co:lab — Tesseract
  *
  * WebGL2 fragment-shader fractal energy core, mounted inside
- * [data-tesseract]. Replaces the previous particle globe.
+ * [data-tesseract].
  *
- * Now supports interactive dragging with momentum inertia.
- * Auto-rotates on a slow time-based orbit when not being dragged.
- * Survives Barba transitions via pause()/resume().
+ * Interactive dragging with momentum inertia; auto-rotates on a
+ * slow time-based orbit when idle. Survives Barba transitions via
+ * pause()/resume().
  */
 (function () {
   'use strict';
@@ -169,13 +169,13 @@
   var heatVal       = 0.0;    // current heat (0 = cool blue, 1 = white-hot)
 
   /* ============================================================
-     INTERACTION STATE — mirrors globe.js drag model exactly
+     INTERACTION STATE
      ============================================================
      The shader already bakes a constant idle spin into iMouse.x via
      `rot(iMouse.x + 0.12*iTime)`, so JS never needs to add its own
      auto-rotate. All we do here is accumulate a user-driven offset
      with momentum + friction that settles smoothly back to zero.
-     Axis mapping matches the globe's feel:
+     Axis mapping:
        horizontal drag → rotationX (yaw, horizontal spin)
        vertical drag   → rotationY (pitch, tilt)
   */
@@ -189,8 +189,8 @@
     prevY: 0
   };
 
-  // Physics constants — matched to globe.js for identical feel
-  var DRAG_SENSITIVITY = 0.005;   // same as globe.js
+  // Physics constants — tuned for hand-feel
+  var DRAG_SENSITIVITY = 0.005;
   var FRICTION         = 0.96;    // per-frame decay (heavier = longer coast)
   var SETTLE_LERP      = 0.009;   // how fast momentum blends back toward 0
 
@@ -235,7 +235,7 @@
   }
 
   /* ============================================================
-     EVENT HANDLERS — mirrors globe.js pattern:
+     EVENT HANDLERS
        • All listeners attach to WINDOW (the tesseract canvas is
          pointer-events:none and sits behind main, so we can't
          rely on canvas events at all).
