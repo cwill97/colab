@@ -1871,13 +1871,17 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
   /* --------------------------------------------------------
      M-0. Tokens
-     col-w = (100vw - 2×12 - 4×9) / 5 = (100vw - 60px) / 5
-     At 402px → 68.4px per column
+     Authored against the 393×852 (iPhone 14 Pro) design baseline.
+     scale.js applies CSS zoom on <html> so every value below
+     scales proportionally on every iPhone.
+     --rvw is the "real" viewport width in design coords
+     (set by scale.js); falls back to 100vw on legacy browsers.
+     col-w = (393 - 2×12 - 4×9) / 5 = (393 - 60) / 5 = 66.6
      -------------------------------------------------------- */
   :root {
     --m:   12px;   /* margin */
     --g:   9px;    /* gutter */
-    --cw:  calc((100vw - 60px) / 5);   /* single col width */
+    --cw:  calc((var(--rvw, 100vw) - 60px) / 5);   /* single col width */
 
     /* Derived widths */
     --w3:  calc(3 * var(--cw) + 2 * var(--g));   /* cols 1–3 */
@@ -1891,10 +1895,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     --nav-btn-size: 18px;
 
     /* TOP-DOWN — tesseract → title → gap → projects.
-       Sized so 2 project items fit above the fold on common mobile
-       heights — bigger tesseract + wider title-proj-gap. */
+       h-tesseract = 38% of 852 design height. */
     --t-tesseract: 70px;
-    --h-tesseract: 38vh;
+    --h-tesseract: 324px;
     --t-title:     calc(var(--t-tesseract) + var(--h-tesseract) + 10px);
     --h-title:     80px;
     --title-proj-gap: 40px;
@@ -2043,7 +2046,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     right: 0;
     margin-inline: auto;
     transform: none;
-    width: calc(100vw - 60px);
+    width: calc(var(--rvw, 100vw) - 60px);
     height: var(--h-tesseract);
     z-index: 10;
     overflow: visible;

@@ -470,13 +470,17 @@
   /* --------------------------------------------------------
      M-P0. Mobile tokens
      Gallery dominates the viewport; title + about sit below.
+     Authored against the 393×852 (iPhone 14 Pro) design baseline;
+     scale.js applies CSS zoom on <html> so px values track viewport.
+     --rvh = "real" viewport height in design coords (set by scale.js).
+     Falls back to 100vh on legacy browsers where the script is absent.
      -------------------------------------------------------- */
   :root {
-    --mp-canvas-h:      70vh;
+    --mp-canvas-h:      596px;                                /* 70% of 852 */
     --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 16px);
     --mp-about-gap:     10px;
     --mp-title-h:       16px;
-    --mp-about-h:       calc(100vh - var(--mp-info-top) - var(--mp-title-h) - var(--mp-about-gap) - 20px);
+    --mp-about-h:       calc(var(--rvh, 100vh) - var(--mp-info-top) - var(--mp-title-h) - var(--mp-about-gap) - 20px);
   }
 
   /* --------------------------------------------------------
@@ -629,10 +633,10 @@
   .project-overview-modal-inner {
     display: flex;
     flex-direction: column;
-    padding: calc(var(--nav-height) + 2vh) var(--m) 3vh;
-    gap: clamp(12px, 2.5vh, 32px);
-    height: 100vh;
-    height: 100dvh;
+    padding: calc(var(--nav-height) + 17px) var(--m) 26px;
+    gap: 21px;
+    height: var(--rvh, 100vh);
+    height: var(--rdvh, 100dvh);
     box-sizing: border-box;
     overflow: hidden;
   }
