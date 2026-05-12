@@ -19,6 +19,11 @@
   display: none;
 }
 
+/* Hide the homepage-only [Audio] label on project pages */
+.project-page .section-label--audio {
+  display: none;
+}
+
 /* Body enters with fade — content fades in after nav stays fixed */
 .project-page main,
 .project-page .audio-visualizer,
@@ -203,43 +208,50 @@
 }
 
 /* ------------------------------------------------------------
-   Scroll-to-next label — mobile only, revealed when gallery
-   overscroll passes its first-stage threshold. Continued scroll
-   then commits the project transition.
+   Scroll-to-next label — universal "rest stop" between projects.
+   Revealed when gallery overscroll passes its first-stage threshold;
+   continued scroll past the higher commit threshold then triggers the
+   project transition. While revealed, the gallery canvas fades out so
+   no project images are visible — the cue sits centered in the
+   viewport on its own.
    ------------------------------------------------------------ */
 .project-scroll-next {
-  display: none;
+  position: fixed;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  transform: translate(-50%, calc(-50% + 6px));
+  z-index: 60;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
 }
 
-@media (max-width: 767px) {
-  .project-scroll-next {
-    position: absolute;
-    inset-block-end: 0;
-    inset-inline-start: 50%;
-    transform: translate(-50%, 6px);
-    padding-block-end: 42px;
-    z-index: 11;
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    opacity: 0;
-    transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
-  }
+.project-scroll-next.is-revealed {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
 
-  .project-scroll-next.is-revealed {
-    opacity: 1;
-    transform: translate(-50%, 0);
-  }
+.project-scroll-next span {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  color: var(--color-fg);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
-  .project-scroll-next span {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.16em;
-    color: var(--color-fg);
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
+/* Hide the gallery canvas while the cue is revealed so no project
+   images are visible behind it. JS toggles .is-end-revealed on the
+   canvas wrap in sync with the cue's reveal state. */
+.project-canvas-wrap .project-depth-canvas {
+  transition: opacity 0.4s var(--ease-out);
+}
+
+.project-canvas-wrap.is-end-revealed .project-depth-canvas {
+  opacity: 0;
 }
 
 /* ------------------------------------------------------------

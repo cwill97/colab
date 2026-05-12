@@ -311,6 +311,7 @@
     transitioning = true;
 
     if (nextLabel) nextLabel.classList.remove('is-revealed');
+    if (canvasWrap) canvasWrap.classList.remove('is-end-revealed');
 
     var ST = window.ShaderTransition;
     if (!ST) {
@@ -441,14 +442,18 @@
 
     if (isMobile) {
       updateMobileTitle(project);
-      ensureNextLabel();
     }
+    /* Build the "scroll to next" cue on every viewport — required for
+       the two-stage overscroll commit on both mobile and desktop. */
+    ensureNextLabel();
   }
 
   /* Inject the "scroll to next" overscroll cue inside the canvas wrap.
-     Mobile-only: hidden by default, revealed when gallery overscroll
-     passes its first stage threshold, then hidden again on retreat or
-     when the transition commits. */
+     Hidden by default, revealed when gallery overscroll passes its
+     first-stage threshold, then hidden again on retreat or when the
+     transition commits. Applies on both mobile and desktop — the user
+     must scroll past this cue to navigate to the next project (no
+     auto-advance). */
   function ensureNextLabel() {
     if (!canvasWrap) return;
     var existing = canvasWrap.querySelector('[data-scroll-next]');
@@ -478,30 +483,28 @@
     gallery.init(canvas, canvasWrap, project.images);
 
     /* ── Scroll past end → next project ──
-       Mobile uses a two-stage overscroll: the "scroll to next" label
-       reveals at the first threshold (UI cue), and the actual project
-       transition commits only after the user keeps scrolling past a
-       higher threshold. Backward auto-transition is disabled on mobile
-       (no onReachStart) — the start of a project simply blocks. */
+       Two-stage overscroll on every viewport: the "scroll to next"
+       label reveals at the first threshold (UI cue) and the gallery
+       canvas fades to hidden, then the project transition commits
+       only after the user keeps scrolling past a higher threshold.
+       This means a user is never auto-advanced — they must explicitly
+       scroll past the cue to navigate forward.
+       Backward auto-transition is disabled — the start of a project
+       simply blocks. */
     gallery.onReachEnd = function () {
       var nextIdx = (currentIndex + 1) % PROJECTS.length;
       transitionToProject(nextIdx, 'forward');
     };
 
-    if (isMobile) {
-      gallery._overscrollCommitThreshold = 220;
-      gallery.onEndLabelReveal = function () {
-        if (nextLabel) nextLabel.classList.add('is-revealed');
-      };
-      gallery.onEndLabelHide = function () {
-        if (nextLabel) nextLabel.classList.remove('is-revealed');
-      };
-    } else {
-      gallery.onReachStart = function () {
-        var prevIdx = (currentIndex - 1 + PROJECTS.length) % PROJECTS.length;
-        transitionToProject(prevIdx, 'backward');
-      };
-    }
+    gallery._overscrollCommitThreshold = 220;
+    gallery.onEndLabelReveal = function () {
+      if (nextLabel) nextLabel.classList.add('is-revealed');
+      if (canvasWrap) canvasWrap.classList.add('is-end-revealed');
+    };
+    gallery.onEndLabelHide = function () {
+      if (nextLabel) nextLabel.classList.remove('is-revealed');
+      if (canvasWrap) canvasWrap.classList.remove('is-end-revealed');
+    };
 
     gallery.start();
 

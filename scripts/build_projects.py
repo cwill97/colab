@@ -177,10 +177,10 @@ def site_head(title: str, description: str, canonical: str, og_image: str) -> st
   <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
   <link href="https://fonts.cdnfonts.com/css/helvetica-neue-5?styles=15273,15271,15270,17624" rel="stylesheet" />
 
-  <link rel="stylesheet" href="/css/main.css?v=2" />
-  <link rel="stylesheet" href="/css/project.css?v=2" />
+  <link rel="stylesheet" href="/css/main.css?v=3" />
+  <link rel="stylesheet" href="/css/project.css?v=3" />
 
-  <script src="/js/scale.js?v=2"></script>"""
+  <script src="/js/scale.js?v=3"></script>"""
 
 
 PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
@@ -254,19 +254,19 @@ PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
 
 PROJECT_SCRIPTS = """  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="/js/shader-reveal.js?v=2"></script>
-  <script src="/js/barba.umd.js?v=2"></script>
-  <script src="/js/main.js?v=2" defer></script>
-  <script src="/js/visualizer.js?v=2" defer></script>
-  <script src="/js/tesseract.js?v=2" defer></script>
-  <script src="/js/bg-reveal.js?v=2" defer></script>
-  <script src="/js/menu-ripple.js?v=2" defer></script>
-  <script src="/js/video-preview.js?v=2" defer></script>
-  <script src="/js/depth-gallery.js?v=2" defer></script>
-  <script src="/js/project-boot.js?v=2" defer></script>
-  <script src="/js/line-hover.js?v=2" defer></script>
-  <script src="/js/hover-sfx.js?v=2" defer></script>
-  <script src="/js/barba-init.js?v=2" defer></script>"""
+  <script src="/js/shader-reveal.js?v=3"></script>
+  <script src="/js/barba.umd.js?v=3"></script>
+  <script src="/js/main.js?v=3" defer></script>
+  <script src="/js/visualizer.js?v=3" defer></script>
+  <script src="/js/tesseract.js?v=3" defer></script>
+  <script src="/js/bg-reveal.js?v=3" defer></script>
+  <script src="/js/menu-ripple.js?v=3" defer></script>
+  <script src="/js/video-preview.js?v=3" defer></script>
+  <script src="/js/depth-gallery.js?v=3" defer></script>
+  <script src="/js/project-boot.js?v=3" defer></script>
+  <script src="/js/line-hover.js?v=3" defer></script>
+  <script src="/js/hover-sfx.js?v=3" defer></script>
+  <script src="/js/barba-init.js?v=3" defer></script>"""
 
 
 # ─────────────────────────────────────── per-project ──
