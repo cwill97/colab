@@ -1,0 +1,850 @@
+/* ============================================================
+   co:lab — Project Page Stylesheet
+   Extends main.css. All tokens inherited.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Project page body state
+   Hides homepage-only elements, adjusts layout for full canvas.
+   ------------------------------------------------------------ */
+
+/* On project.html the tesseract is not used — hide it */
+.project-page .tesseract-wrap {
+  display: none;
+}
+
+/* Services + contact blocks replaced by related-projects */
+.project-page .services-block,
+.project-page .contact-block {
+  display: none;
+}
+
+/* Body enters with fade — content fades in after nav stays fixed */
+.project-page main,
+.project-page .audio-visualizer,
+.project-page .project-logo,
+.project-page .project-info {
+  opacity: 0;
+}
+
+.project-page.is-ready main,
+.project-page.is-ready .audio-visualizer,
+.project-page.is-ready .project-logo,
+.project-page.is-ready .project-info {
+  opacity: 1;
+  /* No CSS transition — the shader overlay handles the visual reveal */
+}
+
+/* ------------------------------------------------------------
+   Main layout — full-height, no overflow
+   ------------------------------------------------------------ */
+.project-main {
+  position: fixed;
+  inset-block-start: var(--nav-height);
+  /* Explicit height instead of inset-block-end:0.
+     CSS zoom multiplies fixed-element insets, so bottom:0 overshoots
+     the physical viewport at zoom > 1. Using 900px (the design artboard
+     height) minus nav guarantees the panel scales in lockstep with zoom
+     and never extends beyond the screen. */
+  height: calc(900px - var(--nav-height));
+  inset-inline-start: 0;
+  /* Stop at col 7: leave room for right rail (cols 8–10) */
+  /* Right edge = grid-margin + 3 col-widths + 3 gutters + viz-width */
+  inset-inline-end: calc(var(--viz-width) + var(--grid-margin) * 2 + var(--grid-gutter));
+  z-index: 20;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------
+   Canvas wrap — fills the main panel
+   Position relative so meta overlay sits inside it
+   ------------------------------------------------------------ */
+.project-canvas-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* UI overlays inside canvas wrap must sit above canvas & receive pointer events */
+.project-canvas-wrap .project-scroll-hint,
+.project-canvas-wrap .project-meta {
+  pointer-events: auto;
+}
+
+/* ------------------------------------------------------------
+   Project metadata — pinned bottom-left of canvas panel
+   ------------------------------------------------------------ */
+.project-meta {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding-inline-start: 30px;
+  padding-block-end: 40px;
+  z-index: 10;
+  pointer-events: none;
+  max-width: 380px;
+}
+
+.project-meta-num {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  color: var(--color-fg);
+  opacity: 0.45;
+  margin-block-end: 10px;
+}
+
+.project-meta-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 200;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--color-fg);
+  margin-block-end: 12px;
+  text-transform: uppercase;
+}
+
+.project-meta-services {
+  font-family: var(--font-display);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  opacity: 0.5;
+  line-height: 1.6;
+  text-transform: uppercase;
+  margin-block-end: 20px;
+}
+
+/* Progress track + counter */
+.project-meta-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.project-meta-track {
+  width: 120px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.project-meta-fill {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 0%;
+  background: var(--color-fg);
+  transition: width 0.4s var(--ease-out);
+}
+
+.project-meta-count {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: var(--color-fg);
+  opacity: 0.4;
+}
+
+/* ------------------------------------------------------------
+   Scroll hint — fades out after first interaction
+   ------------------------------------------------------------ */
+.project-scroll-hint {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding-inline-end: 30px;
+  padding-block-end: 42px;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  opacity: 1;
+  transition: opacity 0.6s var(--ease-out);
+}
+
+.project-scroll-hint.is-hidden {
+  opacity: 0;
+}
+
+.project-scroll-hint span {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: var(--color-fg);
+  opacity: 0.35;
+  text-transform: uppercase;
+}
+
+.scroll-hint-line {
+  width: 40px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.scroll-hint-line::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: -100%;
+  width: 100%;
+  background: var(--color-fg);
+  animation: hint-sweep 1.8s var(--ease-out) infinite;
+}
+
+@keyframes hint-sweep {
+  0%   { transform: translateX(0%); opacity: 0; }
+  20%  { opacity: 1; }
+  100% { transform: translateX(200%); opacity: 0; }
+}
+
+/* ------------------------------------------------------------
+   Scroll-to-next label — mobile only, revealed when gallery
+   overscroll passes its first-stage threshold. Continued scroll
+   then commits the project transition.
+   ------------------------------------------------------------ */
+.project-scroll-next {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .project-scroll-next {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-start: 50%;
+    transform: translate(-50%, 6px);
+    padding-block-end: 42px;
+    z-index: 11;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+  }
+
+  .project-scroll-next.is-revealed {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .project-scroll-next span {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    color: var(--color-fg);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+}
+
+/* ------------------------------------------------------------
+   Project Logo — top-right slot (replaces audio visualizer)
+   Same position + envelope as the old video preview.
+   ------------------------------------------------------------ */
+.project-logo {
+  position: fixed;
+  inset-block-start: calc(var(--nav-height) + var(--title-gap));
+  inset-inline-end: var(--grid-margin);
+  width: var(--viz-width);
+  height: var(--viz-height);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.project-logo-img {
+  display: block;
+  max-width: 75%;
+  max-height: 75%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Fallback when no logo SVG is supplied — render the project name */
+.project-logo-text {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 200;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  text-align: center;
+  line-height: 1;
+}
+
+/* ------------------------------------------------------------
+   Project Info Panel — right rail
+   Replaces about-text + related-projects.
+   Project Detail → Strategy → Timeline → Next Project (anchored bottom).
+   ------------------------------------------------------------ */
+.project-info {
+  position: fixed;
+  inset-block-start: calc(
+    var(--nav-height)
+    + var(--title-gap)
+    + var(--viz-height)
+    + var(--about-gap)
+  );
+  inset-block-end: 80px;          /* leaves room for the audio toggle */
+  inset-inline-end: var(--grid-margin);
+  width: var(--viz-width);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  overflow: visible;
+}
+
+.project-info-section {
+  display: block;
+}
+
+.project-info-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+  margin-block-end: 12px;
+}
+
+.project-info-text {
+  font-family: var(--font-display);
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: var(--color-fg);
+}
+
+.project-info-section--timeline .project-info-text {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+/* ------------------------------------------------------------
+   "View Live Project" link — sits after timeline
+   ------------------------------------------------------------ */
+.project-live-link {
+  align-self: flex-start;
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  opacity: 0.6;
+  text-decoration: none;
+  padding-block: 4px;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.project-live-link:hover {
+  opacity: 1;
+}
+
+.project-next-link {
+  margin-block-start: 16px;
+  align-self: flex-start;
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  opacity: 0.6;
+  text-decoration: none;
+  padding-block: 4px;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.project-next-link:hover {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------
+   Mobile-only elements — hidden on desktop by default.
+   Activated inside the @media (max-width: 767px) block below.
+   ------------------------------------------------------------ */
+.project-mobile-overview-trigger,
+.project-overview-modal {
+  display: none;
+}
+
+/* ------------------------------------------------------------
+   Thin vertical rule separating canvas from right rail
+   ------------------------------------------------------------ */
+.project-main::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: -1px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+/* ============================================================
+   DEPTH GALLERY CANVAS
+   The only gallery view. Transparent background — site BG shows.
+   ============================================================ */
+.project-depth-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  pointer-events: auto;
+}
+
+/* ============================================================
+   MOBILE PROJECT TITLE — hidden on desktop
+   ============================================================ */
+.project-mobile-title {
+  display: none;
+}
+
+/* ============================================================
+   MOBILE SCROLL HINT — hidden on desktop
+   ============================================================ */
+.project-mobile-hint {
+  display: none;
+}
+
+/* ============================================================
+   MOBILE — Project Page Layout (viewport-locked)
+   Canvas top → Title + About mid → Related Projects bottom
+   ============================================================ */
+@media (max-width: 767px) {
+
+  /* --------------------------------------------------------
+     M-P0. Mobile tokens
+     Gallery dominates the viewport; title + about sit below.
+     Authored against the 393×852 (iPhone 14 Pro) design baseline;
+     scale.js applies CSS zoom on <html> so px values track viewport.
+     --rvh = "real" viewport height in design coords (set by scale.js).
+     Falls back to 100vh on legacy browsers where the script is absent.
+     -------------------------------------------------------- */
+  :root {
+    --mp-canvas-h:      596px;                                /* 70% of 852 */
+    --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 16px);
+    --mp-about-gap:     10px;
+    --mp-title-h:       16px;
+    --mp-about-h:       calc(var(--rvh, 100vh) - var(--mp-info-top) - var(--mp-title-h) - var(--mp-about-gap) - 20px);
+  }
+
+  /* --------------------------------------------------------
+     M-P1. Hide desktop-only elements
+     -------------------------------------------------------- */
+  .project-page .project-logo,
+  .project-page .project-info,
+  .project-page .project-scroll-hint,
+  .project-page .audio-visualizer {
+    display: none !important;
+  }
+
+  /* Hide the project-meta overlay on canvas */
+  .project-page .project-meta {
+    display: none;
+  }
+
+  /* Prevent native text selection from firing during
+     hold-to-auto-scroll on the gallery canvas */
+  .project-page {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* --------------------------------------------------------
+     M-P2. Canvas area — top portion of viewport
+     -------------------------------------------------------- */
+  .project-page .project-main {
+    position: fixed;
+    inset-block-start: var(--nav-height);
+    inset-block-end: auto;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    height: var(--mp-canvas-h);
+    z-index: 20;
+    overflow: hidden;
+  }
+
+  /* Remove the vertical divider line on mobile */
+  .project-page .project-main::after {
+    display: none;
+  }
+
+  /* --------------------------------------------------------
+     M-P3. Mobile project title — below canvas
+     -------------------------------------------------------- */
+  .project-page .project-mobile-title {
+    display: block;
+    position: fixed;
+    inset-block-start: var(--mp-info-top);
+    inset-inline-start: var(--m);
+    inset-inline-end: var(--m);
+    z-index: 50;
+    font-family: var(--font-display);
+    font-size: 21px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    line-height: 1;
+    margin: 0;
+  }
+
+  /* Fade with page */
+  .project-page .project-mobile-title {
+    opacity: 0;
+  }
+  .project-page.is-ready .project-mobile-title {
+    opacity: 1;
+  }
+
+  /* --------------------------------------------------------
+     M-P4. "read overview" trigger — sits below the title,
+     above the scroll/hold hint. Opens the overview modal.
+     -------------------------------------------------------- */
+  .project-page .project-mobile-overview-trigger {
+    display: block;
+    position: fixed;
+    inset-block-start: calc(
+      var(--mp-info-top) + var(--mp-title-h) + var(--mp-about-gap)
+    );
+    inset-inline-start: var(--m);
+    z-index: 50;
+    background: none;
+    border: none;
+    padding: 4px 0;
+    margin: 0;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .project-page.is-ready .project-mobile-overview-trigger {
+    opacity: 0.75;
+  }
+
+  .project-page .project-mobile-overview-trigger:active {
+    opacity: 1;
+  }
+
+  /* --------------------------------------------------------
+     M-P5. Mobile scroll hint — bottom-left
+     -------------------------------------------------------- */
+  .project-page .project-mobile-hint {
+    display: block;
+    position: fixed;
+    inset-block-end: 20px;
+    inset-inline-start: var(--m);
+    z-index: 50;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    opacity: 0.3;
+  }
+
+  /* --------------------------------------------------------
+     M-P6. Mobile overview modal — full-screen overlay
+     Designed to ALWAYS fit the viewport, no scrolling.
+     All internal sizing uses vh/clamp so content compresses
+     down to short screens (iPhone SE etc.) without overflow.
+     -------------------------------------------------------- */
+  .project-page .project-overview-modal {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--color-bg);
+    flex-direction: column;
+    opacity: 0;
+    visibility: hidden;
+    overflow: hidden;
+    overscroll-behavior: contain;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+  }
+
+  .project-page .project-overview-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .project-overview-modal-inner {
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--nav-height) + 17px) var(--m) 26px;
+    gap: 21px;
+    height: var(--rvh, 100vh);
+    height: var(--rdvh, 100dvh);
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .project-overview-modal-logo {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-block-start: clamp(8px, 1.5vh, 24px);
+    margin-block-end: clamp(8px, 1.5vh, 24px);
+    flex-shrink: 1;
+    min-height: 0;
+  }
+
+  .project-overview-modal-logo img {
+    display: block;
+    max-width: clamp(120px, 28vw, 220px);
+    max-height: clamp(40px, 8vh, 100px);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
+  .project-overview-modal-logo .project-logo-text {
+    font-size: clamp(20px, 4vw, 32px);
+  }
+
+  .project-overview-modal-content {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 2.5vh, 36px);
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .project-overview-modal-section {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: clamp(12px, 2vw, 24px);
+    align-items: flex-start;
+    flex-shrink: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .project-overview-modal-section .project-info-label {
+    margin-block-end: 0;
+    font-size: clamp(7px, 1.2vw, 9px);
+  }
+
+  .project-overview-modal-section .project-info-text {
+    font-size: clamp(9px, 1.4vw, 11px);
+    line-height: 1.55;
+  }
+
+  .project-overview-live-link {
+    display: inline-block;
+    align-self: center;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-fg);
+    text-decoration: none;
+    opacity: 0.75;
+    padding: clamp(4px, 0.8vh, 8px) 0;
+    margin-block-start: auto;
+    transition: opacity 0.2s ease;
+  }
+
+  .project-overview-live-link:active {
+    opacity: 1;
+  }
+
+  .project-overview-close {
+    margin-inline: auto;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    padding: clamp(8px, 1.5vh, 16px) 24px;
+    margin-block-start: clamp(8px, 1.5vh, 24px);
+    text-transform: uppercase;
+    opacity: 0.75;
+    transition: opacity 0.2s ease;
+  }
+
+  .project-overview-close:active {
+    opacity: 1;
+  }
+
+  /* Hide background chrome while overlay is open */
+  body.has-overview-modal-open .audio-toggle,
+  body.has-overview-modal-open .project-mobile-hint,
+  body.has-overview-modal-open .project-mobile-title,
+  body.has-overview-modal-open .project-mobile-overview-trigger {
+    visibility: hidden;
+  }
+
+} /* end @media (max-width: 767px) — project page */
+
+/* ============================================================
+   AUDIO TOGGLE — bottom-right, project page only
+   Animated stroke ring + On/Off label.
+   Hidden on homepage where the visualizer serves as the toggle.
+   ============================================================ */
+
+.audio-toggle {
+  position: fixed;
+  inset-block-end: 28px;
+  inset-inline-end: var(--grid-margin, 28px);
+  z-index: 80;
+  display: none;                      /* hidden by default (homepage) */
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Show on project and about pages */
+.project-page .audio-toggle,
+.about-page .audio-toggle {
+  display: flex;
+}
+
+/* Fade in with the rest of the page */
+.project-page .audio-toggle,
+.about-page .audio-toggle {
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.project-page.is-ready .audio-toggle,
+.about-page .audio-toggle {
+  opacity: 1;
+}
+
+/* ── Label ── */
+.audio-toggle-label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: var(--color-fg);
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+  text-transform: capitalize;
+}
+
+.audio-toggle:hover .audio-toggle-label {
+  opacity: 1;
+}
+
+/* ── SVG waveform ──
+   Five vertical bars styled as a waveform silhouette.
+   Each bar is a <line> 16px tall centred on y=18. Default
+   state collapses them to short flat marks (scaleY(0.1)) with
+   a diagonal slash indicating muted. When playing, bars animate
+   through staggered scaleY values to create a live waveform. */
+.audio-toggle-wave {
+  width: 32px;
+  height: 32px;
+  overflow: visible;
+}
+
+.audio-toggle-bar {
+  stroke: rgba(255, 255, 255, 0.45);
+  stroke-width: 2;
+  stroke-linecap: round;
+  transform: scaleY(0.1);
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transition: stroke 0.3s ease, transform 0.3s ease;
+}
+
+/* Muted slash — visible when off, fades out when playing. */
+.audio-toggle-slash {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 1;
+  transition: opacity 0.3s ease, stroke 0.3s ease;
+}
+
+/* ── Active state (audio playing) — bars oscillate ── */
+.audio-toggle.is-playing .audio-toggle-label {
+  opacity: 0.9;
+}
+
+.audio-toggle.is-playing .audio-toggle-bar {
+  stroke: rgba(255, 255, 255, 0.75);
+  animation: audio-wave-bar 1s ease-in-out infinite;
+}
+
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="0"] { animation-delay: 0.00s; }
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="1"] { animation-delay: 0.12s; }
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="2"] { animation-delay: 0.24s; }
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="3"] { animation-delay: 0.36s; }
+.audio-toggle.is-playing .audio-toggle-bar[data-bar="4"] { animation-delay: 0.48s; }
+
+.audio-toggle.is-playing .audio-toggle-slash {
+  opacity: 0;
+}
+
+.audio-toggle:hover .audio-toggle-bar {
+  stroke: rgba(255, 255, 255, 0.85);
+}
+
+.audio-toggle:hover .audio-toggle-slash {
+  stroke: rgba(255, 255, 255, 0.75);
+}
+
+/* Scale bars vertically around each bar's midpoint (y=18).
+   Values chosen so adjacent bars look visually offset while the
+   animation runs, producing a waveform rhythm. */
+@keyframes audio-wave-bar {
+  0%, 100% { transform: scaleY(0.20); }
+  25%      { transform: scaleY(1.00); }
+  50%      { transform: scaleY(0.45); }
+  75%      { transform: scaleY(0.85); }
+}
+
+/* ── Mobile ──
+   Note: mobile position is handled in main.css (top-left in nav).
+   Here we only tweak visual size. */
+@media (max-width: 767px) {
+  .audio-toggle-wave {
+    width: 28px;
+    height: 28px;
+  }
+
+  .audio-toggle-label {
+    font-size: 9px;
+  }
+}

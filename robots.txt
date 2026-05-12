@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://colab47.com/sitemap.xml
