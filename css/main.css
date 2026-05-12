@@ -408,11 +408,10 @@ button {
   white-space: nowrap;
 }
 
-/* Items 3-5 share one indent — Research / Experiment / Marketplace
-   sit in a single column, aligned with each other (not stair-stepped). */
+/* Items 3-4 share one indent — Research / Experiment sit in a single
+   column, aligned with each other (not stair-stepped). */
 .menu-nav-item:nth-child(3),
-.menu-nav-item:nth-child(4),
-.menu-nav-item:nth-child(5) {
+.menu-nav-item:nth-child(4) {
   padding-inline-start: 2.4em;
 }
 
@@ -451,71 +450,6 @@ a.menu-nav-link:focus-visible {
   color: var(--color-fg);
 }
 
-/* Inactive (unbuilt) pages — non-interactive, muted, no hover. */
-.menu-nav-link.is-inactive {
-  color: var(--color-muted);
-  cursor: default;
-  pointer-events: none;
-}
-
-/* Marketplace-style "broken signal" effect.
-   Reuses the same glitch-blink + glitch-rgb + glitch-crash trio as
-   the nav-toggle square so both elements speak the same visual
-   language. RGB chromatic split is paint via text-shadow here
-   (mirror of glitch-rgb's box-shadow values) since this glitches
-   text rather than a square block.
-   pointer-events:none on the inner span lets events fall through to
-   the parent <li>, which is what we hover and click. */
-.menu-nav-item.is-inactive {
-  cursor: not-allowed;
-}
-
-@keyframes glitch-rgb-text {
-  0%   {
-    text-shadow: none;
-    transform: translate(0, 0);
-  }
-  10%  {
-    text-shadow:
-      -3px 0 0 rgba(30, 172, 255, 0.9),
-       3px 0 0 rgba(0, 238, 250, 0.9);
-    transform: translate(2px, -1px) skewX(-8deg);
-  }
-  20%  {
-    text-shadow:
-       3px 0 0 rgba(30, 172, 255, 0.9),
-      -3px 0 0 rgba(0, 238, 250, 0.9);
-    transform: translate(-2px, 1px) skewX(6deg);
-  }
-  30%  {
-    text-shadow:
-      -2px 0 0 rgba(30, 172, 255, 0.9),
-       2px 0 0 rgba(0, 238, 250, 0.9);
-    transform: translate(1px, 0) skewX(-3deg);
-  }
-  40%  {
-    text-shadow: none;
-    transform: translate(0, 0);
-  }
-  100% {
-    text-shadow: none;
-    transform: translate(0, 0);
-  }
-}
-
-.menu-nav-link.is-inactive.is-buzzing {
-  animation:
-    glitch-blink     0.6s steps(1) forwards,
-    glitch-rgb-text  0.6s steps(1) forwards,
-    glitch-crash     0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .menu-nav-link.is-inactive.is-buzzing {
-    animation: none;
-  }
-}
-
 /* Coordinates next to Index — small mono caption */
 .menu-coords {
   font-family: var(--font-mono, var(--font-display));
@@ -524,17 +458,6 @@ a.menu-nav-link:focus-visible {
   color: var(--color-fg);
   align-self: flex-start;
   margin-block-start: 0.35em;
-}
-
-/* (SOON) tag riding the baseline of Marketplace */
-.menu-soon-tag {
-  font-family: var(--font-mono, var(--font-display));
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--color-muted);
-  vertical-align: baseline;
-  margin-inline-start: 0.2em;
-  text-transform: uppercase;
 }
 
 /* Contact + Socials footer — hidden on desktop, shown on mobile */
@@ -1033,6 +956,7 @@ main {
   text-transform: uppercase;
 }
 
+.section-label--audio,
 .section-label--about,
 .section-label--services,
 .section-label--contact {
@@ -1040,6 +964,15 @@ main {
   inset-inline-end: var(--grid-margin);
   width: var(--viz-width);
   z-index: 50;
+}
+
+.section-label--audio {
+  inset-block-start: calc(
+    var(--nav-height)
+    + var(--title-gap)
+    - var(--section-label-height)
+    - var(--section-label-gap)
+  );
 }
 
 .section-label--about {
@@ -1190,6 +1123,22 @@ main {
   .menu-nav-list li.is-line-hover-active .line-hover__bg {
     -webkit-clip-path: inset(0 0 0 0);
             clip-path: inset(0 0 0 0);
+  }
+}
+
+/* Menu nav variant — solid white block, black text on hover (inverted).
+   Overrides the default translucent backdrop scoped to menu nav items
+   only; services/contact rows keep the subtle glass effect. */
+.menu-nav-list .line-hover__bg {
+  background: var(--color-fg);
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .menu-nav-list li.is-line-hover-active .menu-nav-link,
+  .menu-nav-list li.is-line-hover-active .line-hover {
+    color: var(--color-bg);
   }
 }
 
@@ -1399,6 +1348,7 @@ body.loader-active [data-visualizer],
 body.loader-active .about-text,
 body.loader-active .services-block,
 body.loader-active .contact-block,
+body.loader-active .section-label--audio,
 body.loader-active .section-label--about,
 body.loader-active .section-label--services,
 body.loader-active .section-label--contact,
@@ -1413,6 +1363,7 @@ body:not(.loader-active) [data-visualizer],
 body:not(.loader-active) .about-text,
 body:not(.loader-active) .services-block,
 body:not(.loader-active) .contact-block,
+body:not(.loader-active) .section-label--audio,
 body:not(.loader-active) .section-label--about,
 body:not(.loader-active) .section-label--services,
 body:not(.loader-active) .section-label--contact {
@@ -1438,6 +1389,7 @@ body.page-entering [data-visualizer],
 body.page-entering .about-text,
 body.page-entering .services-block,
 body.page-entering .contact-block,
+body.page-entering .section-label--audio,
 body.page-entering .section-label--about,
 body.page-entering .section-label--services,
 body.page-entering .section-label--contact {
@@ -1457,6 +1409,7 @@ body.page-entering.page-revealed [data-visualizer],
 body.page-entering.page-revealed .about-text,
 body.page-entering.page-revealed .services-block,
 body.page-entering.page-revealed .contact-block,
+body.page-entering.page-revealed .section-label--audio,
 body.page-entering.page-revealed .section-label--about,
 body.page-entering.page-revealed .section-label--services,
 body.page-entering.page-revealed .section-label--contact {
@@ -1817,7 +1770,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     --h-tesseract: 324px;
     --t-title:     calc(var(--t-tesseract) + var(--h-tesseract) + 10px);
     --h-title:     80px;
-    --title-proj-gap: 40px;
+    --title-proj-gap: 90px;
     --t-projects:  calc(var(--t-title) + var(--h-title) + var(--title-proj-gap));
   }
 
@@ -1974,6 +1927,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
      Right-column labels follow their sections.
      -------------------------------------------------------- */
   .about-text,
+  .section-label--audio,
   .section-label--about,
   .section-label--services,
   .section-label--contact {
@@ -2207,9 +2161,6 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .menu-coords {
-    font-size: 9px;
-  }
-  .menu-soon-tag {
     font-size: 9px;
   }
 

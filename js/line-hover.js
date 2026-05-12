@@ -127,11 +127,12 @@
     li.setAttribute('data-line-hover-init', '');
 
     // Decide host:
-    //   1. If the <li> has any <a> child (direct or nested), use the
-    //      first one as host. Sibling decoration (e.g. the menu's
-    //      active-square or coordinates label) is left untouched.
-    //   2. Otherwise wrap all <li> contents in a <span class="line-hover">.
-    var anchor = li.querySelector('a');
+    //   1. If the element itself is an <a>, use it as host (active class
+    //      lands on the anchor itself — used by standalone link buttons).
+    //   2. Else if the <li> contains an <a>, use that as host. Sibling
+    //      decoration (active-square, coords label) is left untouched.
+    //   3. Otherwise wrap all contents in a <span class="line-hover">.
+    var anchor = (li.tagName === 'A') ? li : li.querySelector('a');
     var host;
     var originalText;
 
@@ -210,6 +211,12 @@
 
     if (prefersReducedMotion()) return;
 
+    // Menu nav items + standalone link buttons: backdrop wipe only,
+    // no character shuffle.
+    if (li.classList.contains('menu-nav-item') ||
+        li.classList.contains('project-live-link') ||
+        li.classList.contains('project-next-link')) return;
+
     var chars = li._lhChars;
     if (!chars || !chars.length) return;
 
@@ -241,7 +248,9 @@
       var items = document.querySelectorAll(
         '.services-block li, ' +
         '.contact-block li, ' +
-        '.menu-nav-list li:not(.is-inactive)'
+        '.menu-nav-list li:not(.is-inactive), ' +
+        '.project-live-link, ' +
+        '.project-next-link'
       );
       Array.prototype.forEach.call(items, enhanceItem);
 
@@ -264,16 +273,13 @@
     init();
   }
 
-  // Re-init after Barba transitions into the home namespace. The home
-  // container is freshly inserted on every transition, so the previous
-  // wrapper spans are gone and we need to re-enhance the new <li>s.
+  // Re-init after Barba transitions. The barba container is freshly
+  // inserted on every transition, so the previous wrapper spans are
+  // gone and we need to re-enhance the new elements. init() is
+  // idempotent — data-line-hover-init guards prevent double-wrap.
   function hookBarba(attempts) {
     if (typeof window.barba !== 'undefined' && window.barba.hooks) {
-      window.barba.hooks.afterEnter(function (data) {
-        if (data && data.next && data.next.namespace === 'home') {
-          init();
-        }
-      });
+      window.barba.hooks.afterEnter(function () { init(); });
       return;
     }
     if (attempts > 100) return;  // give up after ~10s

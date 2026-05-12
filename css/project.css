@@ -73,17 +73,12 @@
 }
 
 /* ------------------------------------------------------------
-   Project metadata — pinned bottom-left of canvas panel
+   Project metadata — hidden on all viewports. JS still updates
+   the data-meta-* nodes as the gallery scrolls; they remain in
+   the DOM but are never rendered.
    ------------------------------------------------------------ */
 .project-meta {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  padding-inline-start: 30px;
-  padding-block-end: 40px;
-  z-index: 10;
-  pointer-events: none;
-  max-width: 380px;
+  display: none;
 }
 
 .project-meta-num {
@@ -376,6 +371,31 @@
 
 .project-next-link:hover {
   opacity: 1;
+}
+
+/* Inverted line-hover block — solid white backdrop, black text on hover.
+   Mirrors the nav menu treatment. line-hover.js wraps the anchor's text
+   in .line-hover__inner/__char spans and toggles .is-line-hover-active
+   on the anchor itself. */
+.project-live-link .line-hover__bg,
+.project-next-link .line-hover__bg {
+  background: var(--color-fg);
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .project-live-link.is-line-hover-active .line-hover__bg,
+  .project-next-link.is-line-hover-active .line-hover__bg {
+    -webkit-clip-path: inset(0 0 0 0);
+            clip-path: inset(0 0 0 0);
+  }
+
+  .project-live-link.is-line-hover-active,
+  .project-next-link.is-line-hover-active {
+    color: var(--color-bg);
+    opacity: 1;
+  }
 }
 
 /* ------------------------------------------------------------

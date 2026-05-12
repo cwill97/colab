@@ -235,9 +235,6 @@ PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
         <li class="menu-nav-item" data-nav="experiment">
           <span class="menu-active-square" aria-hidden="true"></span><a href="/experiment" class="menu-nav-link" data-nav="experiment">Experiment</a>
         </li>
-        <li class="menu-nav-item is-inactive">
-          <span class="menu-active-square" aria-hidden="true"></span><span class="menu-nav-link is-inactive" aria-disabled="true">Marketplace<sup class="menu-soon-tag">(SOON)</sup></span>
-        </li>
       </ul>
     </nav>
     <div class="menu-footer">
@@ -269,7 +266,6 @@ PROJECT_SCRIPTS = """  <script src="https://cdnjs.cloudflare.com/ajax/libs/three
   <script src="/js/project-boot.js?v=2" defer></script>
   <script src="/js/line-hover.js?v=2" defer></script>
   <script src="/js/hover-sfx.js?v=2" defer></script>
-  <script src="/js/marketplace-buzz.js?v=2" defer></script>
   <script src="/js/barba-init.js?v=2" defer></script>"""
 
 
@@ -505,7 +501,6 @@ def projects_index_html() -> str:
   <script src="/js/menu-ripple.js" defer></script>
   <script src="/js/line-hover.js" defer></script>
   <script src="/js/hover-sfx.js" defer></script>
-  <script src="/js/marketplace-buzz.js" defer></script>
   <script src="/js/barba-init.js" defer></script>
 
 </body>
