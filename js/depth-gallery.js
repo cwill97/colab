@@ -94,23 +94,27 @@
     this._idleSpeed       = _isMobile ? 0.8 : 0.56; /* px per frame — positive = forward */
     this._idlePaused      = false;  /* external pause (e.g. overview modal open) */
 
-    /* End-of-gallery overscroll detection.
-       Single-stage (desktop default): onReachEnd fires once the overscroll
-       accumulator passes _overscrollThreshold. Two-stage (mobile): set
-       _overscrollCommitThreshold to a higher value — onEndLabelReveal then
-       fires at the lower threshold (UI cue), and onReachEnd defers until
-       overscroll reaches the commit threshold. */
+    /* End-of-gallery overscroll detection — two-stage flow.
+       onEndLabelReveal fires at _overscrollThreshold (cue appears),
+       onReachEnd defers until _overscrollCommitThreshold AFTER a
+       minimum hold (_minRevealHold) has elapsed since the reveal.
+       Per-tick contribution is capped so a single huge scroll event
+       can't blow through both thresholds in one frame. */
     this.onReachEnd       = null;
     this.onReachStart     = null;
-    this.onEndLabelReveal = null;   /* first-stage cue (mobile two-stage flow) */
+    this.onEndLabelReveal = null;   /* first-stage cue */
     this.onEndLabelHide   = null;   /* fires when user retreats before commit */
     this._endFired        = false;
     this._startFired      = false;
     this._labelRevealed   = false;
+    this._labelRevealedAt = 0;
     this._overscrollAccum = 0;
     this._underscrollAccum = 0;
     this._overscrollThreshold       = 80;   /* px — first stage / single-stage trigger */
     this._overscrollCommitThreshold = null; /* px — when set, transition defers to this higher value */
+    this._overscrollPerTickCap      = 30;   /* px — max accumulator growth per tick (kills fast-scroll blowthrough) */
+    this._minRevealHold             = 700;  /* ms — cue must remain visible at least this long before commit can fire */
+    this._maxScrollPos              = null; /* cached in _updateScroll for use in idle auto-scroll guard */
 
     /* Bound handlers */
     this._onWheel       = this._onWheel.bind(this);
@@ -319,6 +323,7 @@
       this._endFired       = false;
       this._startFired     = false;
       this._labelRevealed  = false;
+      this._labelRevealedAt = 0;
       this._overscrollAccum = 0;
       this._underscrollAccum = 0;
     }
@@ -332,30 +337,61 @@
     var minScroll = (this.cameraStartZ - this.maxCameraZ) / this.scrollToWorldFactor;
     var maxScroll = (this.cameraStartZ - this.minCameraZ) / this.scrollToWorldFactor;
 
+    /* Cache scroll bounds so _tick's idle auto-scroll can stop short
+       of the end (otherwise idle would silently auto-advance projects). */
+    this._maxScrollPos = maxScroll;
+    this._minScrollPos = minScroll;
+
     /* ── End-of-gallery overscroll detection ──
-       Two stages: reveal label at _overscrollThreshold, commit transition
-       at _overscrollCommitThreshold (falls back to the same threshold
-       when commit is null — preserves single-stage desktop behavior). */
+       Three-phase flow that prevents fast scrolls from skipping the
+       "scroll to next" cue:
+         1) Pre-reveal: per-tick-capped contributions accumulate toward
+            _overscrollThreshold. When reached, the cue reveals and the
+            accumulator resets.
+         2) Hold: for _minRevealHold ms after reveal, any incoming
+            overscroll is swallowed (accum clamped to 0) so the cue
+            stays visible regardless of scroll velocity.
+         3) Commit: after the hold elapses, fresh per-tick-capped
+            contributions accumulate toward _overscrollCommitThreshold
+            and onReachEnd fires only when crossed. */
     if (this.scrollTarget > maxScroll && !this._endFired) {
-      this._overscrollAccum += (this.scrollTarget - maxScroll);
+      var contribution = Math.min(
+        this.scrollTarget - maxScroll,
+        this._overscrollPerTickCap
+      );
 
-      if (this._overscrollAccum >= this._overscrollThreshold && !this._labelRevealed) {
-        this._labelRevealed = true;
-        if (typeof this.onEndLabelReveal === 'function') {
-          this.onEndLabelReveal();
+      if (!this._labelRevealed) {
+        this._overscrollAccum += contribution;
+        if (this._overscrollAccum >= this._overscrollThreshold) {
+          this._labelRevealed   = true;
+          this._labelRevealedAt = performance.now();
+          this._overscrollAccum = 0;
+          if (typeof this.onEndLabelReveal === 'function') {
+            this.onEndLabelReveal();
+          }
+        }
+      } else {
+        var sinceReveal = performance.now() - this._labelRevealedAt;
+        if (sinceReveal < this._minRevealHold) {
+          this._overscrollAccum = 0;
+        } else {
+          this._overscrollAccum += contribution;
+          var commit = (this._overscrollCommitThreshold != null)
+            ? this._overscrollCommitThreshold
+            : this._overscrollThreshold;
+          if (this._overscrollAccum >= commit) {
+            this._endFired = true;
+            if (typeof this.onReachEnd === 'function') {
+              this.onReachEnd();
+            }
+          }
         }
       }
-
-      var commit = (this._overscrollCommitThreshold != null)
-        ? this._overscrollCommitThreshold
-        : this._overscrollThreshold;
-      if (this._overscrollAccum >= commit) {
-        this._endFired = true;
-        if (typeof this.onReachEnd === 'function') {
-          this.onReachEnd();
-        }
-      }
-    } else if (this.scrollTarget <= maxScroll) {
+    } else if (this.scrollTarget < maxScroll) {
+      /* Strict less-than so the accumulator survives ticks where the
+         scrollTarget has been clamped to exactly maxScroll between
+         user input events — otherwise accum would clear in those
+         "rest" frames and never build up across a fast scroll burst. */
       this._overscrollAccum = 0;
       if (this._labelRevealed) {
         this._labelRevealed = false;
@@ -483,8 +519,12 @@
     if (this._autoScrolling) {
       this.scrollTarget += this._autoScrollSpeed;
     }
-    /* Idle auto-scroll: always running (unless externally paused) */
-    else if (!this._idlePaused) {
+    /* Idle auto-scroll: always running, but stops at the last image so
+       it can never silently advance to the next project. The user must
+       explicitly scroll past the end to overscroll into the cue. */
+    else if (!this._idlePaused &&
+             (this._maxScrollPos == null ||
+              this.scrollTarget < this._maxScrollPos)) {
       this.scrollTarget += this._idleSpeed;
     }
 
