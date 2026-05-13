@@ -1,24 +1,10 @@
-/**
- * Images stacked along Z-axis. Scroll moves camera forward/backward.
- * Mouse parallax + breath/tilt driven by scroll velocity.
- * GLSL background with animated blob gradient + film grain.
- * Crossfades between adjacent planes based on camera Z.
- *
- * Exposed as window.DepthGallery with:
- *   .init(canvas, wrap, images)  — initialise & mount
- *   .start()                     — begin render loop
- *   .stop()                      — pause render loop
- *   .destroy()                   — full teardown
- *   .loadImages(images)          — swap image set
- */
-
 (function (global) {
   'use strict';
 
   /* ============================================================
      PLANE CONFIG — positions mirror galleryPlaneData (x offsets)
      ============================================================ */
-  var PLANE_X_OFFSETS = [0, 1, -1, 0, 1, -1, 0, 1, -1, 0, 1, -1];
+  var PLANE_X_OFFSETS = [0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5];
 
   /* ============================================================
      DEPTH GALLERY CLASS
@@ -39,19 +25,19 @@
     /* Scroll state — from Scroll.js */
     this.scrollTarget  = 0;
     this.scrollCurrent = 0;
-    this.scrollSmoothing      = 0.21;
-    this.scrollToWorldFactor  = 0.03;
+    this.scrollSmoothing      = 0.9;
+    this.scrollToWorldFactor  = 0.01;
     this.prevScrollCurrent    = 0;
     this.rawVelocity   = 0;
     this.velocity      = 0;
     this.velocityDamping     = 0.12;
     this.velocityMax         = 1.2;
-    this.cameraStartZ  = 0;
+    this.cameraStartZ  = -1;
     this.minCameraZ    = -Infinity;
     this.maxCameraZ    =  Infinity;
 
     /* Plane config — from Gallery.js */
-    this.planeGap       = 7;
+    this.planeGap       = 6;
     this.planeFadeSmoothing = 0.14;
 
     /* Parallax — from Gallery.js */

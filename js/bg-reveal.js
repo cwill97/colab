@@ -95,14 +95,14 @@
      giving the blue background a living, breathing quality.
      ================================================================ */
 
-  var POOL_SIZE      = 4;       // max simultaneous spots
+  var POOL_SIZE      = 3;       // max simultaneous spots
   var SPAWN_MIN      = 900;     // ms between spawns (min)
-  var SPAWN_MAX      = 2250;    // ms between spawns (max)
-  var FADE_IN        = 900;     // ms to fade in
+  var SPAWN_MAX      = 1250;    // ms between spawns (max)
+  var FADE_IN        = 600;     // ms to fade in
   var HOLD           = 600;     // ms fully visible
   var FADE_OUT       = 1300;    // ms to fade out
   var RADIUS_MIN     = 90;      // px — smallest ambient spot
-  var RADIUS_MAX     = 210;     // px — largest ambient spot
+  var RADIUS_MAX     = 300;     // px — largest ambient spot
   var MARGIN         = 0.08;    // keep spots 8% away from edges
   var DRIFT_MIN      = 15;      // px — minimum drift distance
   var DRIFT_MAX      = 40;      // px — maximum drift distance

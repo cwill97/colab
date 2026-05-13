@@ -450,15 +450,6 @@ a.menu-nav-link:focus-visible {
   color: var(--color-fg);
 }
 
-/* Coordinates next to Index — small mono caption */
-.menu-coords {
-  font-family: var(--font-mono, var(--font-display));
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  color: var(--color-fg);
-  align-self: flex-start;
-  margin-block-start: 0.35em;
-}
 
 /* Contact + Socials footer — hidden on desktop, shown on mobile */
 .menu-footer {
@@ -2158,10 +2149,6 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .menu-nav-item:nth-child(4),
   .menu-nav-item:nth-child(5) {
     padding-inline-start: 1.7em;
-  }
-
-  .menu-coords {
-    font-size: 9px;
   }
 
   .menu-footer {
