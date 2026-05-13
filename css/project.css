@@ -153,15 +153,15 @@
 }
 
 /* ------------------------------------------------------------
-   Scroll hint — fades out after first interaction
+   Scroll hint — anchored bottom-left of the viewport.
+   Fixed so it sits outside the canvas-wrap's right-edge bound,
+   aligning with the nav logo's grid margin on the left edge.
    ------------------------------------------------------------ */
 .project-scroll-hint {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  padding-inline-end: 30px;
-  padding-block-end: 42px;
-  z-index: 10;
+  position: fixed;
+  inset-block-end: 28px;
+  inset-inline-start: var(--grid-margin);
+  z-index: 60;
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -294,8 +294,9 @@
 
 /* ------------------------------------------------------------
    Project Info Panel — right rail
-   Replaces about-text + related-projects.
-   Project Detail → Strategy → Timeline → Next Project (anchored bottom).
+   Top group: Client → Timeline → Services → Overview → Strategy → View Live.
+   Bottom group: Next Project + Previous Project (anchored to bottom
+   of the column via margin-block-start: auto on .project-info-nav).
    ------------------------------------------------------------ */
 .project-info {
   position: fixed;
@@ -311,8 +312,22 @@
   z-index: 50;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 0;
   overflow: visible;
+}
+
+.project-info-content {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.project-info-nav {
+  margin-block-start: auto;
+  padding-block-start: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .project-info-section {
@@ -366,8 +381,8 @@
   opacity: 1;
 }
 
-.project-next-link {
-  margin-block-start: 16px;
+.project-next-link,
+.project-prev-link {
   align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
@@ -381,7 +396,8 @@
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.project-next-link:hover {
+.project-next-link:hover,
+.project-prev-link:hover {
   opacity: 1;
 }
 
@@ -390,7 +406,8 @@
    in .line-hover__inner/__char spans and toggles .is-line-hover-active
    on the anchor itself. */
 .project-live-link .line-hover__bg,
-.project-next-link .line-hover__bg {
+.project-next-link .line-hover__bg,
+.project-prev-link .line-hover__bg {
   background: var(--color-fg);
   -webkit-backdrop-filter: none;
           backdrop-filter: none;
@@ -398,13 +415,15 @@
 
 @media (hover: hover) and (pointer: fine) {
   .project-live-link.is-line-hover-active .line-hover__bg,
-  .project-next-link.is-line-hover-active .line-hover__bg {
+  .project-next-link.is-line-hover-active .line-hover__bg,
+  .project-prev-link.is-line-hover-active .line-hover__bg {
     -webkit-clip-path: inset(0 0 0 0);
             clip-path: inset(0 0 0 0);
   }
 
   .project-live-link.is-line-hover-active,
-  .project-next-link.is-line-hover-active {
+  .project-next-link.is-line-hover-active,
+  .project-prev-link.is-line-hover-active {
     color: var(--color-bg);
     opacity: 1;
   }

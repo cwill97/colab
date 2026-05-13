@@ -177,8 +177,8 @@ def site_head(title: str, description: str, canonical: str, og_image: str) -> st
   <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
   <link href="https://fonts.cdnfonts.com/css/helvetica-neue-5?styles=15273,15271,15270,17624" rel="stylesheet" />
 
-  <link rel="stylesheet" href="/css/main.css?v=3" />
-  <link rel="stylesheet" href="/css/project.css?v=3" />
+  <link rel="stylesheet" href="/css/main.css?v=4" />
+  <link rel="stylesheet" href="/css/project.css?v=4" />
 
   <script src="/js/scale.js?v=3"></script>"""
 
@@ -263,7 +263,7 @@ PROJECT_SCRIPTS = """  <script src="https://cdnjs.cloudflare.com/ajax/libs/three
   <script src="/js/menu-ripple.js?v=3" defer></script>
   <script src="/js/video-preview.js?v=3" defer></script>
   <script src="/js/depth-gallery.js?v=3" defer></script>
-  <script src="/js/project-boot.js?v=3" defer></script>
+  <script src="/js/project-boot.js?v=4" defer></script>
   <script src="/js/line-hover.js?v=3" defer></script>
   <script src="/js/hover-sfx.js?v=3" defer></script>
   <script src="/js/barba-init.js?v=3" defer></script>"""
@@ -287,33 +287,56 @@ def project_logo_html(p: dict) -> str:
     )
 
 
-def project_info_html(p: dict, next_p: dict) -> str:
-    """Right-rail info panel — Project Detail / Strategy / Timeline / Next Project."""
+def project_info_html(p: dict, next_p: dict, prev_p: dict) -> str:
+    """Right-rail info panel — Client / Timeline / Services / Overview / Strategy
+    in a top content group, with Next + Previous Project anchored to the bottom
+    of the right column.
+    """
     detail, strategy = split_description(p["description"])
     timeline = p.get("timeline", "")
+    services = p.get("services", "")
+    client = p.get("title", "")
     return (
         '      <aside class="project-info" aria-label="Project information" data-project-info>\n'
-        '        <section class="project-info-section">\n'
-        '          <span class="project-info-label">[ PROJECT DETAIL ]</span>\n'
-        f'          <p class="project-info-text" data-project-detail>{esc(detail)}</p>\n'
-        '        </section>\n'
-        '        <section class="project-info-section">\n'
-        '          <span class="project-info-label">[ STRATEGY ]</span>\n'
-        f'          <p class="project-info-text" data-project-strategy>{esc(strategy)}</p>\n'
-        '        </section>\n'
-        '        <section class="project-info-section project-info-section--timeline">\n'
-        '          <span class="project-info-label">[ TIMELINE ]</span>\n'
-        f'          <p class="project-info-text" data-project-timeline>{esc(timeline)}</p>\n'
-        '        </section>\n'
-        f'        <a class="project-next-link" href="/project/{esc(next_p["slug"])}/" data-next-project>[ NEXT PROJECT ]</a>\n'
+        '        <div class="project-info-content">\n'
+        '          <section class="project-info-section">\n'
+        '            <span class="project-info-label">[ CLIENT ]</span>\n'
+        f'            <p class="project-info-text" data-project-client>{esc(client)}</p>\n'
+        '          </section>\n'
+        '          <section class="project-info-section project-info-section--timeline">\n'
+        '            <span class="project-info-label">[ TIMELINE ]</span>\n'
+        f'            <p class="project-info-text" data-project-timeline>{esc(timeline)}</p>\n'
+        '          </section>\n'
+        '          <section class="project-info-section">\n'
+        '            <span class="project-info-label">[ SERVICES ]</span>\n'
+        f'            <p class="project-info-text" data-project-services>{esc(services)}</p>\n'
+        '          </section>\n'
+        '          <section class="project-info-section">\n'
+        '            <span class="project-info-label">[ OVERVIEW ]</span>\n'
+        f'            <p class="project-info-text" data-project-detail>{esc(detail)}</p>\n'
+        '          </section>\n'
+        '          <section class="project-info-section">\n'
+        '            <span class="project-info-label">[ STRATEGY ]</span>\n'
+        f'            <p class="project-info-text" data-project-strategy>{esc(strategy)}</p>\n'
+        '          </section>\n'
+        '          <a class="project-live-link" href="#" target="_blank" rel="noopener noreferrer" data-live-project style="display:none;">View Live Project</a>\n'
+        '        </div>\n'
+        '        <div class="project-info-nav">\n'
+        f'          <a class="project-next-link" href="/project/{esc(next_p["slug"])}/" data-next-project>[ NEXT PROJECT ]</a>\n'
+        f'          <a class="project-prev-link" href="/project/{esc(prev_p["slug"])}/" data-prev-project>[ PREVIOUS PROJECT ]</a>\n'
+        '        </div>\n'
         '      </aside>'
     )
 
 
 def project_overview_modal_html(p: dict) -> str:
-    """Mobile-only full-screen overview modal."""
+    """Mobile-only full-screen overview modal.
+    Mirrors the desktop right-rail order: Client / Timeline / Services /
+    Overview / Strategy."""
     detail, strategy = split_description(p["description"])
     timeline = p.get("timeline", "")
+    services = p.get("services", "")
+    client = p.get("title", "")
     if p.get("logoSrc"):
         logo_inner = (
             f'          <img src="{esc(p["logoSrc"])}" alt="{esc(p["title"])}" />\n'
@@ -330,18 +353,27 @@ def project_overview_modal_html(p: dict) -> str:
         '          </div>\n'
         '          <div class="project-overview-modal-content">\n'
         '            <section class="project-overview-modal-section">\n'
-        '              <span class="project-info-label">[ PROJECT DETAIL ]</span>\n'
+        '              <span class="project-info-label">[ CLIENT ]</span>\n'
+        f'              <p class="project-info-text" data-overview-client>{esc(client)}</p>\n'
+        '            </section>\n'
+        '            <section class="project-overview-modal-section">\n'
+        '              <span class="project-info-label">[ TIMELINE ]</span>\n'
+        f'              <p class="project-info-text" data-overview-timeline>{esc(timeline)}</p>\n'
+        '            </section>\n'
+        '            <section class="project-overview-modal-section">\n'
+        '              <span class="project-info-label">[ SERVICES ]</span>\n'
+        f'              <p class="project-info-text" data-overview-services>{esc(services)}</p>\n'
+        '            </section>\n'
+        '            <section class="project-overview-modal-section">\n'
+        '              <span class="project-info-label">[ OVERVIEW ]</span>\n'
         f'              <p class="project-info-text" data-overview-detail>{esc(detail)}</p>\n'
         '            </section>\n'
         '            <section class="project-overview-modal-section">\n'
         '              <span class="project-info-label">[ STRATEGY ]</span>\n'
         f'              <p class="project-info-text" data-overview-strategy>{esc(strategy)}</p>\n'
         '            </section>\n'
-        '            <section class="project-overview-modal-section">\n'
-        '              <span class="project-info-label">[ TIMELINE ]</span>\n'
-        f'              <p class="project-info-text" data-overview-timeline>{esc(timeline)}</p>\n'
-        '            </section>\n'
         '          </div>\n'
+        '          <a class="project-overview-live-link" href="#" target="_blank" rel="noopener noreferrer" data-overview-live-project style="display:none;">View Live Project</a>\n'
         '          <button class="project-overview-close" type="button" data-overview-close>[ CLOSE PROJECT ]</button>\n'
         '        </div>\n'
         '      </div>'
@@ -373,8 +405,9 @@ def project_html(p: dict, idx: int, total: int) -> str:
         og_image=p["heroImage"],
     )
     next_p = PROJECTS[(idx + 1) % total]
+    prev_p = PROJECTS[(idx - 1) % total]
     logo_block = project_logo_html(p)
-    info_panel = project_info_html(p, next_p)
+    info_panel = project_info_html(p, next_p, prev_p)
     overview_modal = project_overview_modal_html(p)
     jsonld = project_jsonld(p, canonical)
 

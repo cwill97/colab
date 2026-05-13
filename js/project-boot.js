@@ -137,12 +137,17 @@
 
   /* New right-rail panel + mobile overlay */
   var projectLogo      = document.querySelector('[data-project-logo]');
+  var projectClient    = document.querySelector('[data-project-client]');
+  var projectServices  = document.querySelector('[data-project-services]');
   var projectDetailEl  = document.querySelector('[data-project-detail]');
   var projectStrategy  = document.querySelector('[data-project-strategy]');
   var projectTimeline  = document.querySelector('[data-project-timeline]');
   var nextProjectLink  = document.querySelector('[data-next-project]');
+  var prevProjectLink  = document.querySelector('[data-prev-project]');
   var overviewModal    = document.querySelector('[data-overview-modal]');
   var overviewLogo     = document.querySelector('[data-overview-modal-logo]');
+  var overviewClient   = document.querySelector('[data-overview-client]');
+  var overviewServices = document.querySelector('[data-overview-services]');
   var overviewDetail   = document.querySelector('[data-overview-detail]');
   var overviewStrategy = document.querySelector('[data-overview-strategy]');
   var overviewTimeline = document.querySelector('[data-overview-timeline]');
@@ -182,6 +187,8 @@
 
     /* Right-rail panel */
     var parts = splitDescription(project.description);
+    if (projectClient)    projectClient.textContent    = project.title || '';
+    if (projectServices)  projectServices.textContent  = project.services || '';
     if (projectDetailEl)  projectDetailEl.textContent  = parts.detail;
     if (projectStrategy)  projectStrategy.textContent  = parts.strategy;
     if (projectTimeline)  projectTimeline.textContent  = project.timeline || '';
@@ -197,14 +204,21 @@
       }
     }
 
-    /* Next-project anchor */
+    /* Next + previous project anchors */
     var nextIdx = (index + 1) % PROJECTS.length;
+    var prevIdx = (index - 1 + PROJECTS.length) % PROJECTS.length;
     var next = PROJECTS[nextIdx];
+    var prev = PROJECTS[prevIdx];
     if (nextProjectLink && next) {
       nextProjectLink.setAttribute('href', '/project/' + next.slug + '/');
     }
+    if (prevProjectLink && prev) {
+      prevProjectLink.setAttribute('href', '/project/' + prev.slug + '/');
+    }
 
     /* Mobile overlay mirrors the same fields */
+    if (overviewClient)   overviewClient.textContent   = project.title || '';
+    if (overviewServices) overviewServices.textContent = project.services || '';
     if (overviewDetail)   overviewDetail.textContent   = parts.detail;
     if (overviewStrategy) overviewStrategy.textContent = parts.strategy;
     if (overviewTimeline) overviewTimeline.textContent = project.timeline || '';
@@ -387,6 +401,17 @@
     });
   }
 
+  function bindPrevProjectLink() {
+    if (!prevProjectLink || prevProjectLink._colabBound) return;
+    prevProjectLink._colabBound = true;
+    prevProjectLink.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (scrollHint) scrollHint.classList.add('is-hidden');
+      var prevIdx = (currentIndex - 1 + PROJECTS.length) % PROJECTS.length;
+      transitionToProject(prevIdx, 'backward');
+    });
+  }
+
   /* ============================================================
      MOBILE OVERVIEW MODAL
      Tap "read overview" → modal slides in. Close via [ CLOSE PROJECT ]
@@ -438,6 +463,7 @@
 
     updateMeta(project, startIdx);
     bindNextProjectLink();
+    bindPrevProjectLink();
     bindOverviewModal();
 
     if (isMobile) {
@@ -557,12 +583,17 @@
       scrollHint = scope.querySelector('[data-scroll-hint]');
       nextLabel  = scope.querySelector('[data-scroll-next]');
       projectLogo      = scope.querySelector('[data-project-logo]');
+      projectClient    = scope.querySelector('[data-project-client]');
+      projectServices  = scope.querySelector('[data-project-services]');
       projectDetailEl  = scope.querySelector('[data-project-detail]');
       projectStrategy  = scope.querySelector('[data-project-strategy]');
       projectTimeline  = scope.querySelector('[data-project-timeline]');
       nextProjectLink  = scope.querySelector('[data-next-project]');
+      prevProjectLink  = scope.querySelector('[data-prev-project]');
       overviewModal    = scope.querySelector('[data-overview-modal]');
       overviewLogo     = scope.querySelector('[data-overview-modal-logo]');
+      overviewClient   = scope.querySelector('[data-overview-client]');
+      overviewServices = scope.querySelector('[data-overview-services]');
       overviewDetail   = scope.querySelector('[data-overview-detail]');
       overviewStrategy = scope.querySelector('[data-overview-strategy]');
       overviewTimeline = scope.querySelector('[data-overview-timeline]');

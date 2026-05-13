@@ -27,8 +27,8 @@
   <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
   <link href="https://fonts.cdnfonts.com/css/helvetica-neue-5?styles=15273,15271,15270,17624" rel="stylesheet" />
 
-  <link rel="stylesheet" href="/css/main.css?v=3" />
-  <link rel="stylesheet" href="/css/project.css?v=3" />
+  <link rel="stylesheet" href="/css/main.css?v=4" />
+  <link rel="stylesheet" href="/css/project.css?v=4" />
 
   <script src="/js/scale.js?v=3"></script>
 
@@ -121,20 +121,33 @@
       <span class="project-mobile-hint" aria-hidden="true">scroll / hold to explore</span>
 
       <aside class="project-info" aria-label="Project information" data-project-info>
-        <section class="project-info-section">
-          <span class="project-info-label">[ PROJECT DETAIL ]</span>
-          <p class="project-info-text" data-project-detail>Website consolidation and digital modernisation for Hyde Park Ventures, creating a unified platform that brings clarity to a diverse portfolio. Delivered a streamlined, future-ready experience that improves navigation, strengthens brand consistency, and supports ongoing growth.</p>
-        </section>
-        <section class="project-info-section">
-          <span class="project-info-label">[ STRATEGY ]</span>
-          <p class="project-info-text" data-project-strategy></p>
-        </section>
-        <section class="project-info-section project-info-section--timeline">
-          <span class="project-info-label">[ TIMELINE ]</span>
-          <p class="project-info-text" data-project-timeline>TBD</p>
-        </section>
-        <a class="project-live-link" href="#" target="_blank" rel="noopener noreferrer" data-live-project style="display:none;">View Live Project</a>
-        <a class="project-next-link" href="/project/viking-gear/" data-next-project>[ NEXT PROJECT ]</a>
+        <div class="project-info-content">
+          <section class="project-info-section">
+            <span class="project-info-label">[ CLIENT ]</span>
+            <p class="project-info-text" data-project-client>Hyde Park Ventures (Five Guys)</p>
+          </section>
+          <section class="project-info-section project-info-section--timeline">
+            <span class="project-info-label">[ TIMELINE ]</span>
+            <p class="project-info-text" data-project-timeline>TBD</p>
+          </section>
+          <section class="project-info-section">
+            <span class="project-info-label">[ SERVICES ]</span>
+            <p class="project-info-text" data-project-services>Web Design · Web Development · Brand Consolidation</p>
+          </section>
+          <section class="project-info-section">
+            <span class="project-info-label">[ OVERVIEW ]</span>
+            <p class="project-info-text" data-project-detail>Website consolidation and digital modernisation for Hyde Park Ventures, creating a unified platform that brings clarity to a diverse portfolio. Delivered a streamlined, future-ready experience that improves navigation, strengthens brand consistency, and supports ongoing growth.</p>
+          </section>
+          <section class="project-info-section">
+            <span class="project-info-label">[ STRATEGY ]</span>
+            <p class="project-info-text" data-project-strategy></p>
+          </section>
+          <a class="project-live-link" href="#" target="_blank" rel="noopener noreferrer" data-live-project style="display:none;">View Live Project</a>
+        </div>
+        <div class="project-info-nav">
+          <a class="project-next-link" href="/project/viking-gear/" data-next-project>[ NEXT PROJECT ]</a>
+          <a class="project-prev-link" href="/project/mannequin-films/" data-prev-project>[ PREVIOUS PROJECT ]</a>
+        </div>
       </aside>
 
       <div class="project-overview-modal" data-overview-modal aria-hidden="true" role="dialog" aria-label="Project overview">
@@ -144,16 +157,24 @@
           </div>
           <div class="project-overview-modal-content">
             <section class="project-overview-modal-section">
-              <span class="project-info-label">[ PROJECT DETAIL ]</span>
+              <span class="project-info-label">[ CLIENT ]</span>
+              <p class="project-info-text" data-overview-client>Hyde Park Ventures (Five Guys)</p>
+            </section>
+            <section class="project-overview-modal-section">
+              <span class="project-info-label">[ TIMELINE ]</span>
+              <p class="project-info-text" data-overview-timeline>TBD</p>
+            </section>
+            <section class="project-overview-modal-section">
+              <span class="project-info-label">[ SERVICES ]</span>
+              <p class="project-info-text" data-overview-services>Web Design · Web Development · Brand Consolidation</p>
+            </section>
+            <section class="project-overview-modal-section">
+              <span class="project-info-label">[ OVERVIEW ]</span>
               <p class="project-info-text" data-overview-detail>Website consolidation and digital modernisation for Hyde Park Ventures, creating a unified platform that brings clarity to a diverse portfolio. Delivered a streamlined, future-ready experience that improves navigation, strengthens brand consistency, and supports ongoing growth.</p>
             </section>
             <section class="project-overview-modal-section">
               <span class="project-info-label">[ STRATEGY ]</span>
               <p class="project-info-text" data-overview-strategy></p>
-            </section>
-            <section class="project-overview-modal-section">
-              <span class="project-info-label">[ TIMELINE ]</span>
-              <p class="project-info-text" data-overview-timeline>TBD</p>
             </section>
           </div>
           <a class="project-overview-live-link" href="#" target="_blank" rel="noopener noreferrer" data-overview-live-project style="display:none;">View Live Project</a>
@@ -195,7 +216,7 @@
   <script src="/js/bg-reveal.js?v=3" defer></script>
   <script src="/js/video-preview.js?v=3" defer></script>
   <script src="/js/depth-gallery.js?v=3" defer></script>
-  <script src="/js/project-boot.js?v=3" defer></script>
+  <script src="/js/project-boot.js?v=4" defer></script>
   <script src="/js/line-hover.js?v=3" defer></script>
   <script src="/js/hover-sfx.js?v=3" defer></script>
   <script src="/js/barba-init.js?v=3" defer></script>
