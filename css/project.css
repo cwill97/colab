@@ -306,7 +306,11 @@
     + var(--viz-height)
     + var(--about-gap)
   );
-  inset-block-end: 80px;          /* leaves room for the audio toggle */
+  /* Bottom-align with the audio toggle + scroll-to-explore baseline (28px) so
+     [ PREVIOUS PROJECT ] sits on the same row. The audio toggle occupies the
+     right ~95px of the rail; the prev/next text is ~135px wide and starts at
+     the column's left edge — so they share a row without overlap. */
+  inset-block-end: 28px;
   inset-inline-end: var(--grid-margin);
   width: var(--viz-width);
   z-index: 50;
