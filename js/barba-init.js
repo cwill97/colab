@@ -1,19 +1,3 @@
-/**
- * co:lab — Barba.js Page Transition Orchestration
- *
- * Manages seamless transitions between homepage and project page.
- * Persistent elements (nav, menu, visualizer, tesseract, audio) stay
- * alive across transitions. Only the Barba container swaps.
- *
- * Transition flow:
- *   1. Submerge audio (underwater low-pass)
- *   2. Shader wipe-out (screen goes black)
- *   3. Swap container content
- *   4. Toggle body class + show/hide persistent elements
- *   5. Init new view's JS (project-boot or main.js)
- *   6. Shader reveal-in
- *   7. Surface audio
- */
 
 (function () {
   'use strict';

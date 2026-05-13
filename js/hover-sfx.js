@@ -1,32 +1,4 @@
-/**
- * co:lab — Hover SFX
- *
- * Plays a short tick (assets/hover.mp3) when the pointer enters any
- * <li> inside .services-block, .contact-block, .project-list, or
- * .related-project-list.
- *
- * Gating (by design, matches the rest of the audio pipeline):
- *   - Desktop hover pointer only — mobile hides these blocks anyway
- *   - Respects the site Sound toggle — silent until the user clicks
- *     "Sound On". Reads [data-audio-toggle].is-playing, which is the
- *     single source of truth (set in visualizer.js: started && !muted).
- *   - Skips while the nav menu is open (body[data-menu-open]) — the
- *     overlay's own .contact-block copy shouldn't chirp.
- *   - Small global cooldown so a fast drag across all rows doesn't
- *     stack overlapping plays.
- *
- * Engine:
- *   Web Audio — one AudioBuffer decoded once, a fresh BufferSource
- *   per hover. No currentTime=0 restart stutter, clean overlap.
- *   AudioContext is lazy — first created on first play attempt, by
- *   which time the user has already clicked Sound On (a gesture), so
- *   autoplay policy is satisfied.
- *
- * Lifecycle:
- *   - Boots on DOMContentLoaded
- *   - Re-runs after Barba enters the 'home' or 'project' namespace
- *   - Idempotent — data-hover-sfx-init on each <li> prevents double-bind
- */
+
 
 (function () {
   'use strict';

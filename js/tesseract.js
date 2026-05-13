@@ -1,13 +1,4 @@
-/**
- * co:lab — Tesseract
- *
- * WebGL2 fragment-shader fractal energy core, mounted inside
- * [data-tesseract].
- *
- * Interactive dragging with momentum inertia; auto-rotates on a
- * slow time-based orbit when idle. Survives Barba transitions via
- * pause()/resume().
- */
+
 (function () {
   'use strict';
 

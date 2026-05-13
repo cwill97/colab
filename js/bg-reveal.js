@@ -1,12 +1,3 @@
-/**
- * bg-reveal.js
- * The mask uses a fixed-position element, so coordinates must be
- * relative to the viewport — clientX/clientY are correct for this.
- * The spotlight center is pinned exactly to the cursor tip via lerp.
- *
- * Ambient auto-reveal: random spots pulse in/out across the screen
- * to make the blue background feel alive even without interaction.
- */
 
 (function () {
   const root = document.documentElement;

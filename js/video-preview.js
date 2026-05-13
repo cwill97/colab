@@ -1,15 +1,3 @@
-/**
- * co:lab — Project Video Preview
- *
- * Preview: muted autoplay Vimeo iframe in the visualizer slot.
- * Click → lightbox opens from the same timestamp as the preview.
- * Close: click backdrop, ESC key, or [ CLOSE ] button.
- *
- * Uses Vimeo Player SDK to:
- *  - Track current time of the background/preview player
- *  - Start the full player from that exact position
- *  - Destroy the lightbox iframe on close (stops audio/network)
- */
 
 (function () {
   'use strict';

@@ -1,16 +1,4 @@
-/**
- * co:lab — Particle Dome Visualizer
- * Audio-reactive 3D point field. ~3500 white particles arranged in
- * concentric rings in the xz-plane; each ring's Y height is driven by
- * a frequency band (inner rings = bass, outer rings = mids). Produces
- * the classic "UFO/dome" silhouette where bass hits lift the center
- * hump and higher frequencies ripple the brim.
- * Click to play/mute.
- *
- * Audio pipeline is independent of WebGL rendering — audio persists
- * across Barba transitions and works even when the visualizer canvas
- * is hidden (e.g. project page direct load).
- */
+
 
 (function () {
   'use strict';

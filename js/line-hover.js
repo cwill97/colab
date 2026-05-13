@@ -1,25 +1,4 @@
-/**
- * co:lab — Line Text Hover Effect
- *
- * Terminal-style character shuffle paired with a blurry backdrop card
- * that wipes up from the south on hover. Applied to every <li> inside
- * .services-block and .contact-block on the homepage. Desktop pointer
- * input only — mobile already hides these blocks via CSS.
- *
- * Inspired by Codrops' "LineTextHoverAnimations" demo 4 (terminal +
- * backdrop-filter variant). Reimplemented in vanilla JS — no SplitType
- * dependency, GSAP not required (uses CSS clip-path for the backdrop).
- *
- * Lifecycle:
- *   - Boots on DOMContentLoaded for the initial homepage render
- *   - Re-runs after Barba enters the 'home' namespace (container is fresh)
- *   - Idempotent — `data-line-hover-init` on each <li> prevents double-wrap
- *
- * Public API:
- *   window.colabLineHover.init()  — re-scan the DOM and enhance any
- *                                   un-initialised .services-block /
- *                                   .contact-block list items
- */
+
 
 (function () {
   'use strict';

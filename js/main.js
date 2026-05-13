@@ -1,6 +1,3 @@
-/**
- * co:lab — Navigation & UI Behaviour
- */
 
 (function () {
   'use strict';

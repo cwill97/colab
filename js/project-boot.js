@@ -1,9 +1,4 @@
-/**
- * co:lab — Project Page Bootstrap
- *
- * Holds project metadata and drives the per-project gallery via
- * DepthGallery, the project meta overlay, and Barba session restore.
- */
+
 (function () {
   'use strict';
 

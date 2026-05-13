@@ -1,23 +1,4 @@
-/**
- * co:lab — Shader Page Transitions
- *
- * Shared across all pages. Handles two animations:
- *
- *   REVEAL IN  — circle expands from center, revealing page content
- *                beneath a black WebGL overlay. Runs on page load.
- *
- *   WIPE OUT   — circle contracts to center, covering the page in
- *                black. When fully black, navigates to the target URL.
- *                The destination page then runs its own REVEAL IN.
- *
- * Flow: click link → wipe out (1s) → navigate → new page loads →
- *       shader starts fully black → reveal in (1.8s)
- *
- * Uses Three.js + GSAP (both already loaded on every page).
- *
- * Session flag `colab_shaderNav` tells the destination page that it
- * arrived via a shader transition, so it should start fully covered.
- */
+
 (function () {
   'use strict';
 

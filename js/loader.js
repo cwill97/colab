@@ -1,12 +1,3 @@
-/**
- * co:lab — Preloader
- *
- * Terminal BIOS-style boot sequence with progress bar.
- * On complete, "Enter Site With Audio" CTA activates:
- *  - dismisses loader
- *  - reveals homepage
- *  - triggers audio playback via the visualizer
- */
 
 (function () {
   'use strict';
