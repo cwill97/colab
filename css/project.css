@@ -805,19 +805,23 @@
   opacity: 1;
 }
 
-/* ── Label ── */
+/* ── Label ──
+   Hidden by default — only the waveform SVG is visible at rest.
+   Visible only on hover, or briefly after a state change (toggle on/off)
+   via the .is-state-reveal class added by visualizer.js. */
 .audio-toggle-label {
   font-family: var(--font-display);
   font-size: 10px;
   font-weight: 300;
   letter-spacing: 0.06em;
   color: var(--color-fg);
-  opacity: 0.5;
+  opacity: 0;
   transition: opacity 0.3s ease;
   text-transform: capitalize;
 }
 
-.audio-toggle:hover .audio-toggle-label {
+.audio-toggle:hover .audio-toggle-label,
+.audio-toggle.is-state-reveal .audio-toggle-label {
   opacity: 1;
 }
 
@@ -852,11 +856,9 @@
   transition: opacity 0.3s ease, stroke 0.3s ease;
 }
 
-/* ── Active state (audio playing) — bars oscillate ── */
-.audio-toggle.is-playing .audio-toggle-label {
-  opacity: 0.9;
-}
-
+/* ── Active state (audio playing) — bars oscillate ──
+   Note: the label intentionally stays hidden while playing. It only
+   shows on hover or briefly after a toggle (.is-state-reveal). */
 .audio-toggle.is-playing .audio-toggle-bar {
   stroke: rgba(255, 255, 255, 0.75);
   animation: audio-wave-bar 1s ease-in-out infinite;

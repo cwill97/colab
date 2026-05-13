@@ -111,6 +111,7 @@
   /* ── Audio toggle element (bottom-right on project page) ── */
   var audioToggle = null;
   var audioLabel  = null;
+  var stateRevealTimer = null;
 
   function syncToggle() {
     if (!audioToggle) {
@@ -122,6 +123,20 @@
     audioToggle.classList.toggle('is-playing', playing);
     if (audioLabel) audioLabel.textContent = playing ? 'Sound On' : 'Sound Off';
     audioToggle.setAttribute('aria-label', playing ? 'Toggle audio — on' : 'Toggle audio — off');
+  }
+
+  /* Briefly fade the "Sound On/Off" label in after a state change so the
+     user can read the new state, then fade it back out. The label is
+     hidden at rest — only hover or this transient reveal shows it. */
+  function flashStateLabel() {
+    if (!audioToggle) audioToggle = document.querySelector('[data-audio-toggle]');
+    if (!audioToggle) return;
+    audioToggle.classList.add('is-state-reveal');
+    if (stateRevealTimer) clearTimeout(stateRevealTimer);
+    stateRevealTimer = setTimeout(function () {
+      audioToggle.classList.remove('is-state-reveal');
+      stateRevealTimer = null;
+    }, 1200);
   }
 
   function setMuted(container, val) {
@@ -161,9 +176,9 @@
     /* Bind the audio toggle button */
     var toggle = document.querySelector('[data-audio-toggle]');
     if (toggle) {
-      toggle.addEventListener('click', function () { handleActivate(container); });
+      toggle.addEventListener('click', function () { handleActivate(container); flashStateLabel(); });
       toggle.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(container); }
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(container); flashStateLabel(); }
       });
     }
 
