@@ -73,7 +73,7 @@
       '    vec2 p = -1.0 + 2.0*q;\n' +
       '    p.x *= iResolution.x / iResolution.y;\n' +
       '\n' +
-      '    vec3 ro = iZoom * vec3(5.5);\n' +
+      '    vec3 ro = iZoom * vec3(5);\n' +
       '    ro.yz *= rot(iMouse.y);\n' +
       '    ro.xz *= rot(iMouse.x - 0.12*iTime);\n' +
       '    vec3 ta = vec3(0.0);\n' +
