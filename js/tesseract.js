@@ -190,8 +190,8 @@ document.addEventListener('visibilitychange', function () {
 
   // Physics constants — tuned for hand-feel
   var DRAG_SENSITIVITY = 0.004;
-  var FRICTION         = 0.99;    // per-frame decay (heavier = longer coast)
-  var SETTLE_LERP      = 0.006;   // how fast momentum blends back toward 0
+  var FRICTION         = 0.98;    // per-frame decay (heavier = longer coast)
+  var SETTLE_LERP      = 0.009;   // how fast momentum blends back toward 0
 
   /* ============================================================
      UPDATE — called every frame from render loop
