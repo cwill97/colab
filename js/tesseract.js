@@ -1,3 +1,11 @@
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) {
+    pause();
+  } else {
+    resume();
+  }
+});
+
 
 (function () {
   'use strict';
@@ -28,7 +36,7 @@
       'float map(in vec3 p){\n' +
       '    float res = 0.0;\n' +
       '    vec3  c   = p;\n' +
-      '    float fold = 0.7 + iProximity * 0.18;\n' +
+      '    float fold = 0.7 + iProximity * 0.01;\n' +
       '    for(int i=0; i<6; ++i){\n' +
       '        p = fold*abs(p)/dot(p,p) - fold;\n' +
       '        p.yz = csqr(p.yz);\n' +
@@ -59,11 +67,11 @@
       '    vec3 coolR = vec3(0.55, 1.20, 1.25);  // blue-cyan\n' +
       '    vec3 hotR  = vec3(1.30, 0.85, 1.45);  // violet-white\n' +
       '    vec3 tint  = mix(coolR, hotR, iHeat);\n' +
-      '    for(int i=0; i<72; i++){\n' +
+      '    for(int i=0; i<32; i++){\n' +
       '        t += dt*exp(-2.0*c);\n' +
       '        if(t > tmm.y) break;\n' +
       '        c = map(ro + t*rd);\n' +
-      '        col = 0.99*col + 0.10*vec3(c*c*c*tint.x, c*tint.y, c*tint.z);\n' +
+      '        col = 0.99*col + 0.15*vec3(c*c*c*tint.x, c*tint.y, c*tint.z);\n' +
       '    }\n' +
       '    return col;\n' +
       '}\n' +
@@ -86,7 +94,7 @@
       '    vec3 col = vec3(0.0);\n' +
       '\n' +
       '    // dimensional bleed — proximity expands containment\n' +
-      '    float bounds = 1.55 + iProximity * 0.45;\n' +
+      '    float bounds = 1.50 + iProximity * 0.15;\n' +
       '\n' +
       '    // outer cube rim glow\n' +
       '    float tc = max(-dot(ro, rd), 0.0);\n' +
@@ -110,7 +118,7 @@
       '    float vig = 1.0 - 0.38 * length(p * vec2(0.55, 0.72));\n' +
       '    col *= vig;\n' +
       '\n' +
-      '    col = 0.65 * log(1.0 + col);\n' +
+      '    col = 0.70 * log(1.0 + col);\n' +
       '    col = clamp(col, 0.0, 1.0);\n' +
       '\n' +
       '    float a = clamp(max(col.r, max(col.g, col.b)) * 1.4, 0.0, 1.0);\n' +
@@ -141,7 +149,7 @@
      PROXIMITY — cursor distance from center drives fractal
      mutation and dimensional bleed
      ============================================================ */
-  var PROX_LERP      = 0.04;   // per-frame blend toward target
+  var PROX_LERP      = 0.12;   // per-frame blend toward target
   var proximityVal   = 0.0;    // current interpolated proximity (0–1)
   var targetProx     = 0.0;    // where we're heading
   var cursorInside   = false;  // is cursor within the hit zone?
@@ -155,7 +163,7 @@
   /* ============================================================
      DRAG HEAT — velocity magnitude drives color temperature
      ============================================================ */
-  var HEAT_GAIN     = 4.0;    // how fast drag velocity builds heat
+  var HEAT_GAIN     = 1.0;    // how fast drag velocity builds heat
   var HEAT_DECAY    = 0.993;  // per-frame decay back to cool (closer to 1 = slower)
   var heatVal       = 0.0;    // current heat (0 = cool blue, 1 = white-hot)
 
@@ -182,7 +190,7 @@
 
   // Physics constants — tuned for hand-feel
   var DRAG_SENSITIVITY = 0.005;
-  var FRICTION         = 0.96;    // per-frame decay (heavier = longer coast)
+  var FRICTION         = 0.95;    // per-frame decay (heavier = longer coast)
   var SETTLE_LERP      = 0.009;   // how fast momentum blends back toward 0
 
   /* ============================================================
@@ -295,7 +303,7 @@
     if (!isWithinTesseractHitZone(e.clientX, e.clientY)) return;
 
     // ── Impact pulse ──
-    impactVal = 1.0;
+    impactVal = 0.30;
 
     interaction.isDragging = true;
     interaction.prevX = e.clientX;
