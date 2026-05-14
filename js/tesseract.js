@@ -64,8 +64,8 @@ document.addEventListener('visibilitychange', function () {
       '    vec3 col = vec3(0.0);\n' +
       '    float c = 0.0;\n' +
       '    // cool (idle) → hot (fast drag) color palette\n' +
-      '    vec3 coolR = vec3(0.55, 1.20, 1.25);  // blue-cyan\n' +
-      '    vec3 hotR  = vec3(1.30, 0.85, 1.45);  // violet-white\n' +
+      '    vec3 coolR = vec3(1.30, 0.85, 1.45);  // blue-cyan\n' +
+      '    vec3 hotR  = vec3(0.55, 1.10, 1.45);  // violet-white\n' +
       '    vec3 tint  = mix(coolR, hotR, iHeat);\n' +
       '    for(int i=0; i<32; i++){\n' +
       '        t += dt*exp(-2.0*c);\n' +
@@ -163,8 +163,8 @@ document.addEventListener('visibilitychange', function () {
   /* ============================================================
      DRAG HEAT — velocity magnitude drives color temperature
      ============================================================ */
-  var HEAT_GAIN     = 1.0;    // how fast drag velocity builds heat
-  var HEAT_DECAY    = 0.993;  // per-frame decay back to cool (closer to 1 = slower)
+  var HEAT_GAIN     = 6.0;    // how fast drag velocity builds heat
+  var HEAT_DECAY    = 0.850;  // per-frame decay back to cool (closer to 1 = slower)
   var heatVal       = 0.0;    // current heat (0 = cool blue, 1 = white-hot)
 
   /* ============================================================
