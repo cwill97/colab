@@ -197,6 +197,11 @@
         if (tessEl && !tessEl.classList.contains('tesseract-glitch-reveal')) {
           tessEl.classList.add('tesseract-glitch-reveal');
         }
+        /* ── Public signal: page-level reveal has fully completed.
+              Other entrance reveals (e.g. about-page title burn-in)
+              listen for this so they can chain off it instead of
+              guessing the right delay. ── */
+        document.dispatchEvent(new CustomEvent('colab:shader-revealed'));
       }
     });
   }

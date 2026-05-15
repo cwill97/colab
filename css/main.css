@@ -2564,12 +2564,54 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
    the studio-main bounds on under-sized viewports. */
 .studio-display-img {
   display: block;
-  opacity: 0.42;
+  opacity: 100%;
   width: auto;
   height: auto;
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+
+/* ── Burn-reveal mask ──────────────────────────────────────────
+   The title is masked by a soft radial gradient whose radius is
+   driven by --burn (0 → 1.35). title-reveal.js animates --burn
+   1.5s after the page-level shader-reveal completes, matching the
+   timing/easing of the site-wide entrance.
+
+   Stops use --burn directly:
+     center stop    = burn × 100%          (fully visible)
+     soft-edge stop = burn × 100% + 16%    (~16% fuzz halo)
+   At --burn:0 the entire title is masked out; at --burn:1.35 the
+   mask radius clears the viewport corners on every aspect ratio. */
+.studio-display {
+  --burn: 0;
+}
+
+.studio-display .studio-display-img {
+  /* The inner stop's alpha is `clamp(0, --burn × 100, 1)` — a stepped
+     0 → 1 ramp that flips on the instant --burn leaves zero. This
+     guarantees the title is FULLY hidden at --burn:0 (no center pip
+     bleeding through) and fully opaque under the gradient once the
+     animation starts. The radius then grows out from there. */
+  -webkit-mask-image: radial-gradient(
+    circle at 50% 50%,
+    rgba(0, 0, 0, clamp(0, calc(var(--burn) * 100), 1)) calc(var(--burn) * 100%),
+    transparent calc(var(--burn) * 100% + 16%)
+  );
+  mask-image: radial-gradient(
+    circle at 50% 50%,
+    rgba(0, 0, 0, clamp(0, calc(var(--burn) * 100), 1)) calc(var(--burn) * 100%),
+    transparent calc(var(--burn) * 100% + 16%)
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Once the burn-in completes, drop the mask altogether so the
+   title renders crisply without the gradient's edge softening. */
+.studio-display.is-burned .studio-display-img {
+  -webkit-mask-image: none;
+  mask-image: none;
 }
 
 /* ── Meta info groups (mono labels) ───────────────────────── */
