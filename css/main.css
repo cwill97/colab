@@ -2564,7 +2564,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
    the studio-main bounds on under-sized viewports. */
 .studio-display-img {
   display: block;
-  opacity: 0.21;
+  opacity: 0.33;
   width: auto;
   height: auto;
   max-width: 100%;
