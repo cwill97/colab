@@ -2570,6 +2570,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+  /* Hard-light blends the title against the body background image
+     (the sculpture). Light tones in the SVG lift the background;
+     dark tones darken it. Works seamlessly with the radial burn
+     mask defined below — the mask determines what pixels are
+     visible, then those pixels participate in the blend. */
+  mix-blend-mode: hard-light;
 }
 
 /* ── Burn-reveal mask ──────────────────────────────────────────
