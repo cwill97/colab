@@ -18,6 +18,13 @@
 
     var menuTransitioning = false;
 
+    var MENU_TRACK = '/assets/menu.mp3';
+    function pageTrack() {
+      return document.body.classList.contains('about-page')
+        ? '/assets/Colab_Studio-v2.mp3'
+        : '/assets/ambient.mp3';
+    }
+
     function showMenu() {
       /* Re-resolve the active page right before the menu paints, so the
          flashing square always lands on the correct row even if the
@@ -26,16 +33,20 @@
       toggle.setAttribute('aria-expanded', 'true');
       menu.setAttribute('aria-hidden', 'false');
       document.body.setAttribute('data-menu-open', '');
-      /* Submerge audio — underwater muffle */
-      if (window.colabAudio) window.colabAudio.submerge();
+      /* Swap to the menu-only track, then submerge for the underwater muffle */
+      if (window.colabAudio) {
+        if (window.colabAudio.setTrack) window.colabAudio.setTrack(MENU_TRACK);
+        window.colabAudio.submerge();
+      }
     }
 
     function hideMenu() {
       toggle.setAttribute('aria-expanded', 'false');
       menu.setAttribute('aria-hidden', 'true');
       document.body.removeAttribute('data-menu-open');
-      /* Surface audio — but stay submerged on project page */
+      /* Restore the page's track, then surface — but stay submerged on project page */
       if (window.colabAudio) {
+        if (window.colabAudio.setTrack) window.colabAudio.setTrack(pageTrack());
         if (document.body.classList.contains('project-page')) {
           window.colabAudio.submerge(0.6);
         } else {

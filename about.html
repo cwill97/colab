@@ -92,8 +92,37 @@
   <div data-barba="wrapper">
     <div data-barba="container" data-barba-namespace="about">
 
-      <main id="main-content" class="about-main">
-        <p class="about-copy">CO:LAB IS A SPACE FOR EXPLORATION, BUILT FOR THOSE WHO QUESTION, EXPERIMENT, AND CREATE. A STUDY IN PROGRESS, ALWAYS CONNECTING, ALWAYS EVOLVING. CULTURE IS THE CONTEXT WE DESIGN WITHIN, DRAWING FROM MUSIC, FASHION, TECHNOLOGY, AND MODERN SOCIETY TO SHAPE MOVEMENTS RATHER THAN FOLLOW THEM</p>
+      <main id="main-content" class="studio-main">
+
+        <!-- Large display title — distressed texture is baked into the
+             SVG files themselves, so no CSS filters are needed.
+             Two variants are served via <picture>: a portrait-format
+             SVG for mobile and a landscape-format SVG for desktop. -->
+        <h1 class="studio-display" aria-label="A practice of culture experimentation and creative systems">
+          <picture>
+            <source media="(min-width: 768px)" srcset="assets/Title_D.svg" />
+            <img class="studio-display-img" src="assets/Title_M.svg" alt="" aria-hidden="true" decoding="async" />
+          </picture>
+        </h1>
+
+        <!-- Meta info — three groups -->
+        <div class="studio-meta studio-meta--origin">
+          <span class="studio-meta-mobile-only">CO:LAB</span>
+          <span>EST. 2025</span>
+          <span>JOHANNESBURG</span>
+        </div>
+
+        <div class="studio-meta studio-meta--practice">
+          <span>RESEARCH / EXPERIMENT</span>
+          <span>FORM / CULTURE / LIGHT</span>
+        </div>
+
+        <div class="studio-meta studio-meta--scope">
+          <span class="studio-meta-mobile-only">WORKING ACROSS</span>
+          <span>BRAND, DIGITAL</span>
+          <span>AND INTERACTIVE</span>
+        </div>
+
       </main>
 
     </div>
