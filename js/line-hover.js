@@ -108,10 +108,16 @@
     // Decide host:
     //   1. If the element itself is an <a>, use it as host (active class
     //      lands on the anchor itself — used by standalone link buttons).
-    //   2. Else if the <li> contains an <a>, use that as host. Sibling
+    //   2. Else if the <li> has a direct-child .menu-nav-link (anchor or
+    //      span — the latter is used by parents of a sub-menu), use that
+    //      as host. Checked before generic <a> lookup so a descendant
+    //      sub-link doesn't shadow the parent label.
+    //   3. Else if the <li> contains an <a>, use that as host. Sibling
     //      decoration (active-square, coords label) is left untouched.
-    //   3. Otherwise wrap all contents in a <span class="line-hover">.
-    var anchor = (li.tagName === 'A') ? li : li.querySelector('a');
+    //   4. Otherwise wrap all contents in a <span class="line-hover">.
+    var anchor = (li.tagName === 'A')
+      ? li
+      : (li.querySelector(':scope > .menu-nav-link') || li.querySelector('a'));
     var host;
     var originalText;
 

@@ -450,10 +450,10 @@ a.menu-nav-link:focus-visible {
   color: var(--color-fg);
 }
 
-/* "Experiment" parent is a non-clickable heading — render in full white
-   like the active page label so it reads as the section's title. */
+/* "Experiment" parent is a non-clickable heading — inherits the muted
+   menu colour and gets the same line-hover white-wipe as siblings on
+   hover (the wipe rules already target .menu-nav-link / .line-hover). */
 .menu-nav-link--label {
-  color: var(--color-fg);
   cursor: default;
 }
 
