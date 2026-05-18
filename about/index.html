@@ -96,12 +96,21 @@
   <div data-barba="wrapper">
     <div data-barba="container" data-barba-namespace="about">
 
-      <main id="main-content" class="studio-main">
+      <!-- Depth-gallery canvas — kept OUTSIDE .studio-main so it
+           doesn't sit inside the title's stacking context. The
+           title uses mix-blend-mode:hard-light which would blend
+           against the canvas (mostly black) instead of the body
+           background image if they shared a stacking context. -->
+      <div class="about-canvas-wrap" data-about-canvas-wrap>
+        <canvas class="about-depth-canvas" data-depth-canvas aria-label="About co:lab — scroll to explore"></canvas>
+      </div>
 
-        <!-- Large display title — distressed texture is baked into the
-             SVG files themselves, so no CSS filters are needed.
-             Two variants are served via <picture>: a portrait-format
-             SVG for mobile and a landscape-format SVG for desktop. -->
+      <main id="main-content" class="studio-main about-depth" data-about-main>
+
+        <!-- ============ SECTION 1 — live HTML title + meta ============
+             /js/about-boot.js polls gallery.scrollCurrent and dissolves
+             these out (scale + blur + opacity) as the camera advances
+             toward the depth-gallery planes behind. -->
         <h1 class="studio-display" aria-label="A practice of culture experimentation and creative systems">
           <picture>
             <source media="(min-width: 768px)" srcset="/assets/Title_D.svg" />
@@ -109,7 +118,6 @@
           </picture>
         </h1>
 
-        <!-- Meta info — three groups -->
         <div class="studio-meta studio-meta--origin">
           <span class="studio-meta-mobile-only">CO:LAB</span>
           <span>EST. 2025</span>
@@ -142,6 +150,8 @@
   <script src="/js/line-hover.js" defer></script>
   <script src="/js/hover-sfx.js" defer></script>
   <script src="/js/title-reveal.js" defer></script>
+  <script src="/js/depth-gallery.js?v=3" defer></script>
+  <script src="/js/about-boot.js?v=1" defer></script>
   <script src="/js/barba-init.js" defer></script>
 
 </body>

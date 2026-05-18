@@ -92,7 +92,7 @@
       if (window.colabMainBoot) window.colabMainBoot();
     }
 
-    function enterAbout() {
+    function enterAbout(nextContainer) {
       document.body.classList.remove('project-page');
       document.body.classList.remove('projects-index-page');
       document.body.classList.add('about-page');
@@ -111,6 +111,9 @@
       /* Pause tesseract to save GPU */
       if (window.colabTesseract) window.colabTesseract.pause();
 
+      /* Mount the About depth gallery into the new container */
+      if (window.colabAbout) window.colabAbout.init(nextContainer);
+
       /* Re-bind nav toggle for the new container context */
       if (window.colabMainBoot) window.colabMainBoot();
     }
@@ -118,6 +121,11 @@
     function leaveProject() {
       /* Destroy depth gallery before container is removed */
       if (window.colabProject) window.colabProject.destroy();
+    }
+
+    function leaveAbout() {
+      /* Destroy About depth gallery before container is removed */
+      if (window.colabAbout) window.colabAbout.destroy();
     }
 
     /* ── Barba init ── */
@@ -153,6 +161,7 @@
           /* Tear down current view */
           var leaving = data.current.namespace;
           if (leaving === 'project') leaveProject();
+          if (leaving === 'about')   leaveAbout();
 
           /* Shader wipe out */
           if (ST) {
@@ -189,7 +198,7 @@
           } else if (entering === 'projects-index') {
             enterProjectsIndex();
           } else if (entering === 'about') {
-            enterAbout();
+            enterAbout(data.next.container);
           }
 
           /* Route the ambient bed to the per-page track */
