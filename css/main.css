@@ -2868,6 +2868,216 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   will-change: opacity;
 }
 
+/* ============================================================
+   ABOUT — SECTION 2 & 3 (live HTML layouts)
+   Each section is an absolutely-positioned overlay filling the
+   .studio-main envelope. /js/about-boot.js drives opacity, scale
+   and blur per frame from gallery.scrollCurrent so they crossfade
+   as the user scrolls. Section 1 stays as the existing typographic
+   poster (.studio-display + .studio-meta) — those are driven by
+   the same engine but live in separate DOM nodes.
+   ============================================================ */
+.about-section {
+  position: absolute;
+  inset: 0;
+  z-index: 4;       /* below studio-display (1) inside studio-main? NO — .studio-display has z:1 but studio-main creates the SC. We sit ABOVE the studio-display so when sections 2/3 fade in the title fades out behind. Studio-display's mix-blend kicks against body BG; sections 2/3 paint normally. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;     /* removed from a11y tree when fully hidden */
+  will-change: opacity, transform, filter;
+}
+
+.about-section.is-active {
+  pointer-events: auto;
+  visibility: visible;
+}
+
+/* ---------- SECTION 2 — desktop ---------- */
+.about-s2-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 24px;
+  width: calc(100% - var(--grid-margin) * 2);
+  max-width: 1180px;
+  height: 78%;
+  max-height: 720px;
+  padding: 0 var(--grid-margin);
+  box-sizing: border-box;
+}
+
+.about-s2-collage {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.about-s2-collage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left top;
+}
+
+.about-s2-right {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  min-width: 0;
+}
+
+.about-s2-flowers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  flex: 0 0 56%;
+  min-height: 0;
+}
+
+.about-s2-flower {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #000;
+}
+
+.about-s2-copy {
+  font-family: var(--font-mono, 'Space Mono', monospace);
+  font-size: 11px;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: var(--color-fg);
+  text-align: justify;
+  max-width: 38ch;
+  margin-left: auto;
+}
+
+.about-s2-copy p {
+  margin: 0 0 1.1em;
+}
+
+.about-s2-copy p:last-child {
+  margin-bottom: 0;
+}
+
+/* ---------- SECTION 3 — desktop ---------- */
+.about-s3-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 24px;
+  row-gap: 56px;
+  width: calc(100% - var(--grid-margin) * 2);
+  max-width: 1100px;
+  padding: 0 var(--grid-margin);
+  box-sizing: border-box;
+  font-family: var(--font-mono, 'Space Mono', monospace);
+  font-size: 11px;
+  line-height: 1.55;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-fg);
+}
+
+.about-s3-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.about-s3-row {
+  display: flex;
+  gap: 16px;
+  align-items: baseline;
+}
+
+.about-s3-k {
+  opacity: 0.55;
+  white-space: nowrap;
+}
+
+.about-s3-v {
+  white-space: nowrap;
+}
+
+.about-s3-block--values .about-s3-v {
+  opacity: 0.9;
+}
+
+.about-s3-footer {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 24px;
+  margin-block-start: 8px;
+}
+
+.about-s3-footer > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.about-s3-footer .about-s3-k {
+  opacity: 1;
+}
+
+.about-s3-footer .about-s3-v {
+  opacity: 0.55;
+}
+
+/* ---------- Section 2 & 3 — mobile ---------- */
+@media (max-width: 767px) {
+  .about-s2-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1.2fr) minmax(0, 1fr);
+    width: calc(100% - var(--m) * 2);
+    padding: 0 var(--m);
+    height: 88%;
+    gap: 18px;
+  }
+
+  .about-s2-right {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .about-s2-flowers {
+    grid-template-columns: 1fr 1fr;
+    flex: 0 0 auto;
+    aspect-ratio: 1 / 0.85;
+  }
+
+  .about-s2-copy {
+    font-size: 10px;
+    max-width: none;
+    margin-left: 0;
+  }
+
+  /* Section 3 — stack pairs (label/value blocks) into 2 columns */
+  .about-s3-grid {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    column-gap: 14px;
+    row-gap: 30px;
+    width: calc(100% - var(--m) * 2);
+    padding: 0 var(--m);
+    font-size: 10px;
+  }
+
+  .about-s3-footer {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    row-gap: 18px;
+    column-gap: 14px;
+  }
+}
+
+
 /* When depth mode is active on mobile, keep the page locked
    (no body scroll); the canvas owns all vertical gestures. */
 @media (max-width: 767px) {
