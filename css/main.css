@@ -2880,18 +2880,20 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-section {
   position: absolute;
   inset: 0;
-  z-index: 4;       /* below studio-display (1) inside studio-main? NO — .studio-display has z:1 but studio-main creates the SC. We sit ABOVE the studio-display so when sections 2/3 fade in the title fades out behind. Studio-display's mix-blend kicks against body BG; sections 2/3 paint normally. */
+  z-index: 4;       /* above .studio-display (z:1) within studio-main (z:10) */
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
+  /* Always pointer-events:none so wheel/touch events pass through
+     to the canvas underneath (where the depth-gallery scroll engine
+     listens). Sections are visual-only — no interactive elements. */
   pointer-events: none;
-  visibility: hidden;     /* removed from a11y tree when fully hidden */
+  visibility: hidden;
   will-change: opacity, transform, filter;
 }
 
 .about-section.is-active {
-  pointer-events: auto;
   visibility: visible;
 }
 
