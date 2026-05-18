@@ -339,7 +339,7 @@
        unsolicited playback without a user gesture. */
     autoEnterTimer = setTimeout(function () {
       if (!dismissed) dismissLoader(false);
-    }, 5000);
+    }, 2400);
   }
 
   function handleKeyEnter() {
