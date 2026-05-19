@@ -124,11 +124,19 @@
     );
     Array.prototype.forEach.call(bodyItems, function (li) { bindItem(li); });
 
+    // Menu nav <li>s stretch to the full menu column width, so binding
+    // mouseenter on the <li> fires the tick on empty space to the right
+    // of the words. Narrow the bind target to the inner anchor/label
+    // (.menu-nav-link or .menu-sub-link), which sizes to the text glyphs.
+    // Mirrors the hover-target narrowing in line-hover.js.
     var menuItems = document.querySelectorAll(
       '.menu-nav-list li:not(.is-inactive)'
     );
     Array.prototype.forEach.call(menuItems, function (li) {
-      bindItem(li, { fromMenu: true });
+      var target = li.querySelector(':scope > .menu-nav-link') ||
+                   li.querySelector(':scope > .menu-sub-link') ||
+                   li;
+      bindItem(target, { fromMenu: true });
     });
   }
 
