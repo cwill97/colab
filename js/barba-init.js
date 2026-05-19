@@ -19,6 +19,34 @@
       window.colabAudio.setTrack(namespace === 'about' ? ABOUT_TRACK : DEFAULT_TRACK);
     }
 
+    /* Lazy-mount the tesseract on return to home. Non-home HTML files
+       intentionally omit both the <div data-tesseract> wrap and the
+       tesseract.js script tag (saves GPU on cold loads of those pages),
+       so when Barba navigates back to home we must (re)create whatever
+       is missing. The script auto-boots on execution, so injecting it
+       after the div is enough to start rendering. */
+    function ensureTesseract() {
+      if (!document.querySelector('[data-tesseract]')) {
+        var div = document.createElement('div');
+        div.className = 'tesseract-wrap';
+        div.setAttribute('aria-hidden', 'true');
+        div.setAttribute('data-tesseract', '');
+        document.body.insertBefore(div, document.body.firstChild);
+      }
+
+      if (window.colabTesseract) {
+        window.colabTesseract.init();
+        window.colabTesseract.resume();
+        return;
+      }
+
+      if (document.querySelector('script[data-tesseract-script]')) return;
+      var s = document.createElement('script');
+      s.src = '/js/tesseract.js';
+      s.setAttribute('data-tesseract-script', '');
+      document.body.appendChild(s);
+    }
+
     /* ── Helper: toggle persistent elements for each view ── */
     function enterHome() {
       document.body.classList.remove('project-page');
@@ -36,11 +64,7 @@
         viz.setAttribute('aria-hidden', 'false');
       }
 
-      /* Resume or init tesseract */
-      if (window.colabTesseract) {
-        window.colabTesseract.init();
-        window.colabTesseract.resume();
-      }
+      ensureTesseract();
 
       /* Re-init homepage JS (scroll thumb, project hovers, etc.) */
       if (window.colabMainBoot) window.colabMainBoot();

@@ -17,8 +17,11 @@ document.addEventListener('visibilitychange', function () {
       'in vec2 p;\n' +
       'void main(){ gl_Position = vec4(p, 0.0, 1.0); }';
 
+  /* Per-tier #defines are injected after the precision line at build
+     time. The placeholder comment is replaced in buildProgram(). */
   var FS = '#version 300 es\n' +
       'precision highp float;\n' +
+      '//[TIER_DEFINES]\n' +
       'out vec4 outColor;\n' +
       '\n' +
       'uniform vec2  iResolution;\n' +
@@ -37,7 +40,7 @@ document.addEventListener('visibilitychange', function () {
       '    float res = 0.0;\n' +
       '    vec3  c   = p;\n' +
       '    float fold = 0.7 + iProximity * 0.01;\n' +
-      '    for(int i=0; i<6; ++i){\n' +
+      '    for(int i=0; i<FRACTAL_ITERS; ++i){\n' +
       '        p = fold*abs(p)/dot(p,p) - fold;\n' +
       '        p.yz = csqr(p.yz);\n' +
       '        p = p.zxy;\n' +
@@ -67,7 +70,7 @@ document.addEventListener('visibilitychange', function () {
       '    vec3 coolR = vec3(1.30, 0.85, 1.45);  // blue-cyan\n' +
       '    vec3 hotR  = vec3(0.55, 1.10, 1.45);  // violet-white\n' +
       '    vec3 tint  = mix(coolR, hotR, iHeat);\n' +
-      '    for(int i=0; i<32; i++){\n' +
+      '    for(int i=0; i<RAYMARCH_STEPS; i++){\n' +
       '        t += dt*exp(-2.0*c);\n' +
       '        if(t > tmm.y) break;\n' +
       '        c = map(ro + t*rd);\n' +
@@ -144,6 +147,58 @@ document.addEventListener('visibilitychange', function () {
   var running     = false;
   var initialized = false;
   var resizeBound = false;
+
+  /* ============================================================
+     ADAPTIVE QUALITY
+     Three tiers swap the fractal iteration count, raymarch step
+     count, and devicePixelRatio cap. Tier is picked once at init
+     from GPU + CPU + memory + viewport signals, and can be
+     overridden at runtime via window.colabTesseract.setTier().
+     ============================================================ */
+  var TIER_CONFIG = {
+    high:   { fractalIters: 6, raymarchSteps: 32, dprCap: 2.0 },
+    medium: { fractalIters: 5, raymarchSteps: 24, dprCap: 1.5 },
+    low:    { fractalIters: 4, raymarchSteps: 16, dprCap: 1.0 }
+  };
+  var currentTier = 'medium';  // safe default until detection runs
+
+  function detectTier(glCtx) {
+    /* Respect explicit user preference */
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return 'low';
+      }
+    } catch (e) {}
+
+    var ua       = (navigator.userAgent || '').toLowerCase();
+    var isIPad   = /ipad/.test(ua) || (navigator.maxTouchPoints > 1 && /macintosh/.test(ua));
+    var isMobile = /android|iphone|ipod|webos|blackberry|iemobile|opera mini/.test(ua) || isIPad;
+    var cores    = navigator.hardwareConcurrency || 4;
+    var mem      = navigator.deviceMemory       || 4;
+
+    var renderer = '';
+    try {
+      var ext = glCtx.getExtension('WEBGL_debug_renderer_info');
+      if (ext) renderer = String(glCtx.getParameter(ext.UNMASKED_RENDERER_WEBGL) || '').toLowerCase();
+    } catch (e) {}
+
+    var isAppleSilicon = /apple\s*m\d/.test(renderer);
+    var isHighGPU      = /(rtx\s*[2-9]|geforce\s*(?:rtx|gtx\s*1[06-9])|radeon\s*(?:rx\s*[6-9]|pro\s*[5-9]))/.test(renderer);
+    var isLowGPU       = /(intel.*(?:hd\s*graphics\s*[3-5]|hd\s*graphics$|gma)|mali-[gt]\s*\d|adreno\s*[345]\d{2}|powervr)/.test(renderer);
+
+    if (isMobile) {
+      if (isLowGPU) return 'low';
+      if (isAppleSilicon || /apple\s*a1[4-9]|apple\s*a2\d/.test(renderer)) return 'medium';
+      if (cores >= 8 && mem >= 6) return 'medium';
+      return 'low';
+    }
+
+    if (isAppleSilicon || isHighGPU) return 'high';
+    if (isLowGPU) return 'low';
+    if (cores >= 8 && mem >= 8) return 'high';
+    if (cores >= 4 && mem >= 4) return 'medium';
+    return 'low';
+  }
 
   /* ============================================================
      PROXIMITY — cursor distance from center drives fractal
@@ -400,8 +455,14 @@ document.addEventListener('visibilitychange', function () {
   }
 
   function buildProgram() {
+    var T = TIER_CONFIG[currentTier];
+    var fsSrc = FS.replace(
+      '//[TIER_DEFINES]',
+      '#define FRACTAL_ITERS '   + T.fractalIters + '\n' +
+      '#define RAYMARCH_STEPS '  + T.raymarchSteps
+    );
     var vs = compile(gl.VERTEX_SHADER, VS);
-    var fs = compile(gl.FRAGMENT_SHADER, FS);
+    var fs = compile(gl.FRAGMENT_SHADER, fsSrc);
     if (!vs || !fs) return false;
 
     prog = gl.createProgram();
@@ -438,7 +499,7 @@ document.addEventListener('visibilitychange', function () {
      ============================================================ */
   function resize() {
     if (!canvas || !gl) return;
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var dpr = Math.min(window.devicePixelRatio || 1, TIER_CONFIG[currentTier].dprCap);
     var w = Math.max(1, Math.floor(canvas.clientWidth  * dpr));
     var h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
     if (canvas.width !== w || canvas.height !== h) {
@@ -558,6 +619,11 @@ document.addEventListener('visibilitychange', function () {
     canvas.addEventListener('webglcontextlost',     onContextLost,     false);
     canvas.addEventListener('webglcontextrestored', onContextRestored, false);
 
+    /* Pick an adaptive-quality tier from device signals BEFORE
+       compiling the shader — the tier injects #define macros that
+       set the fractal iteration and raymarch step counts. */
+    currentTier = detectTier(gl);
+
     if (!buildProgram()) {
       destroy();
       return;
@@ -638,12 +704,25 @@ document.addEventListener('visibilitychange', function () {
   /* ============================================================
      PUBLIC API
      ============================================================ */
+  function setTier(t) {
+    if (!TIER_CONFIG[t] || t === currentTier) return false;
+    currentTier = t;
+    if (gl && initialized) {
+      if (prog) gl.deleteProgram(prog);
+      if (!buildProgram()) return false;
+      resize();
+    }
+    return true;
+  }
+
   window.colabTesseract = {
     init:    init,
     pause:   pause,
     resume:  resume,
     reset:   reset,
-    destroy: destroy
+    destroy: destroy,
+    getTier: function () { return currentTier; },
+    setTier: setTier
   };
 
   /* ============================================================
