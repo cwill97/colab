@@ -32,15 +32,121 @@ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function isOpen(h){const p=h[0],tips=[h[4],h[8],h[12],h[16],h[20]];let c=0;tips.forEach(t=>{if(dist(t,p)<0.045)c++;});return c<tips.length;}
 const centroid=arr=>{let x=0,y=0;arr.forEach(p=>{x+=p.x;y+=p.y;});return{x:x/arr.length,y:y/arr.length};}
 
-// MEDIAPIPE
+// ===== HAND-LANDMARK PANEL =====
+const HAND_CONNECTIONS=[
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[17,18],[18,19],[19,20],
+  [0,17]
+];
+const camCanvas=document.getElementById("cam-canvas");
+const camCtx=camCanvas.getContext("2d");
+const camStatus=document.getElementById("cam-status");
+const camPanel=document.getElementById("cam-panel");
+const camClose=document.getElementById("cam-close");
+const camReopen=document.getElementById("cam-reopen");
+
+function drawLandmarks(handsList){
+  const W=camCanvas.width,H=camCanvas.height;
+  camCtx.fillStyle="#000";camCtx.fillRect(0,0,W,H);
+  if(!handsList||!handsList.length)return;
+  // Mirror horizontally so movement matches the user
+  camCtx.save();
+  camCtx.translate(W,0);camCtx.scale(-1,1);
+  handsList.forEach(h=>{
+    // connections
+    camCtx.strokeStyle="rgba(255,255,255,0.55)";
+    camCtx.lineWidth=1.5;
+    camCtx.beginPath();
+    HAND_CONNECTIONS.forEach(([a,b])=>{
+      const pa=h[a],pb=h[b];
+      camCtx.moveTo(pa.x*W,pa.y*H);
+      camCtx.lineTo(pb.x*W,pb.y*H);
+    });
+    camCtx.stroke();
+    // joints
+    h.forEach((p,i)=>{
+      const isTip=(i===4||i===8||i===12||i===16||i===20);
+      camCtx.fillStyle=isTip?"#fff":"rgba(255,255,255,0.85)";
+      camCtx.beginPath();
+      camCtx.arc(p.x*W,p.y*H,isTip?3.2:2.2,0,Math.PI*2);
+      camCtx.fill();
+    });
+  });
+  camCtx.restore();
+}
+
+function setStatus(text,active){
+  camStatus.textContent=text;
+  camStatus.classList.toggle("active",!!active);
+}
+
+camClose.addEventListener("click",()=>{
+  camPanel.hidden=true;
+  camReopen.hidden=false;
+});
+camReopen.addEventListener("click",()=>{
+  camPanel.hidden=false;
+  camReopen.hidden=true;
+});
+
+// ===== ONBOARDING + LEGEND =====
+const ONBOARD_KEY="colab.volcube.onboarded";
+const onboard=document.getElementById("onboard");
+const onboardStart=document.getElementById("onboard-start");
+const legend=document.getElementById("legend");
+const legendHelp=document.getElementById("legend-help");
+
+function showExperience(){
+  onboard.hidden=true;
+  legend.hidden=false;
+  camPanel.hidden=false;
+  startTracking();
+}
+
+function showOnboarding(){
+  onboard.hidden=false;
+  legend.hidden=true;
+  camPanel.hidden=true;
+  camReopen.hidden=true;
+}
+
+if(localStorage.getItem(ONBOARD_KEY)==="1"){
+  showExperience();
+}else{
+  showOnboarding();
+}
+
+onboardStart.addEventListener("click",()=>{
+  try{localStorage.setItem(ONBOARD_KEY,"1");}catch(e){}
+  showExperience();
+});
+
+legendHelp.addEventListener("click",showOnboarding);
+
+// ===== MEDIAPIPE =====
 const video=document.getElementById("video");
 const hands=new Hands({locateFile:f=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
 hands.setOptions({maxNumHands:2,modelComplexity:1,minDetectionConfidence:0.6,minTrackingConfidence:0.6});
 let lastAng=null,lastY=null;
 hands.onResults(res=>{
- if(!res.multiHandLandmarks||res.multiHandLandmarks.length===0){inactive=true;targetPos.copy(INIT_POS);targetScale=INIT_SCALE;twoStartCentroid=null;return;}
- const arr=res.multiHandLandmarks,open=arr.filter(isOpen);inactive=open.length!==arr.length;
- if(inactive){targetPos.copy(INIT_POS);targetScale=INIT_SCALE;twoStartCentroid=null;return;}
+ const list=res.multiHandLandmarks||[];
+ drawLandmarks(list);
+
+ if(!list.length){
+   inactive=true;targetPos.copy(INIT_POS);targetScale=INIT_SCALE;twoStartCentroid=null;
+   setStatus("No hands detected",false);
+   return;
+ }
+ const open=list.filter(isOpen);inactive=open.length!==list.length;
+ if(inactive){
+   targetPos.copy(INIT_POS);targetScale=INIT_SCALE;twoStartCentroid=null;
+   setStatus(`${list.length} hand${list.length>1?"s":""} • closed`,true);
+   return;
+ }
+ setStatus(open.length===1?"1 hand • rotate":"2 hands • pan / scale",true);
 
  if(open.length===1){const h=open[0],p=h[0],tips=[h[4],h[8],h[12],h[16],h[20]],c=centroid(tips);
  const ang=Math.atan2(c.y-p.y,c.x-p.x);
@@ -60,7 +166,12 @@ hands.onResults(res=>{
  } else {twoStartCentroid=null;}
 });
 
-new Camera(video,{onFrame:async()=>{await hands.send({image:video});},width:640,height:480}).start();
+let tracking=null;
+function startTracking(){
+  if(tracking)return;
+  tracking=new Camera(video,{onFrame:async()=>{await hands.send({image:video});},width:640,height:480});
+  tracking.start();
+}
 
 function animate(){requestAnimationFrame(animate);
  if(inactive){cube.rotation.y+=0.001;rotVel.set(0,0);}
