@@ -5,6 +5,80 @@
    ============================================================ */
 
 /* ------------------------------------------------------------
+   0. Web font — Helvetica Neue (WOFF-only, no local fallback)
+
+   The cdnfonts.com stylesheet declares every @font-face with
+   `src: local('Helvetica Neue'), url(...)`. On macOS, Safari
+   resolves `local('Helvetica Neue')` to the system font (a TTC
+   with subtly different metrics from the cdnfonts WOFF), while
+   Chrome/Firefox fall through to the WOFF. Same character widths
+   on one browser, different widths on the other → text wraps at
+   different points, the right-column manifesto overflows its
+   156px box, and [Our Services] / [Contact Us] visually collide
+   with it on any viewport that triggers a non-1.0 scale.js zoom.
+
+   We declare the family ourselves under a unique name so the
+   `local()` short-circuit can never happen and every browser
+   renders from identical font data.
+   ------------------------------------------------------------ */
+@font-face {
+  font-family: 'HelveticaNeueColab';
+  font-style: normal;
+  font-weight: 100;
+  src: url('https://fonts.cdnfonts.com/s/62895/HelveticaNeueUltraLight.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HelveticaNeueColab';
+  font-style: normal;
+  font-weight: 200;
+  src: url('https://fonts.cdnfonts.com/s/62895/HelveticaNeueThin.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HelveticaNeueColab';
+  font-style: normal;
+  font-weight: 300;
+  src: url('https://fonts.cdnfonts.com/s/62895/HelveticaNeueLight.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HelveticaNeueColab';
+  font-style: normal;
+  font-weight: 400;
+  src: url('https://fonts.cdnfonts.com/s/62895/HelveticaNeueRoman.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HelveticaNeueColab';
+  font-style: normal;
+  font-weight: 500;
+  src: url('https://fonts.cdnfonts.com/s/62895/HelveticaNeueMedium.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HelveticaNeueColab';
+  font-style: normal;
+  font-weight: 700;
+  src: url('https://fonts.cdnfonts.com/s/62895/HelveticaNeueBold.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HelveticaNeueColab';
+  font-style: normal;
+  font-weight: 800;
+  src: url('https://fonts.cdnfonts.com/s/62895/HelveticaNeueHeavy.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'HelveticaNeueColab';
+  font-style: normal;
+  font-weight: 900;
+  src: url('https://fonts.cdnfonts.com/s/62895/HelveticaNeueBlack.woff') format('woff');
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------
    1. CSS Custom Properties (Design Tokens)
    ------------------------------------------------------------ */
 :root {
@@ -28,8 +102,11 @@
   --logo-height:    25px;
   --nav-btn-size:   22px;
 
-  /* Typography */
-  --font-display:   'Helvetica Neue', 'HelveticaNeue', Helvetica, Arial, sans-serif;
+  /* Typography
+     'HelveticaNeueColab' is declared above as a url-only @font-face so
+     every browser renders from the same WOFF data. The remaining names
+     are loading-flash and offline fallbacks. */
+  --font-display:   'HelveticaNeueColab', 'Helvetica Neue', 'HelveticaNeue', Helvetica, Arial, sans-serif;
   --font-mono:      'Space Mono', 'Courier New', monospace;
 
   /* Layout spacing tokens — all content must fit within 100vh */

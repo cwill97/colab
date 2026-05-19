@@ -29,19 +29,43 @@
   // that exact width. Wider shuffle glyphs are clipped to the slot;
   // layout never shifts.
   //
-  // The project applies CSS `zoom` to <html> via js/scale.js — we read
-  // and divide it out so the locked width is in unzoomed CSS px and
-  // stays correct as the user resizes (zoom scales locked widths
-  // automatically in subsequent renders).
-  function currentZoom() {
-    var raw = document.documentElement.style.zoom;
-    var z = parseFloat(raw);
-    return (isFinite(z) && z > 0) ? z : 1;
+  // The project applies CSS `zoom` to <html> via js/scale.js. To convert
+  // a measured rect into the unzoomed CSS pixels we want to lock, we
+  // need the factor that the *browser* applied to rects — not necessarily
+  // the same as the `zoom` CSS value:
+  //
+  //   - Blink (Chrome/Edge) and modern Gecko (Firefox 126+) zoom rects:
+  //     a 100px element at zoom 0.5 reports rect.width = 50.
+  //   - WebKit (Safari, including current macOS/iOS releases) does NOT
+  //     zoom rects: the same element reports rect.width = 100.
+  //
+  // The previous implementation read `documentElement.style.zoom` and
+  // divided every char width by it. That works in Chrome but in Safari
+  // it inflates every char width by 1/zoom, which compounded across
+  // each line pushes the services + contact two-column layout past its
+  // 255px envelope — second-column items overlap or clip on the right.
+  //
+  // Probe the live browser instead: render a 100px-wide reference div
+  // and divide locked widths by whatever rect.width it reports. In
+  // Chrome the probe returns ≈ 100 * zoom (so we divide out the zoom);
+  // in Safari it returns ≈ 100 (so we divide by 1 and store the
+  // measured rect as-is, which is already in unzoomed CSS px).
+  function measureRectScale() {
+    if (!document.body) return 1;
+    var probe = document.createElement('div');
+    probe.style.cssText =
+      'position:absolute;left:-9999px;top:0;width:100px;height:1px;' +
+      'margin:0;padding:0;border:0;visibility:hidden;pointer-events:none';
+    document.body.appendChild(probe);
+    var w = probe.getBoundingClientRect().width;
+    document.body.removeChild(probe);
+    if (!isFinite(w) || w <= 0) return 1;
+    return w / 100;
   }
 
   function lockCharWidths(chars) {
     if (!chars || !chars.length) return false;
-    var zoom = currentZoom();
+    var rectScale = measureRectScale();
     var anyMeasured = false;
     for (var i = 0; i < chars.length; i++) {
       var span = chars[i];
@@ -50,7 +74,7 @@
       if (span.style.width) continue;
       var rect = span.getBoundingClientRect();
       if (rect.width <= 0) continue;
-      var natural = rect.width / zoom;
+      var natural = rect.width / rectScale;
       // Round to 2dp to keep inline styles tidy without losing accuracy
       span.style.width = (Math.round(natural * 100) / 100) + 'px';
       anyMeasured = true;
