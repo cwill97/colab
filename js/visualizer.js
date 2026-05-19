@@ -101,6 +101,16 @@
   var audioLabel  = null;
   var stateRevealTimer = null;
 
+  /* ── Visualizer cursor label (desktop homepage) ── */
+  var vizCursorLabel = null;
+
+  function syncVizCursorLabel() {
+    if (!vizCursorLabel) vizCursorLabel = document.querySelector('[data-viz-cursor-label]');
+    if (!vizCursorLabel) return;
+    var playing = started && !muted;
+    vizCursorLabel.textContent = playing ? 'Sound On' : 'Sound Off';
+  }
+
   function syncToggle() {
     if (!audioToggle) {
       audioToggle = document.querySelector('[data-audio-toggle]');
@@ -136,6 +146,7 @@
     }
     if (gainNode) gsap.to(gainNode.gain, { duration: 0.5, value: muted ? 0 : VOLUME, ease: 'power2.out', overwrite: true });
     syncToggle();
+    syncVizCursorLabel();
   }
 
   function handleActivate(container) {
@@ -161,6 +172,32 @@
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleActivate(container); }
     });
 
+    /* Cursor label — show "Sound On" / "Sound Off" next to the pointer
+       while hovering the visualiser (desktop only; mobile hides it). */
+    var hoverMQ = window.matchMedia('(hover: hover) and (pointer: fine)');
+    if (hoverMQ.matches) {
+      var labelEl = document.querySelector('[data-viz-cursor-label]');
+      if (labelEl) {
+        vizCursorLabel = labelEl;
+        var LABEL_OFFSET_X = 16;
+        var LABEL_OFFSET_Y = 14;
+        var moveLabel = function (e) {
+          labelEl.style.transform =
+            'translate3d(' + (e.clientX + LABEL_OFFSET_X) + 'px,' +
+                            (e.clientY + LABEL_OFFSET_Y) + 'px, 0)';
+        };
+        container.addEventListener('mouseenter', function (e) {
+          syncVizCursorLabel();
+          moveLabel(e);
+          labelEl.classList.add('is-visible');
+        });
+        container.addEventListener('mousemove', moveLabel);
+        container.addEventListener('mouseleave', function () {
+          labelEl.classList.remove('is-visible');
+        });
+      }
+    }
+
     /* Bind the audio toggle button */
     var toggle = document.querySelector('[data-audio-toggle]');
     if (toggle) {
@@ -172,6 +209,7 @@
 
     /* Initial sync */
     syncToggle();
+    syncVizCursorLabel();
   }
 
   /* ══════════════════════════════════════════════════════

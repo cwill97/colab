@@ -942,6 +942,33 @@ main {
   opacity: 0.4;
 }
 
+/* Cursor-following label shown when hovering the audio visualiser.
+   Reflects current audio state — "Sound On" while playing, "Sound Off"
+   when muted. Pointer-events disabled so the underlying visualiser
+   keeps its click affordance. */
+.viz-cursor-label {
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate3d(-9999px, -9999px, 0);
+  pointer-events: none;
+  z-index: 120;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
+  color: var(--color-fg);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.viz-cursor-label.is-visible {
+  opacity: 1;
+}
+
 /* ------------------------------------------------------------
    12. About Text
    30px below audio visualizer, cols 9–10, fixed position.

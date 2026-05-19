@@ -224,7 +224,7 @@ PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
     <nav class="menu-nav" aria-label="Primary menu">
       <ul class="menu-nav-list">
         <li class="menu-nav-item" data-nav="home">
-          <span class="menu-active-square" aria-hidden="true"></span><a href="/" class="menu-nav-link" data-menu-home data-nav="home">Home</a><span class="menu-coords" aria-hidden="true">26.2056° S, 28.0337° E</span>
+          <span class="menu-active-square" aria-hidden="true"></span><a href="/" class="menu-nav-link" data-menu-home data-nav="home">Home</a>
         </li>
         <li class="menu-nav-item" data-nav="about">
           <span class="menu-active-square" aria-hidden="true"></span><a href="/about" class="menu-nav-link" data-menu-about data-nav="about">Studio</a>
@@ -240,7 +240,7 @@ PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
     <div class="menu-footer">
       <div class="menu-footer-col">
         <span class="menu-footer-label">Contact</span>
-        <ul><li><a href="mailto:info@colab47.com">Info@colab47.com</a></li><li>+27 83 987 7654</li><li>South Africa</li><li><a href="/assets/colab47_RateCard.pdf" target="_blank" rel="noopener noreferrer">Rate Card</a></li></ul>
+        <ul><li><a href="mailto:info@colab47.com">Info@colab47.com</a></li><li>+27 71 672 3610</li><li>South Africa</li><li><a href="/assets/colab47_RateCard.pdf" target="_blank" rel="noopener noreferrer">Rate Card</a></li></ul>
       </div>
       <div class="menu-footer-col">
         <span class="menu-footer-label">Socials</span>
