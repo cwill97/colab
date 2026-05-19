@@ -157,8 +157,8 @@ document.addEventListener('visibilitychange', function () {
      ============================================================ */
   var TIER_CONFIG = {
     high:   { fractalIters: 6, raymarchSteps: 32, dprCap: 2.0 },
-    medium: { fractalIters: 5, raymarchSteps: 24, dprCap: 1.5 },
-    low:    { fractalIters: 4, raymarchSteps: 16, dprCap: 1.0 }
+    medium: { fractalIters: 6, raymarchSteps: 28, dprCap: 2.0 },
+    low:    { fractalIters: 5, raymarchSteps: 22, dprCap: 1.5 }
   };
   var currentTier = 'medium';  // safe default until detection runs
 
@@ -188,8 +188,12 @@ document.addEventListener('visibilitychange', function () {
 
     if (isMobile) {
       if (isLowGPU) return 'low';
-      if (isAppleSilicon || /apple\s*a1[4-9]|apple\s*a2\d/.test(renderer)) return 'medium';
-      if (cores >= 8 && mem >= 6) return 'medium';
+      /* iPad + Apple-silicon tablets are GPU-rich — give them full quality. */
+      if (isIPad || isAppleSilicon) return 'high';
+      /* Modern A-series iPhones (A14+) handle medium comfortably. */
+      if (/apple\s*a1[4-9]|apple\s*a2\d/.test(renderer)) return 'medium';
+      /* Mid-range Android — be generous, raymarch is the only real cost. */
+      if (cores >= 6 && mem >= 4) return 'medium';
       return 'low';
     }
 
