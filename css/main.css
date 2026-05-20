@@ -2090,7 +2090,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     inset-inline-end: 0;
     width: 100%;
     grid-column: unset;
-    font-size: calc(var(--u) * 28);
+    font-size: calc(var(--u) * 30);
     line-height: 0.9;
     letter-spacing: -0.01em;
     text-align: center;
@@ -2313,9 +2313,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     min-width: 0;
   }
 
-  .project-title   { font-size: calc(var(--u) * 10); }
+  .project-title   { font-size: calc(var(--u) * 11); }
   .project-detail  {
-    font-size: calc(var(--u) * 9);
+    font-size: calc(var(--u) * 10);
     max-width: none;
     margin-block-start: calc(var(--u) * 6);
     display: block;
@@ -2326,7 +2326,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     -webkit-box-orient: vertical;
   }
   .project-cta {
-    font-size: calc(var(--u) * 9);
+    font-size: calc(var(--u) * 10);
     margin-block-start: calc(var(--u) * 8);
     opacity: 0;
     transition: opacity 0.3s var(--ease-out);
@@ -2376,12 +2376,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .menu-footer-label {
-    font-size: calc(var(--u) * 9);
+    font-size: calc(var(--u) * 10);
     margin-block-end: calc(var(--u) * 14);
   }
 
   .menu-footer-col li {
-    font-size: calc(var(--u) * 8);
+    font-size: calc(var(--u) * 9);
     line-height: 2.4;
   }
 
