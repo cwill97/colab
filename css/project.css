@@ -51,7 +51,7 @@
      the physical viewport at zoom > 1. Using 900px (the design artboard
      height) minus nav guarantees the panel scales in lockstep with zoom
      and never extends beyond the screen. */
-  height: calc(900px - var(--nav-height));
+  height: calc(calc(var(--u) * 900) - var(--nav-height));
   inset-inline-start: 0;
   /* Stop at col 7: leave room for right rail (cols 8–10) */
   /* Right edge = grid-margin + 3 col-widths + 3 gutters + viz-width */
@@ -89,47 +89,47 @@
 .project-meta-num {
   display: block;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   letter-spacing: 0.12em;
   color: var(--color-fg);
   opacity: 0.45;
-  margin-block-end: 10px;
+  margin-block-end: calc(var(--u) * 10);
 }
 
 .project-meta-title {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: calc(var(--u) * 32);
   font-weight: 200;
   line-height: 0.9;
   letter-spacing: -0.02em;
   color: var(--color-fg);
-  margin-block-end: 12px;
+  margin-block-end: calc(var(--u) * 12);
   text-transform: uppercase;
 }
 
 .project-meta-services {
   font-family: var(--font-display);
-  font-size: 8px;
+  font-size: calc(var(--u) * 8);
   font-weight: 400;
   letter-spacing: 0.06em;
   color: var(--color-fg);
   opacity: 0.5;
   line-height: 1.6;
   text-transform: uppercase;
-  margin-block-end: 20px;
+  margin-block-end: calc(var(--u) * 20);
 }
 
 /* Progress track + counter */
 .project-meta-progress {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: calc(var(--u) * 16);
 }
 
 .project-meta-track {
-  width: 120px;
-  height: 1px;
+  width: calc(var(--u) * 120);
+  height: calc(var(--u) * 1);
   background: rgba(255, 255, 255, 0.15);
   position: relative;
   overflow: hidden;
@@ -146,7 +146,7 @@
 
 .project-meta-count {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: calc(var(--u) * 8);
   letter-spacing: 0.08em;
   color: var(--color-fg);
   opacity: 0.4;
@@ -159,13 +159,13 @@
    ------------------------------------------------------------ */
 .project-scroll-hint {
   position: fixed;
-  inset-block-end: 28px;
+  inset-block-end: calc(var(--u) * 28);
   inset-inline-start: var(--grid-margin);
   z-index: 60;
   pointer-events: none;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: calc(var(--u) * 14);
   opacity: 1;
   transition: opacity 0.6s var(--ease-out);
 }
@@ -176,7 +176,7 @@
 
 .project-scroll-hint span {
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: calc(var(--u) * 8);
   letter-spacing: 0.1em;
   color: var(--color-fg);
   opacity: 0.35;
@@ -184,8 +184,8 @@
 }
 
 .scroll-hint-line {
-  width: 40px;
-  height: 1px;
+  width: calc(var(--u) * 40);
+  height: calc(var(--u) * 1);
   background: rgba(255, 255, 255, 0.2);
   position: relative;
   overflow: hidden;
@@ -219,12 +219,12 @@
   position: fixed;
   inset-block-start: 50%;
   inset-inline-start: 50%;
-  transform: translate(-50%, calc(-50% + 6px));
+  transform: translate(-50%, calc(-50% + calc(var(--u) * 6)));
   z-index: 60;
   pointer-events: none;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: calc(var(--u) * 12);
   opacity: 0;
   transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
 }
@@ -236,7 +236,7 @@
 
 .project-scroll-next span {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   letter-spacing: 0.16em;
   color: var(--color-fg);
   text-transform: uppercase;
@@ -283,7 +283,7 @@
 /* Fallback when no logo SVG is supplied — render the project name */
 .project-logo-text {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: calc(var(--u) * 24);
   font-weight: 200;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -310,7 +310,7 @@
      [ PREVIOUS PROJECT ] sits on the same row. The audio toggle occupies the
      right ~95px of the rail; the prev/next text is ~135px wide and starts at
      the column's left edge — so they share a row without overlap. */
-  inset-block-end: 28px;
+  inset-block-end: calc(var(--u) * 28);
   inset-inline-end: var(--grid-margin);
   width: var(--viz-width);
   z-index: 50;
@@ -323,15 +323,15 @@
 .project-info-content {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: calc(var(--u) * 22);
 }
 
 .project-info-nav {
   margin-block-start: auto;
-  padding-block-start: 24px;
+  padding-block-start: calc(var(--u) * 24);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: calc(var(--u) * 8);
 }
 
 .project-info-section {
@@ -341,18 +341,18 @@
 .project-info-label {
   display: block;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-muted);
-  margin-block-end: 12px;
+  margin-block-end: calc(var(--u) * 12);
 }
 
 .project-info-text {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.55;
   letter-spacing: 0.02em;
@@ -371,13 +371,13 @@
   align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-fg);
   opacity: 0.6;
   text-decoration: none;
-  padding-block: 4px;
+  padding-block: calc(var(--u) * 4);
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
@@ -390,13 +390,13 @@
   align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-fg);
   opacity: 0.6;
   text-decoration: none;
-  padding-block: 4px;
+  padding-block: calc(var(--u) * 4);
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
@@ -449,8 +449,8 @@
   content: '';
   position: absolute;
   inset-block: 0;
-  inset-inline-end: -1px;
-  width: 1px;
+  inset-inline-end: calc(var(--u) * -1);
+  width: calc(var(--u) * 1);
   background: rgba(255, 255, 255, 0.08);
   pointer-events: none;
 }
@@ -499,11 +499,11 @@
      Falls back to 100vh on legacy browsers where the script is absent.
      -------------------------------------------------------- */
   :root {
-    --mp-canvas-h:      596px;                                /* 70% of 852 */
-    --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + 16px);
-    --mp-about-gap:     10px;
-    --mp-title-h:       16px;
-    --mp-about-h:       calc(var(--rvh, 100vh) - var(--mp-info-top) - var(--mp-title-h) - var(--mp-about-gap) - 20px);
+    --mp-canvas-h:      calc(var(--u) * 596);                                /* 70% of 852 */
+    --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + calc(var(--u) * 16));
+    --mp-about-gap:     calc(var(--u) * 10);
+    --mp-title-h:       calc(var(--u) * 16);
+    --mp-about-h:       calc(100vh - var(--mp-info-top) - var(--mp-title-h) - var(--mp-about-gap) - calc(var(--u) * 20));
   }
 
   /* --------------------------------------------------------
@@ -559,7 +559,7 @@
     inset-inline-end: var(--m);
     z-index: 50;
     font-family: var(--font-display);
-    font-size: 21px;
+    font-size: calc(var(--u) * 21);
     font-weight: 400;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -590,11 +590,11 @@
     z-index: 50;
     background: none;
     border: none;
-    padding: 4px 0;
+    padding: calc(var(--u) * 4) 0;
     margin: 0;
     cursor: pointer;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: calc(var(--u) * 10);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-fg);
@@ -617,11 +617,11 @@
   .project-page .project-mobile-hint {
     display: block;
     position: fixed;
-    inset-block-end: 20px;
+    inset-block-end: calc(var(--u) * 20);
     inset-inline-start: var(--m);
     z-index: 50;
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: calc(var(--u) * 9);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-fg);
@@ -656,10 +656,10 @@
   .project-overview-modal-inner {
     display: flex;
     flex-direction: column;
-    padding: calc(var(--nav-height) + 17px) var(--m) 26px;
-    gap: 21px;
-    height: var(--rvh, 100vh);
-    height: var(--rdvh, 100dvh);
+    padding: calc(var(--nav-height) + calc(var(--u) * 17)) var(--m) calc(var(--u) * 26);
+    gap: calc(var(--u) * 21);
+    height: 100vh;
+    height: 100dvh;
     box-sizing: border-box;
     overflow: hidden;
   }
@@ -669,29 +669,29 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin-block-start: clamp(8px, 1.5vh, 24px);
-    margin-block-end: clamp(8px, 1.5vh, 24px);
+    margin-block-start: clamp(calc(var(--u) * 8), 1.5vh, calc(var(--u) * 24));
+    margin-block-end: clamp(calc(var(--u) * 8), 1.5vh, calc(var(--u) * 24));
     flex-shrink: 1;
     min-height: 0;
   }
 
   .project-overview-modal-logo img {
     display: block;
-    max-width: clamp(120px, 28vw, 220px);
-    max-height: clamp(40px, 8vh, 100px);
+    max-width: clamp(calc(var(--u) * 120), 28vw, calc(var(--u) * 220));
+    max-height: clamp(calc(var(--u) * 40), 8vh, calc(var(--u) * 100));
     width: auto;
     height: auto;
     object-fit: contain;
   }
 
   .project-overview-modal-logo .project-logo-text {
-    font-size: clamp(20px, 4vw, 32px);
+    font-size: clamp(calc(var(--u) * 20), 4vw, calc(var(--u) * 32));
   }
 
   .project-overview-modal-content {
     display: flex;
     flex-direction: column;
-    gap: clamp(12px, 2.5vh, 36px);
+    gap: clamp(calc(var(--u) * 12), 2.5vh, calc(var(--u) * 36));
     flex: 1;
     min-height: 0;
     overflow: hidden;
@@ -699,8 +699,8 @@
 
   .project-overview-modal-section {
     display: grid;
-    grid-template-columns: 110px 1fr;
-    gap: clamp(12px, 2vw, 24px);
+    grid-template-columns: calc(var(--u) * 110) 1fr;
+    gap: clamp(calc(var(--u) * 12), 2vw, calc(var(--u) * 24));
     align-items: flex-start;
     flex-shrink: 1;
     min-height: 0;
@@ -709,11 +709,11 @@
 
   .project-overview-modal-section .project-info-label {
     margin-block-end: 0;
-    font-size: clamp(7px, 1.2vw, 9px);
+    font-size: clamp(calc(var(--u) * 7), 1.2vw, calc(var(--u) * 9));
   }
 
   .project-overview-modal-section .project-info-text {
-    font-size: clamp(9px, 1.4vw, 11px);
+    font-size: clamp(calc(var(--u) * 9), 1.4vw, calc(var(--u) * 11));
     line-height: 1.55;
   }
 
@@ -722,13 +722,13 @@
     align-self: center;
     flex-shrink: 0;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: calc(var(--u) * 11);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-fg);
     text-decoration: none;
     opacity: 0.75;
-    padding: clamp(4px, 0.8vh, 8px) 0;
+    padding: clamp(calc(var(--u) * 4), 0.8vh, calc(var(--u) * 8)) 0;
     margin-block-start: auto;
     transition: opacity 0.2s ease;
   }
@@ -744,11 +744,11 @@
     border: none;
     color: var(--color-fg);
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: calc(var(--u) * 11);
     letter-spacing: 0.1em;
     cursor: pointer;
-    padding: clamp(8px, 1.5vh, 16px) 24px;
-    margin-block-start: clamp(8px, 1.5vh, 24px);
+    padding: clamp(calc(var(--u) * 8), 1.5vh, calc(var(--u) * 16)) calc(var(--u) * 24);
+    margin-block-start: clamp(calc(var(--u) * 8), 1.5vh, calc(var(--u) * 24));
     text-transform: uppercase;
     opacity: 0.75;
     transition: opacity 0.2s ease;
@@ -776,12 +776,12 @@
 
 .audio-toggle {
   position: fixed;
-  inset-block-end: 28px;
-  inset-inline-end: var(--grid-margin, 28px);
+  inset-block-end: calc(var(--u) * 28);
+  inset-inline-end: var(--grid-margin, calc(var(--u) * 28));
   z-index: 80;
   display: none;                      /* hidden by default (homepage) */
   align-items: center;
-  gap: 12px;
+  gap: calc(var(--u) * 12);
   cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
@@ -811,7 +811,7 @@
    via the .is-state-reveal class added by visualizer.js. */
 .audio-toggle-label {
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: calc(var(--u) * 10);
   font-weight: 300;
   letter-spacing: 0.06em;
   color: var(--color-fg);
@@ -832,8 +832,8 @@
    a diagonal slash indicating muted. When playing, bars animate
    through staggered scaleY values to create a live waveform. */
 .audio-toggle-wave {
-  width: 32px;
-  height: 32px;
+  width: calc(var(--u) * 32);
+  height: calc(var(--u) * 32);
   overflow: visible;
 }
 
@@ -897,11 +897,11 @@
    Here we only tweak visual size. */
 @media (max-width: 767px) {
   .audio-toggle-wave {
-    width: 28px;
-    height: 28px;
+    width: calc(var(--u) * 28);
+    height: calc(var(--u) * 28);
   }
 
   .audio-toggle-label {
-    font-size: 9px;
+    font-size: calc(var(--u) * 9);
   }
 }

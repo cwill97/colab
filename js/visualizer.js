@@ -208,14 +208,10 @@
     /* antialias: false — we want crisp square points, not AA'd soft circles */
     var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: true });
 
-    /* Pixel-ratio must account for the CSS `zoom` scale.js applies to <html>.
-       offsetWidth/setSize work in pre-zoom CSS px, but the canvas is displayed
-       at (cssSize × zoom × devicePixelRatio) physical px. Without multiplying
-       by zoom here, the buffer is under-allocated and every dot renders as
-       a chunky square stretched across many screen pixels. */
+    /* Pixel-ratio for the canvas backing store, capped at 4 to bound
+       memory use on very high-DPR displays. */
     function getPixelRatio() {
-      var zoom = parseFloat(document.documentElement.style.zoom) || 1;
-      return Math.min((window.devicePixelRatio || 1) * zoom, 4);
+      return Math.min(window.devicePixelRatio || 1, 4);
     }
     var pr = getPixelRatio();
     renderer.setPixelRatio(pr);

@@ -82,6 +82,13 @@
    1. CSS Custom Properties (Design Tokens)
    ------------------------------------------------------------ */
 :root {
+  /* Viewport scale — length of one artboard pixel, sized so the 1440×900
+     master artboard fits the viewport on both axes. Every layout length is
+     authored as calc(var(--u) * N), N being its pixel value on the artboard.
+     Replaces the old <html> CSS zoom: text now rasterizes natively at its
+     true size on every display instead of being bitmap-scaled. */
+  --u: min(100vw / 1440, 100vh / 900);
+
   /* Palette */
   --color-bg:       #000000;
   --color-surface:  #0a0a0a;
@@ -93,14 +100,14 @@
 
   /* Grid — 10 columns, 30px gutters, 20px margins */
   --grid-columns:   10;
-  --grid-gutter:    30px;
-  --grid-margin:    20px;
+  --grid-gutter:    calc(var(--u) * 30);
+  --grid-margin:    calc(var(--u) * 20);
 
   /* Nav */
-  --nav-height:     64px;
-  --logo-width:     102px;
-  --logo-height:    25px;
-  --nav-btn-size:   22px;
+  --nav-height:     calc(var(--u) * 64);
+  --logo-width:     calc(var(--u) * 102);
+  --logo-height:    calc(var(--u) * 25);
+  --nav-btn-size:   calc(var(--u) * 22);
 
   /* Typography
      'HelveticaNeueColab' is declared above as a url-only @font-face so
@@ -110,32 +117,37 @@
   --font-mono:      'Space Mono', 'Courier New', monospace;
 
   /* Layout spacing tokens — all content must fit within 100vh */
-  --title-gap:        25px;   /* nav bottom → display title */
-  --title-height:     80px;   /* 3 lines × 33px × 0.8lh ≈ 79px, rounded up */
-  --projects-gap:     50px;   /* display title → project list (aligns [Featured Projects] with [Manifesto]) */
-  --image-gap:        50px;   /* project list → image */
-  --image-height:     190px;  /* fixed image container height */
-  --bottom-padding:   20px;   /* breathing room at viewport bottom */
+  --title-gap:        calc(var(--u) * 25);   /* nav bottom → display title */
+  --title-height:     calc(var(--u) * 80);   /* 3 lines × 33px × 0.8lh ≈ 79px, rounded up */
+  --projects-gap:     calc(var(--u) * 50);   /* display title → project list (aligns [Featured Projects] with [Manifesto]) */
+  --image-gap:        calc(var(--u) * 50);   /* project list → image */
+  --image-height:     calc(var(--u) * 190);  /* fixed image container height */
+  --bottom-padding:   calc(var(--u) * 20);   /* breathing room at viewport bottom */
 
-  --viz-width:        255px;
-  --viz-height:       115px;
-  --about-gap:        30px;   /* gap below visualizer to about text */
-  --about-height:     156px;  /* 13 lines × 8px × 1.5lh = 156px */
-  --services-gap:     30px;   /* gap below about text to services */
-  --services-height:  173px;  /* 9 items × 8px × 2.4lh ≈ 173px */
-  --contact-gap:      90px;   /* gap below services to contact */
+  --viz-width:        calc(var(--u) * 255);
+  --viz-height:       calc(var(--u) * 115);
+  --about-gap:        calc(var(--u) * 30);   /* gap below visualizer to about text */
+  --about-height:     calc(var(--u) * 156);  /* 13 lines × 8px × 1.5lh = 156px */
+  --services-gap:     calc(var(--u) * 30);   /* gap below about text to services */
+  --services-height:  calc(var(--u) * 173);  /* 9 items × 8px × 2.4lh ≈ 173px */
+  --contact-gap:      calc(var(--u) * 90);   /* gap below services to contact */
 
   /* Section labels — small muted heading above each block.
      Label sits inside the gap above its section; total label-block
      (height + gap-to-content) is carved out of the existing gap. */
-  --section-label-height: 9px;
-  --section-label-gap:    6px;    /* gap below [Featured Projects] label */
-  --side-label-gap:       12px;   /* gap below right-column labels: [Manifesto], [Our Services], [Contact Us] */
+  --section-label-height: calc(var(--u) * 9);
+  --section-label-gap:    calc(var(--u) * 6);    /* gap below [Featured Projects] label */
+  --side-label-gap:       calc(var(--u) * 12);   /* gap below right-column labels: [Manifesto], [Our Services], [Contact Us] */
 
   /* Motion */
   --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast:  150ms;
   --duration-base:  300ms;
+}
+
+/* Mobile artboard — 393×852 (iPhone 14 Pro) — scales from its own baseline. */
+@media (max-width: 767px) {
+  :root { --u: min(100vw / 393, 100dvh / 852); }
 }
 
 /* ------------------------------------------------------------
@@ -156,7 +168,7 @@ a, button, [role="button"], input, select, textarea, label,
 }
 
 html {
-  font-size: 15px;
+  font-size: calc(var(--u) * 15);
   -webkit-text-size-adjust: 100%;
   height: 100%;
   overflow: hidden;
@@ -190,13 +202,13 @@ body {
   z-index: 0;
   opacity: 0;
   -webkit-mask-image: radial-gradient(
-    circle 78px at var(--cx, 50%) var(--cy, 50%),
+    circle calc(var(--u) * 78) at var(--cx, 50%) var(--cy, 50%),
     black 0%,
     black 25%,
     transparent 100%
   );
   mask-image: radial-gradient(
-    circle 104px at var(--cx, 50%) var(--cy, 50%),
+    circle calc(var(--u) * 104) at var(--cx, 50%) var(--cy, 50%),
     black 0%,
     black 25%,
     transparent 100%
@@ -308,7 +320,7 @@ button {
   position: relative;
 
   /* Accessibility: visible focus ring */
-  border-radius: 2px;
+  border-radius: calc(var(--u) * 2);
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
@@ -317,8 +329,8 @@ button {
 }
 
 .nav-toggle:focus-visible {
-  outline: 2px solid var(--color-fg);
-  outline-offset: 4px;
+  outline: calc(var(--u) * 2) solid var(--color-fg);
+  outline-offset: calc(var(--u) * 4);
 }
 
 /* The toggle renders a small white square (matching the design) */
@@ -373,21 +385,21 @@ button {
   }
   10%  {
     box-shadow:
-      -3px 0 0 rgba(30, 172, 255, 0.9),
-       3px 0 0 rgba(0, 238, 250, 0.9);
-    transform: translate(2px, -1px) skewX(-8deg);
+      calc(var(--u) * -3) 0 0 rgba(30, 172, 255, 0.9),
+       calc(var(--u) * 3) 0 0 rgba(0, 238, 250, 0.9);
+    transform: translate(calc(var(--u) * 2), calc(var(--u) * -1)) skewX(-8deg);
   }
   20%  {
     box-shadow:
-       3px 0 0 rgba(30, 172, 255, 0.9),
-      -3px 0 0 rgba(0, 238, 250, 0.9);
-    transform: translate(-2px, 1px) skewX(6deg);
+       calc(var(--u) * 3) 0 0 rgba(30, 172, 255, 0.9),
+      calc(var(--u) * -3) 0 0 rgba(0, 238, 250, 0.9);
+    transform: translate(calc(var(--u) * -2), calc(var(--u) * 1)) skewX(6deg);
   }
   30%  {
     box-shadow:
-      -2px 0 0 rgba(30, 172, 255, 0.9),
-       2px 0 0 rgba(0, 238, 250, 0.9);
-    transform: translate(1px, 0) skewX(-3deg);
+      calc(var(--u) * -2) 0 0 rgba(30, 172, 255, 0.9),
+       calc(var(--u) * 2) 0 0 rgba(0, 238, 250, 0.9);
+    transform: translate(calc(var(--u) * 1), 0) skewX(-3deg);
   }
   40%  {
     box-shadow: none;
@@ -438,7 +450,7 @@ button {
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  padding-block-start: calc(var(--nav-height) + 80px);
+  padding-block-start: calc(var(--nav-height) + calc(var(--u) * 80));
 
   /* Hidden state — toggled by JS, shader handles visual */
   visibility: hidden;
@@ -455,7 +467,7 @@ button {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1400px;
+  max-width: calc(var(--u) * 1400);
   padding-inline: var(--grid-margin);
   text-align: left;
   opacity: 0;
@@ -472,7 +484,7 @@ button {
   padding: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(48px, 7.2vw, 110px);
+  font-size: clamp(calc(var(--u) * 48), 7.2vw, calc(var(--u) * 110));
   line-height: 0.95;
   letter-spacing: -0.01em;
 }
@@ -553,14 +565,14 @@ a.menu-nav-link:focus-visible {
   padding: 0;
   padding-inline-start: 0.62em;     /* aligns with parent's square indicator */
   font-family: var(--font-mono);
-  font-size: clamp(11px, 0.95vw, 14px);
+  font-size: clamp(calc(var(--u) * 11), 0.95vw, calc(var(--u) * 14));
   font-weight: 400;
   line-height: 1.3;
   letter-spacing: 0.01em;
   text-transform: uppercase;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: calc(var(--u) * 2);
   align-items: flex-start;
   white-space: nowrap;
   /* Spacing from parent label collapses to 0 at rest so a hidden list
@@ -592,7 +604,7 @@ a.menu-nav-link:focus-visible {
   display: inline-flex;
   align-items: baseline;
   gap: 0.9em;
-  padding: 4px 10px;
+  padding: calc(var(--u) * 4) calc(var(--u) * 10);
   background-color: var(--color-fg);
   color: var(--color-bg);
   text-decoration: none;
@@ -668,12 +680,12 @@ a.menu-sub-link:focus-visible {
 
 .menu-footer-label {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
   color: var(--color-muted);
-  margin-block-end: 18px;
+  margin-block-end: calc(var(--u) * 18);
 }
 
 .menu-footer-col ul {
@@ -684,7 +696,7 @@ a.menu-sub-link:focus-visible {
 
 .menu-footer-col li {
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: calc(var(--u) * 10);
   font-weight: 400;
   line-height: 2.6;
   letter-spacing: 0.02em;
@@ -717,7 +729,7 @@ a.menu-sub-link:focus-visible {
 .grid-overlay-col {
   height: 100%;
   background-color: rgba(238, 68, 238, 0.12);
-  border-inline: 1px solid rgba(238, 68, 238, 0.25);
+  border-inline: calc(var(--u) * 1) solid rgba(238, 68, 238, 0.25);
 }
 
 /* Grid overlay hidden by default; shown via JS data attribute */
@@ -757,7 +769,7 @@ main {
 .display-title {
   grid-column: 1 / 4;
   font-family: var(--font-display);
-  font-size: 33px;
+  font-size: calc(var(--u) * 33);
   font-weight: 400;
   line-height: 0.9;
   text-align: left;
@@ -803,7 +815,7 @@ main {
   display: flex;
   flex-direction: column;
   height: calc(
-    900px
+    calc(var(--u) * 900)
     - var(--nav-height)
     - var(--title-gap)
     - var(--title-height)
@@ -816,7 +828,7 @@ main {
   );
   overflow-y: scroll;
   overflow-x: hidden;
-  padding-right: 16px;
+  padding-right: calc(var(--u) * 16);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -829,9 +841,9 @@ main {
 .project-scroll-thumb {
   display: none;
   position: absolute;
-  inset-inline-end: -1px;
+  inset-inline-end: calc(var(--u) * -1);
   inset-block-start: 0;
-  width: 1px;
+  width: calc(var(--u) * 1);
   background-color: var(--color-fg);
   transform: translateY(0);
   transition: transform 0.08s linear;
@@ -859,7 +871,7 @@ main {
 }
 
 .project-item + .project-item {
-  margin-block-start: 30px;
+  margin-block-start: calc(var(--u) * 30);
 }
 
 /* Drawn line — pseudo-element paints top→bottom on hover */
@@ -868,7 +880,7 @@ main {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 0;
-  width: 1px;
+  width: calc(var(--u) * 1);
   height: 100%;
   background: rgba(255, 255, 255, 0.5);
   transform: scaleY(0);
@@ -879,7 +891,7 @@ main {
 /* On hover: line draws down, item nudges right, opacity lifts */
 .project-item:hover {
   opacity: 1;
-  padding-inline-start: 8px;
+  padding-inline-start: calc(var(--u) * 8);
 }
 
 .project-item:hover::before {
@@ -894,7 +906,7 @@ main {
 /* Project title */
 .project-title {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1;
   text-transform: uppercase;
@@ -909,9 +921,9 @@ main {
 
 /* Project detail — 9px below title */
 .project-detail {
-  margin-block-start: 9px;
+  margin-block-start: calc(var(--u) * 9);
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.4;
   color: var(--color-fg);
@@ -921,9 +933,9 @@ main {
 /* CTA link — 11px below detail */
 .project-cta {
   display: inline-block;
-  margin-block-start: 11px;
+  margin-block-start: calc(var(--u) * 11);
   font-family: var(--font-mono);
-  font-size: 8px;
+  font-size: calc(var(--u) * 8);
   font-weight: 400;
   line-height: 1;
   color: var(--color-fg);
@@ -942,8 +954,8 @@ main {
 }
 
 .project-cta:focus-visible {
-  outline: 1px solid var(--color-fg);
-  outline-offset: 3px;
+  outline: calc(var(--u) * 1) solid var(--color-fg);
+  outline-offset: calc(var(--u) * 3);
 }
 
 /* ------------------------------------------------------------
@@ -1040,7 +1052,7 @@ main {
   z-index: 50;
 
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.02em;
@@ -1093,7 +1105,7 @@ main {
 
 .services-list li {
   font-family: var(--font-display);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 2.4;
   letter-spacing: 0.02em;
@@ -1248,13 +1260,13 @@ main {
 .line-hover__bg {
   position: absolute;
   z-index: -1;
-  inset-block-start: -2px;
-  inset-block-end:   -2px;
-  inset-inline-start: -6px;
-  inset-inline-end:   -6px;
+  inset-block-start: calc(var(--u) * -2);
+  inset-block-end:   calc(var(--u) * -2);
+  inset-inline-start: calc(var(--u) * -6);
+  inset-inline-end:   calc(var(--u) * -6);
   background: rgba(255, 255, 255, 0.06);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
-          backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(calc(var(--u) * 8)) saturate(140%);
+          backdrop-filter: blur(calc(var(--u) * 8)) saturate(140%);
   pointer-events: none;
   /* Fully clipped from the top — animates downward as the top inset
      shrinks 100% → 0%, revealing the card from south to north. */
@@ -1293,10 +1305,10 @@ main {
    instead and don't render this element. */
 .line-hover__sr {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: calc(var(--u) * 1);
+  height: calc(var(--u) * 1);
   padding: 0;
-  margin: -1px;
+  margin: calc(var(--u) * -1);
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
@@ -1419,11 +1431,11 @@ body.is-dragging-tesseract {
 /* Terminal log — left side, 150px from top, cols 1–2 */
 .loader-terminal {
   position: absolute;
-  inset-block-start: 150px;
+  inset-block-start: calc(var(--u) * 150);
   inset-inline-start: var(--grid-margin);
   width: calc(2 * var(--col-width) + var(--grid-gutter));
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   line-height: 1.8;
   color: var(--color-fg);
   letter-spacing: 0.04em;
@@ -1431,8 +1443,8 @@ body.is-dragging-tesseract {
 }
 
 .loader-terminal-intro {
-  margin-block-end: 16px;
-  font-size: 9px;
+  margin-block-end: calc(var(--u) * 16);
+  font-size: calc(var(--u) * 9);
   opacity: 0.9;
 }
 
@@ -1457,16 +1469,16 @@ body.is-dragging-tesseract {
 }
 
 .loader-terminal-footer {
-  margin-block-start: 16px;
-  font-size: 9px;
+  margin-block-start: calc(var(--u) * 16);
+  font-size: calc(var(--u) * 9);
   line-height: 2;
 }
 
 /* Cursor blink */
 .loader-cursor {
   display: inline-block;
-  width: 7px;
-  height: 10px;
+  width: calc(var(--u) * 7);
+  height: calc(var(--u) * 10);
   background: var(--color-fg);
   vertical-align: middle;
   animation: cursor-blink 0.8s steps(1) infinite;
@@ -1482,14 +1494,14 @@ body.is-dragging-tesseract {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
+  gap: calc(var(--u) * 30);
 }
 
 /* Progress bar — 450×1px, split: left white / right black */
 .loader-bar-wrap {
-  width: 420px;
-  height: 1px;
-  border: 0,4px solid var(--color-fg);
+  width: calc(var(--u) * 420);
+  height: calc(var(--u) * 1);
+  border: 0,calc(var(--u) * 4) solid var(--color-fg);
   position: relative;
   overflow: hidden;
 }
@@ -1506,7 +1518,7 @@ body.is-dragging-tesseract {
 /* CTA button */
 .loader-cta {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: calc(var(--u) * 9);
   letter-spacing: 0.08em;
   color: var(--color-fg);
   background: none;
@@ -1619,15 +1631,15 @@ body.page-entering.page-revealed [data-tesseract] {
    ------------------------------------------------------------ */
 @keyframes tesseractGlitch {
   0%   { opacity: 0;   transform: scale(0.82); filter: brightness(1) blur(0px); }
-  8%   { opacity: 1;   transform: scale(1.04) translateX(-3px) skewX(-1.5deg); filter: brightness(3.5) blur(1px); }
-  12%  { opacity: 0.1; transform: scale(0.97) translateX(4px) skewX(2deg);    filter: brightness(0.5) blur(0px); }
-  18%  { opacity: 1;   transform: scale(1.02) translateY(-2px);               filter: brightness(2.8) blur(0.5px); }
-  22%  { opacity: 0;   transform: scale(0.95) translateX(-2px) skewX(-1deg);  filter: brightness(0.3) blur(0px); }
-  28%  { opacity: 1;   transform: scale(1.06) translateX(2px) skewX(0.8deg);  filter: brightness(4.0) blur(1.5px); }
-  32%  { opacity: 0.4; transform: scale(0.98) translateY(2px);                filter: brightness(1.5) blur(0px); }
-  40%  { opacity: 1;   transform: scale(1.01) translateX(-1px);               filter: brightness(2.0) blur(0.5px); }
+  8%   { opacity: 1;   transform: scale(1.04) translateX(calc(var(--u) * -3)) skewX(-1.5deg); filter: brightness(3.5) blur(calc(var(--u) * 1)); }
+  12%  { opacity: 0.1; transform: scale(0.97) translateX(calc(var(--u) * 4)) skewX(2deg);    filter: brightness(0.5) blur(0px); }
+  18%  { opacity: 1;   transform: scale(1.02) translateY(calc(var(--u) * -2));               filter: brightness(2.8) blur(calc(var(--u) * 0.5)); }
+  22%  { opacity: 0;   transform: scale(0.95) translateX(calc(var(--u) * -2)) skewX(-1deg);  filter: brightness(0.3) blur(0px); }
+  28%  { opacity: 1;   transform: scale(1.06) translateX(calc(var(--u) * 2)) skewX(0.8deg);  filter: brightness(4.0) blur(calc(var(--u) * 1.5)); }
+  32%  { opacity: 0.4; transform: scale(0.98) translateY(calc(var(--u) * 2));                filter: brightness(1.5) blur(0px); }
+  40%  { opacity: 1;   transform: scale(1.01) translateX(calc(var(--u) * -1));               filter: brightness(2.0) blur(calc(var(--u) * 0.5)); }
   48%  { opacity: 0.7; transform: scale(0.99);                                filter: brightness(1.2) blur(0px); }
-  55%  { opacity: 1;   transform: scale(1.015);                               filter: brightness(1.8) blur(0.3px); }
+  55%  { opacity: 1;   transform: scale(1.015);                               filter: brightness(1.8) blur(calc(var(--u) * 0.3)); }
   65%  { opacity: 0.9; transform: scale(1.0);                                 filter: brightness(1.1) blur(0px); }
   80%  { opacity: 1;   transform: scale(1.0);                                 filter: brightness(1.0) blur(0px); }
   100% { opacity: 1;   transform: scale(1.0);                                 filter: brightness(1.0) blur(0px); }
@@ -1754,7 +1766,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   text-transform: lowercase;
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.28);
-  filter: blur(5px);
+  filter: blur(calc(var(--u) * 5));
 }
 
 .about-manifesto-line {
@@ -1762,7 +1774,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   inset-inline-start: var(--grid-margin);
   inset-inline-end: var(--grid-margin);
   margin: 0;
-  font-size: clamp(40px, 5.4vw, 80px);
+  font-size: clamp(calc(var(--u) * 40), 5.4vw, calc(var(--u) * 80));
   line-height: 0.92;
 }
 
@@ -1785,10 +1797,10 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   z-index: 2;
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: clamp(96px, 9.5vw, 148px);
+  font-size: clamp(calc(var(--u) * 96), 9.5vw, calc(var(--u) * 148));
   line-height: 1;
   color: rgba(255, 255, 255, 0.7);
-  filter: blur(0.3px);
+  filter: blur(calc(var(--u) * 0.3));
   letter-spacing: 0.04em;
   pointer-events: none;
 }
@@ -1796,7 +1808,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 /* ── Pillars: FORM (col 1) · CULTURE (col 3) · LIGHT (col 5) ─ */
 .about-pillars {
   position: absolute;
-  inset-block-start: 18px;
+  inset-block-start: calc(var(--u) * 18);
   inset-inline-start: 0;
   inset-inline-end: 0;
   z-index: 3;
@@ -1807,7 +1819,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   inset-block-start: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: calc(var(--u) * 2);
   width: var(--span-1);
 }
 
@@ -1818,7 +1830,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-pillar-title {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 11px;
+  font-size: calc(var(--u) * 11);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1830,7 +1842,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-fig-sub {
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: 11px;
+  font-size: calc(var(--u) * 11);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1840,16 +1852,16 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 /* ── Intro stack — cols 8–10 (top-right) ───────────────────── */
 .about-intro {
   position: absolute;
-  inset-block-start: 18px;
+  inset-block-start: calc(var(--u) * 18);
   inset-inline-start: var(--col-8);
   width: var(--span-3);
   z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: calc(var(--u) * 14);
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 11px;
+  font-size: calc(var(--u) * 11);
   line-height: 1.35;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1862,7 +1874,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 }
 
 .about-intro-passage {
-  margin-block-start: 6px;
+  margin-block-start: calc(var(--u) * 6);
   font-weight: 300;
   color: rgba(255, 255, 255, 0.85);
 }
@@ -1873,10 +1885,10 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   z-index: 3;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: calc(var(--u) * 14);
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: 11px;
+  font-size: calc(var(--u) * 11);
   line-height: 1.35;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1893,7 +1905,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 /* FIG 002 — cols 5–7, body extends to bottom of viewport */
 .about-fig--002 {
   inset-block-start: 56%;
-  inset-block-end: 24px;
+  inset-block-end: calc(var(--u) * 24);
   inset-inline-start: var(--col-5);
   width: var(--span-3);
   overflow: hidden;
@@ -1902,7 +1914,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 /* FIG 003 — cols 9–10, body extends to bottom of viewport */
 .about-fig--003 {
   inset-block-start: 56%;
-  inset-block-end: 24px;
+  inset-block-end: calc(var(--u) * 24);
   inset-inline-start: var(--col-9);
   width: var(--span-2);
   overflow: hidden;
@@ -1910,7 +1922,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
 .about-fig-title {
   font-weight: 400;
-  font-size: 11px;
+  font-size: calc(var(--u) * 11);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1938,9 +1950,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
      col-w = (393 - 2×12 - 4×9) / 5 = (393 - 60) / 5 = 66.6
      -------------------------------------------------------- */
   :root {
-    --m:   12px;   /* margin */
-    --g:   9px;    /* gutter */
-    --cw:  calc((var(--rvw, 100vw) - 60px) / 5);   /* single col width */
+    --m:   calc(var(--u) * 12);   /* margin */
+    --g:   calc(var(--u) * 9);    /* gutter */
+    --cw:  calc((100vw - calc(var(--u) * 60)) / 5);   /* single col width */
 
     /* Derived widths */
     --w3:  calc(3 * var(--cw) + 2 * var(--g));   /* cols 1–3 */
@@ -1948,18 +1960,18 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     --w2r: calc(2 * var(--cw) + var(--g) + var(--m)); /* cols 4–5 incl. right margin */
 
     /* Nav */
-    --nav-height:   50px;
-    --logo-width:   82px;
-    --logo-height:  20px;
-    --nav-btn-size: 18px;
+    --nav-height:   calc(var(--u) * 50);
+    --logo-width:   calc(var(--u) * 82);
+    --logo-height:  calc(var(--u) * 20);
+    --nav-btn-size: calc(var(--u) * 18);
 
     /* TOP-DOWN — tesseract → title → gap → projects.
        h-tesseract = 38% of 852 design height. */
-    --t-tesseract: 70px;
-    --h-tesseract: 324px;
-    --t-title:     calc(var(--t-tesseract) + var(--h-tesseract) + 10px);
-    --h-title:     80px;
-    --title-proj-gap: 90px;
+    --t-tesseract: calc(var(--u) * 70);
+    --h-tesseract: calc(var(--u) * 324);
+    --t-title:     calc(var(--t-tesseract) + var(--h-tesseract) + calc(var(--u) * 10));
+    --h-title:     calc(var(--u) * 80);
+    --title-proj-gap: calc(var(--u) * 90);
     --t-projects:  calc(var(--t-title) + var(--h-title) + var(--title-proj-gap));
   }
 
@@ -2037,7 +2049,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     inset-inline-start: var(--m);
     inset-inline-end: auto;
     height: var(--nav-height);
-    min-width: 44px;
+    min-width: calc(var(--u) * 44);
     align-items: center;
     z-index: 110;
   }
@@ -2078,7 +2090,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     inset-inline-end: 0;
     width: 100%;
     grid-column: unset;
-    font-size: 26px;
+    font-size: calc(var(--u) * 26);
     line-height: 0.9;
     letter-spacing: -0.01em;
     text-align: center;
@@ -2105,7 +2117,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     right: 0;
     margin-inline: auto;
     transform: none;
-    width: calc(var(--rvw, 100vw) - 60px);
+    width: calc(100vw - calc(var(--u) * 60));
     height: var(--h-tesseract);
     z-index: 10;
     overflow: visible;
@@ -2132,7 +2144,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .section-projects {
     position: fixed;
     inset-block-start: var(--t-projects);
-    inset-block-end: 20px;
+    inset-block-end: calc(var(--u) * 20);
     inset-inline: 0;
     z-index: 50;
     padding: 0 !important;
@@ -2156,7 +2168,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     flex: 1;
     height: auto;
     min-height: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    border-right: calc(var(--u) * 1) solid rgba(255, 255, 255, 0.2);
     grid-column: unset;
   }
 
@@ -2171,7 +2183,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     scroll-snap-type: y mandatory;
-    padding-right: 12px;
+    padding-right: calc(var(--u) * 12);
     scrollbar-width: none;
   }
 
@@ -2185,7 +2197,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     content: '';
     flex-shrink: 0;
     display: block;
-    min-height: calc(100% - 100px);
+    min-height: calc(100% - calc(var(--u) * 100));
   }
 
   .project-item:nth-child(n+5) { display: flex; }
@@ -2194,7 +2206,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     display: flex !important;
     flex-direction: row;
     align-items: flex-start;
-    gap: 12px;
+    gap: calc(var(--u) * 12);
     overflow: visible;
     flex-shrink: 0;
     position: relative;
@@ -2203,7 +2215,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .project-item + .project-item {
-    margin-block-start: 16px;
+    margin-block-start: calc(var(--u) * 16);
   }
 
   /* Reset desktop hover — mobile uses scroll activation.
@@ -2245,13 +2257,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .project-list .project-item.is-scrolled-active,
   .project-list .project-item.is-scrolled-active:hover {
     opacity: 1;
-    padding-inline-start: 12px;
+    padding-inline-start: calc(var(--u) * 12);
     width: 100%;
     transform: translateX(0);
   }
 
   .project-item::before {
-    width: 1px;
+    width: calc(var(--u) * 1);
     background: rgba(255, 255, 255, 0.5);
     transition:
       transform       0.55s var(--ease-out),
@@ -2262,9 +2274,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
   .project-item.is-scrolled-active::before {
     transform: scaleY(1);
-    width: 2px;
+    width: calc(var(--u) * 2);
     background: var(--color-fg);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.45);
+    box-shadow: 0 0 calc(var(--u) * 10) rgba(255, 255, 255, 0.45);
   }
 
   .project-item.is-scrolled-active .project-title {
@@ -2279,7 +2291,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
      lift so it reads as the focused item even at a distance. */
   .project-thumb-mobile {
     width: calc(2 * var(--cw));
-    height: 100px;
+    height: calc(var(--u) * 100);
     object-fit: cover;
     flex-shrink: 0;
     display: block;
@@ -2301,11 +2313,11 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     min-width: 0;
   }
 
-  .project-title   { font-size: 9px; }
+  .project-title   { font-size: calc(var(--u) * 9); }
   .project-detail  {
-    font-size: 8px;
+    font-size: calc(var(--u) * 8);
     max-width: none;
-    margin-block-start: 6px;
+    margin-block-start: calc(var(--u) * 6);
     display: block;
     line-height: 1.4;
     overflow: hidden;
@@ -2314,8 +2326,8 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     -webkit-box-orient: vertical;
   }
   .project-cta {
-    font-size: 8px;
-    margin-block-start: 8px;
+    font-size: calc(var(--u) * 8);
+    margin-block-start: calc(var(--u) * 8);
     opacity: 0;
     transition: opacity 0.3s var(--ease-out);
   }
@@ -2336,7 +2348,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .menu-nav-list {
-    font-size: clamp(36px, 11vw, 64px);
+    font-size: clamp(calc(var(--u) * 36), 11vw, calc(var(--u) * 64));
     line-height: 1;
     letter-spacing: -0.005em;
   }
@@ -2352,7 +2364,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .menu-footer {
     display: flex;
     position: absolute;
-    inset-block-end: 40px;
+    inset-block-end: calc(var(--u) * 40);
     inset-inline-start: var(--m);
     inset-inline-end: var(--m);
     gap: 0;
@@ -2364,12 +2376,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .menu-footer-label {
-    font-size: 9px;
-    margin-block-end: 14px;
+    font-size: calc(var(--u) * 9);
+    margin-block-end: calc(var(--u) * 14);
   }
 
   .menu-footer-col li {
-    font-size: 8px;
+    font-size: calc(var(--u) * 8);
     line-height: 2.4;
   }
 
@@ -2397,38 +2409,38 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .loader-terminal {
     display: block;
     position: absolute;
-    inset-block-start: calc(var(--nav-height) + 20px);
+    inset-block-start: calc(var(--nav-height) + calc(var(--u) * 20));
     inset-inline-start: var(--m);
     inset-inline-end: unset;
     width: calc(3 * var(--cw) + 2 * var(--g));
-    font-size: 7px;
+    font-size: calc(var(--u) * 7);
     line-height: 1.8;
     letter-spacing: 0.03em;
   }
 
   .loader-terminal-intro {
-    font-size: 7px;
-    margin-block-end: 10px;
+    font-size: calc(var(--u) * 7);
+    margin-block-end: calc(var(--u) * 10);
   }
 
   .loader-terminal-footer {
-    font-size: 7px;
+    font-size: calc(var(--u) * 7);
     line-height: 1.8;
-    margin-block-start: 10px;
+    margin-block-start: calc(var(--u) * 10);
   }
 
   /* Progress bar — cols 2–4: 3 col widths + 2 gutters */
   .loader-bar-wrap {
     width: calc(3 * var(--cw) + 2 * var(--g));
-    height: 1px;
+    height: calc(var(--u) * 1);
   }
 
   .loader-cta {
-    font-size: 9px;
+    font-size: calc(var(--u) * 9);
     /* Ensure minimum 44×44px touch target on mobile */
-    min-height: 44px;
-    min-width: 44px;
-    padding: 16px 24px;
+    min-height: calc(var(--u) * 44);
+    min-width: calc(var(--u) * 44);
+    padding: calc(var(--u) * 16) calc(var(--u) * 24);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2437,14 +2449,14 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   /* Make the loader center area a larger tap zone on mobile */
   .loader-center {
     cursor: pointer;
-    padding: 10px;
-    margin-top: 220px;
+    padding: calc(var(--u) * 10);
+    margin-top: calc(var(--u) * 220);
   }
 
   /* Ensure nav toggle meets minimum touch target */
   .nav-toggle {
-    min-width: 44px;
-    min-height: 44px;
+    min-width: calc(var(--u) * 44);
+    min-height: calc(var(--u) * 44);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2452,7 +2464,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
   /* Ensure project CTAs are tappable */
   .project-cta {
-    min-height: 44px;
+    min-height: calc(var(--u) * 44);
     display: inline-flex;
     align-items: center;
   }
@@ -2488,12 +2500,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     inset: auto;
     height: auto;
     min-height: 100vh;
-    padding: calc(var(--nav-height) + 12px) var(--m) 40px;
+    padding: calc(var(--nav-height) + calc(var(--u) * 12)) var(--m) calc(var(--u) * 40);
     overflow: visible;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     column-gap: var(--g);
-    row-gap: 18px;
+    row-gap: calc(var(--u) * 18);
   }
 
   /* Manifesto becomes much smaller and sits behind content */
@@ -2501,13 +2513,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     position: fixed;
     inset: 0;
     z-index: 1;
-    filter: blur(4px);
+    filter: blur(calc(var(--u) * 4));
   }
 
   .about-manifesto-line {
     inset-inline-start: var(--m);
     inset-inline-end: var(--m);
-    font-size: clamp(36px, 11vw, 64px);
+    font-size: clamp(calc(var(--u) * 36), 11vw, calc(var(--u) * 64));
     line-height: 0.92;
   }
 
@@ -2528,9 +2540,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     grid-column: 1 / -1;
     grid-row: 3;
     justify-self: center;
-    font-size: 80px;
-    margin-block: 8px 8px;
-    filter: blur(0.4px);
+    font-size: calc(var(--u) * 80);
+    margin-block: calc(var(--u) * 8) calc(var(--u) * 8);
+    filter: blur(calc(var(--u) * 0.4));
     color: rgba(255, 255, 255, 0.7);
   }
 
@@ -2559,7 +2571,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .about-pillar-sub,
   .about-fig-title,
   .about-fig-sub {
-    font-size: 9px;
+    font-size: calc(var(--u) * 9);
   }
 
   /* Intro stack — right column, row 2 (alongside pillars) */
@@ -2569,9 +2581,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     grid-column: 3 / -1;
     grid-row: 2;
     width: auto;
-    font-size: 10px;
+    font-size: calc(var(--u) * 10);
     line-height: 1.4;
-    gap: 12px;
+    gap: calc(var(--u) * 12);
   }
 
   /* Figure blocks — placed below the ( 47 ) mark in rows 4+ */
@@ -2581,9 +2593,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     width: auto;
     max-height: none;
     overflow: visible;
-    font-size: 10px;
+    font-size: calc(var(--u) * 10);
     line-height: 1.4;
-    gap: 12px;
+    gap: calc(var(--u) * 12);
   }
 
   .about-fig--001 {
@@ -2609,24 +2621,24 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
    (line + opacity) but stacks at full width.
    ---------------------------------------------------------- */
 .projects-index-page .projects-index-main {
-  padding: calc(var(--nav-height) + 80px) var(--m) 80px;
+  padding: calc(var(--nav-height) + calc(var(--u) * 80)) var(--m) calc(var(--u) * 80);
   min-height: 100vh;
 }
 
 .projects-index-page .projects-index-header {
-  margin-block-end: 64px;
-  max-width: 720px;
+  margin-block-end: calc(var(--u) * 64);
+  max-width: calc(var(--u) * 720);
 }
 
 .projects-index-page .projects-index-header h1 {
-  font-size: clamp(48px, 8vw, 96px);
+  font-size: clamp(calc(var(--u) * 48), 8vw, calc(var(--u) * 96));
   line-height: 0.95;
   letter-spacing: -0.02em;
-  margin: 0 0 16px;
+  margin: 0 0 calc(var(--u) * 16);
 }
 
 .projects-index-page .projects-index-header p {
-  font-size: 18px;
+  font-size: calc(var(--u) * 18);
   line-height: 1.4;
   opacity: 0.7;
   margin: 0;
@@ -2638,8 +2650,8 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 32px;
-  max-width: 880px;
+  gap: calc(var(--u) * 32);
+  max-width: calc(var(--u) * 880);
   /* Override homepage .project-list height/overflow rules */
   height: auto;
   overflow: visible;
@@ -2654,8 +2666,8 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
 .projects-index-page .project-card-link {
   display: block;
-  padding: 24px 0 24px 16px;
-  border-inline-start: 1px solid rgba(255, 255, 255, 0.2);
+  padding: calc(var(--u) * 24) 0 calc(var(--u) * 24) calc(var(--u) * 16);
+  border-inline-start: calc(var(--u) * 1) solid rgba(255, 255, 255, 0.2);
   text-decoration: none;
   color: inherit;
   transition:
@@ -2665,25 +2677,25 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
 .projects-index-page .project-card-link:hover {
   border-inline-start-color: var(--color-fg);
-  padding-inline-start: 24px;
+  padding-inline-start: calc(var(--u) * 24);
 }
 
 .projects-index-page .project-card-link .project-title {
-  font-size: clamp(28px, 4vw, 40px);
+  font-size: clamp(calc(var(--u) * 28), 4vw, calc(var(--u) * 40));
   line-height: 1;
-  margin: 0 0 8px;
+  margin: 0 0 calc(var(--u) * 8);
 }
 
 .projects-index-page .project-card-link .project-detail {
-  font-size: 15px;
+  font-size: calc(var(--u) * 15);
   line-height: 1.4;
   opacity: 0.6;
-  margin: 0 0 12px;
+  margin: 0 0 calc(var(--u) * 12);
   max-width: 56ch;
 }
 
 .projects-index-page .project-card-link .project-cta {
-  font-size: 13px;
+  font-size: calc(var(--u) * 13);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   opacity: 0.6;
@@ -2696,10 +2708,10 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
 @media (max-width: 767px) {
   .projects-index-page .projects-index-main {
-    padding: calc(var(--nav-height) + 48px) var(--m) 64px;
+    padding: calc(var(--nav-height) + calc(var(--u) * 48)) var(--m) calc(var(--u) * 64);
   }
   .projects-index-page .projects-index-header {
-    margin-block-end: 40px;
+    margin-block-end: calc(var(--u) * 40);
   }
 }
 
@@ -2718,7 +2730,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
      on viewports larger than the design baseline. Without this,
      100vh-based heights overflow when zoomed up, and flex-centered
      content drifts below the visible area. */
-  height: calc(var(--rvh, 100vh) - var(--nav-height));
+  height: calc(100vh - var(--nav-height));
   padding: 0;
   overflow: hidden;
   z-index: 10;
@@ -2777,7 +2789,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
      page-level shader-reveal completes, which trips both
      transitions simultaneously. */
   opacity: 0;
-  filter: blur(40px);
+  filter: blur(calc(var(--u) * 40));
   transition:
     opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1),
     filter  1.8s cubic-bezier(0.4, 0, 0.2, 1);
@@ -2794,10 +2806,10 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   position: absolute;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: calc(var(--u) * 2);
   font-family: var(--font-mono);
   font-weight: 400;
-  font-size: 11px;
+  font-size: calc(var(--u) * 11);
   line-height: 1.4;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -2851,7 +2863,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     position: fixed;
     inset-block-start: var(--nav-height);
     inset-inline: 0;
-    height: calc(var(--rvh, 100vh) - var(--nav-height));
+    height: calc(100vh - var(--nav-height));
     overflow: hidden;
   }
 
@@ -2870,8 +2882,8 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     transform: translateX(-50%);
     text-align: center;
     align-items: center;
-    font-size: 10px;
-    gap: 1px;
+    font-size: calc(var(--u) * 10);
+    gap: calc(var(--u) * 1);
   }
 
   .studio-meta--origin {
@@ -2978,11 +2990,11 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-s2-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: 24px;
+  gap: calc(var(--u) * 24);
   width: calc(100% - var(--grid-margin) * 2);
-  max-width: 1180px;
+  max-width: calc(var(--u) * 1180);
   height: 78%;
-  max-height: 720px;
+  max-height: calc(var(--u) * 720);
   padding: 0 var(--grid-margin);
   box-sizing: border-box;
 }
@@ -3006,14 +3018,14 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-s2-right {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: calc(var(--u) * 22);
   min-width: 0;
 }
 
 .about-s2-flowers {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: calc(var(--u) * 8);
   flex: 0 0 56%;
   min-height: 0;
 }
@@ -3028,7 +3040,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
 .about-s2-copy {
   font-family: var(--font-mono, 'Space Mono', monospace);
-  font-size: 11px;
+  font-size: calc(var(--u) * 11);
   line-height: 1.55;
   letter-spacing: 0.02em;
   color: var(--color-fg);
@@ -3049,14 +3061,14 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-s3-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: 24px;
-  row-gap: 56px;
+  column-gap: calc(var(--u) * 24);
+  row-gap: calc(var(--u) * 56);
   width: calc(100% - var(--grid-margin) * 2);
-  max-width: 1100px;
+  max-width: calc(var(--u) * 1100);
   padding: 0 var(--grid-margin);
   box-sizing: border-box;
   font-family: var(--font-mono, 'Space Mono', monospace);
-  font-size: 11px;
+  font-size: calc(var(--u) * 11);
   line-height: 1.55;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3066,13 +3078,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-s3-block {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: calc(var(--u) * 6);
   min-width: 0;
 }
 
 .about-s3-row {
   display: flex;
-  gap: 16px;
+  gap: calc(var(--u) * 16);
   align-items: baseline;
 }
 
@@ -3093,14 +3105,14 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: 24px;
-  margin-block-start: 8px;
+  column-gap: calc(var(--u) * 24);
+  margin-block-start: calc(var(--u) * 8);
 }
 
 .about-s3-footer > div {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: calc(var(--u) * 4);
 }
 
 .about-s3-footer .about-s3-k {
@@ -3119,12 +3131,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     width: calc(100% - var(--m) * 2);
     padding: 0 var(--m);
     height: 88%;
-    gap: 18px;
+    gap: calc(var(--u) * 18);
   }
 
   .about-s2-right {
     flex-direction: column;
-    gap: 16px;
+    gap: calc(var(--u) * 16);
   }
 
   .about-s2-flowers {
@@ -3134,7 +3146,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .about-s2-copy {
-    font-size: 10px;
+    font-size: calc(var(--u) * 10);
     max-width: none;
     margin-left: 0;
   }
@@ -3142,17 +3154,17 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   /* Section 3 — stack pairs (label/value blocks) into 2 columns */
   .about-s3-grid {
     grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-    column-gap: 14px;
-    row-gap: 30px;
+    column-gap: calc(var(--u) * 14);
+    row-gap: calc(var(--u) * 30);
     width: calc(100% - var(--m) * 2);
     padding: 0 var(--m);
-    font-size: 10px;
+    font-size: calc(var(--u) * 10);
   }
 
   .about-s3-footer {
     grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-    row-gap: 18px;
-    column-gap: 14px;
+    row-gap: calc(var(--u) * 18);
+    column-gap: calc(var(--u) * 14);
   }
 }
 
@@ -3172,7 +3184,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     position: fixed;
     inset-block-start: var(--nav-height);
     inset-inline: 0;
-    height: calc(var(--rvh, 100vh) - var(--nav-height));
+    height: calc(100vh - var(--nav-height));
     overflow: hidden;
   }
 }
