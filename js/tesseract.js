@@ -172,6 +172,7 @@ document.addEventListener('visibilitychange', function () {
 
     var ua       = (navigator.userAgent || '').toLowerCase();
     var isIPad   = /ipad/.test(ua) || (navigator.maxTouchPoints > 1 && /macintosh/.test(ua));
+    var isIPhone = /iphone/.test(ua);
     var isMobile = /android|iphone|ipod|webos|blackberry|iemobile|opera mini/.test(ua) || isIPad;
     var cores    = navigator.hardwareConcurrency || 4;
     var mem      = navigator.deviceMemory       || 4;
@@ -187,11 +188,15 @@ document.addEventListener('visibilitychange', function () {
     var isLowGPU       = /(intel.*(?:hd\s*graphics\s*[3-5]|hd\s*graphics$|gma)|mali-[gt]\s*\d|adreno\s*[345]\d{2}|powervr)/.test(renderer);
 
     if (isMobile) {
-      if (isLowGPU) return 'low';
-      /* iPad + Apple-silicon tablets are GPU-rich — give them full quality. */
+      /* iPhone — always full quality. The browser can't read the iPhone
+         model (iOS masks the GPU string to "Apple GPU" and withholds
+         deviceMemory), and modern iOS hardware handles the shader well.
+         The prefers-reduced-motion check above still wins for a11y. */
+      if (isIPhone) return 'high';
+      /* iPad + Apple-silicon tablets are GPU-rich — full quality too. */
       if (isIPad || isAppleSilicon) return 'high';
-      /* Modern A-series iPhones (A14+) handle medium comfortably. */
-      if (/apple\s*a1[4-9]|apple\s*a2\d/.test(renderer)) return 'medium';
+      /* Android with a known weak GPU — minimum tier. */
+      if (isLowGPU) return 'low';
       /* Mid-range Android — be generous, raymarch is the only real cost. */
       if (cores >= 6 && mem >= 4) return 'medium';
       return 'low';
