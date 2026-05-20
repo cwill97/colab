@@ -46,11 +46,8 @@
 .project-main {
   position: fixed;
   inset-block-start: var(--nav-height);
-  /* Explicit height instead of inset-block-end:0.
-     CSS zoom multiplies fixed-element insets, so bottom:0 overshoots
-     the physical viewport at zoom > 1. Using 900px (the design artboard
-     height) minus nav guarantees the panel scales in lockstep with zoom
-     and never extends beyond the screen. */
+  /* Height = artboard height (900) minus nav, scaled by --u, so the
+     panel tracks the artboard exactly rather than the raw viewport. */
   height: calc(calc(var(--u) * 900) - var(--nav-height));
   inset-inline-start: 0;
   /* Stop at col 7: leave room for right rail (cols 8–10) */
@@ -273,10 +270,8 @@
 
 .project-logo-img {
   display: block;
-  max-width: 75%;
-  max-height: 75%;
-  width: auto;
-  height: auto;
+  width: 75%;
+  height: 75%;
   object-fit: contain;
 }
 
@@ -494,9 +489,8 @@
      M-P0. Mobile tokens
      Gallery dominates the viewport; title + about sit below.
      Authored against the 393×852 (iPhone 14 Pro) design baseline;
-     scale.js applies CSS zoom on <html> so px values track viewport.
-     --rvh = "real" viewport height in design coords (set by scale.js).
-     Falls back to 100vh on legacy browsers where the script is absent.
+     calc(var(--u) * N) values track the viewport via the --u
+     scale token (main.css §1, overridden for mobile).
      -------------------------------------------------------- */
   :root {
     --mp-canvas-h:      calc(var(--u) * 596);                                /* 70% of 852 */
@@ -677,9 +671,8 @@
 
   .project-overview-modal-logo img {
     display: block;
-    max-width: clamp(calc(var(--u) * 120), 28vw, calc(var(--u) * 220));
+    width: clamp(calc(var(--u) * 120), 28vw, calc(var(--u) * 220));
     max-height: clamp(calc(var(--u) * 40), 8vh, calc(var(--u) * 100));
-    width: auto;
     height: auto;
     object-fit: contain;
   }

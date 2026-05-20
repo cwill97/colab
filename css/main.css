@@ -15,7 +15,7 @@
    on one browser, different widths on the other → text wraps at
    different points, the right-column manifesto overflows its
    156px box, and [Our Services] / [Contact Us] visually collide
-   with it on any viewport that triggers a non-1.0 scale.js zoom.
+   with it on any viewport scaled away from the 1440 baseline.
 
    We declare the family ourselves under a unique name so the
    `local()` short-circuit can never happen and every browser
@@ -1685,14 +1685,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 /* ------------------------------------------------------------
    17. Responsive Adjustments
    ------------------------------------------------------------
-   Desktop / tablet scaling (768px – 3840px) is handled
-   entirely by the CSS zoom applied in js/scale.js.
-   All values above are authored for the 1440px master artboard.
-   zoom scales every element — including position:fixed —
-   uniformly, so no breakpoint overrides are needed here for
-   desktop or tablet viewports.
+   Desktop / tablet scaling is handled by the --u scale token
+   (see §1): every length above is authored for the 1440×900
+   master artboard as calc(var(--u) * N), and --u resizes the
+   whole artboard to fit the viewport — so no breakpoint
+   overrides are needed here for desktop or tablet.
 
-   Mobile (<768px) layout rules will be added in a later phase.
+   Mobile (<768px) layout follows in §18.
    ------------------------------------------------------------ */
 
 
@@ -1943,11 +1942,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   /* --------------------------------------------------------
      M-0. Tokens
      Authored against the 393×852 (iPhone 14 Pro) design baseline.
-     scale.js applies CSS zoom on <html> so every value below
-     scales proportionally on every iPhone.
-     --rvw is the "real" viewport width in design coords
-     (set by scale.js); falls back to 100vw on legacy browsers.
-     col-w = (393 - 2×12 - 4×9) / 5 = (393 - 60) / 5 = 66.6
+     The --u scale token (see §1, overridden for mobile) sizes
+     every calc(var(--u) * N) value to the viewport.
+     col-w = (100vw - 2×12 - 4×9, scaled) / 5; at 393px = 66.6
      -------------------------------------------------------- */
   :root {
     --m:   calc(var(--u) * 12);   /* margin */
@@ -2724,12 +2721,8 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   position: fixed;
   inset-block-start: var(--nav-height);
   inset-inline: 0;
-  /* --rvh is set by scale.js as (actual vh / zoom). Using it here
-     means the container's rendered height always equals the actual
-     viewport minus the nav — even when scale.js applies zoom > 1
-     on viewports larger than the design baseline. Without this,
-     100vh-based heights overflow when zoomed up, and flex-centered
-     content drifts below the visible area. */
+  /* Height tracks the real viewport minus the nav, so the
+     flex-centred sections never drift below the visible area. */
   height: calc(100vh - var(--nav-height));
   padding: 0;
   overflow: hidden;
@@ -2764,17 +2757,16 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 }
 
 /* Two design baselines:
-     Title_D.svg = 1222 × 621 (desktop, on 1440 × 900 artboard)
+     Title_D.svg = 1214 × 621 (desktop, on 1440 × 900 artboard)
      Title_M.svg = 378 × 604  (mobile,  on 393 × 852 artboard)
-   The intrinsic dimensions of each SVG match its design baseline,
-   so width:auto / height:auto renders each at its native size.
-   scale.js applies CSS zoom on <html> so those values scale
-   proportionally with every other element on every viewport.
-   max-width / max-height stop the SVG from ever bleeding past
-   the studio-main bounds on under-sized viewports. */
+   Width is pinned to the SVG's artboard width scaled by --u (the
+   mobile baseline is overridden in the max-width:767px block), so
+   the title scales in lockstep with every other element.
+   height:auto preserves the SVG aspect ratio; max-width/max-height
+   stop it bleeding past studio-main on under-sized viewports. */
 .studio-display-img {
   display: block;
-  width: auto;
+  width: calc(var(--u) * 1214);
   height: auto;
   max-width: 100%;
   max-height: 100%;
@@ -2799,6 +2791,11 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .studio-display.is-revealed .studio-display-img {
   opacity: 1;
   filter: blur(0);
+}
+
+/* Mobile swaps in Title_M.svg (378 × 604 on the 393 artboard). */
+@media (max-width: 767px) {
+  .studio-display-img { width: calc(var(--u) * 378); }
 }
 
 /* ── Meta info groups (mono labels) ───────────────────────── */
