@@ -4,7 +4,7 @@
   /* ============================================================
      PLANE CONFIG — positions mirror galleryPlaneData (x offsets)
      ============================================================ */
-  var PLANE_X_OFFSETS = [0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, -0.5];
+  var PLANE_X_OFFSETS = [0, 0.3, -0.3, 0, 0.3, -0.3, 0, 0.3, -0.3, 0, 0.3, -0.3];
 
   /* ============================================================
      DEPTH GALLERY CLASS
@@ -25,7 +25,7 @@
     /* Scroll state — from Scroll.js */
     this.scrollTarget  = 0;
     this.scrollCurrent = 0;
-    this.scrollSmoothing      = 0.31;
+    this.scrollSmoothing      = 0.15;
     this.scrollToWorldFactor  = 0.02;
     this.prevScrollCurrent    = 0;
     this.rawVelocity   = 0;
@@ -67,8 +67,8 @@
     /* Hold-to-auto-scroll */
     this._holdTimer      = null;
     this._autoScrolling  = false;
-    this._autoScrollSpeed = 5.5;    /* px-equivalent per frame */
-    this._holdDelay      = 140;     /* ms before auto-scroll kicks in */
+    this._autoScrollSpeed = 5.6;    /* px-equivalent per frame */
+    this._holdDelay      = 120;     /* ms before auto-scroll kicks in */
     this._touchStartX    = 0;
     this._touchStartY    = 0;
     this._touchMoved     = false;

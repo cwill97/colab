@@ -29,7 +29,14 @@
         '/assets/Project_Img_Viking_08.webp',
         '/assets/Project_Img_Viking_09.webp',
         '/assets/Project_Img_Viking_10.webp',
-        '/assets/Project_Img_Viking_11.webp'
+        '/assets/Project_Img_Viking_11.webp',
+        '/assets/Project_Img_Viking_12.webp',
+        '/assets/Project_Img_Viking_13.webp',
+        '/assets/Project_Img_Viking_14.webp',
+        '/assets/Project_Img_Viking_15.webp',
+        '/assets/Project_Img_Viking_16.webp',
+        '/assets/Project_Img_Viking_17.webp',
+        '/assets/Project_Img_Viking_18.webp'
       ]
     },
     {
