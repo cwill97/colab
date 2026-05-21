@@ -17,37 +17,47 @@
    and drives opacity / scale / blur on each section so they
    crossfade as the camera value advances:
 
-       scrollCurrent      Section visibility
-       ─────────────      ──────────────────
-       0                  S1 full,  S2 0,    S3 0
-       260                S1 0,     S2 full, S3 0
-       520                S1 0,     S2 0,    S3 full
+       scrollCurrent            Section visibility
+       ─────────────            ──────────────────
+       0                        S1 full,  S2 0,    S3 0
+       FADE_LEN                 S1 0,     S2 full, S3 0
+       FADE_LEN+SECTION_GAP     S2 still full — held at rest
+       2·FADE_LEN+SECTION_GAP   S1 0,     S2 0,    S3 full
 
-   Within each 260-unit segment the transition uses a smoothstep
+   Within each FADE_LEN-unit segment the transition uses a smoothstep
    easing curve, matching the look of the depth gallery's
-   noise-dissolve crossfade between project planes.
+   noise-dissolve crossfade between project planes. SECTION_GAP holds
+   each section fully visible between transitions, spacing them apart.
    ============================================================ */
 (function () {
   'use strict';
 
   /* Per-section scroll ranges (in scroll units — same scale as
      gallery.scrollCurrent). Each range is a half-open interval
-     [start, end] where the transition runs from 0 → 1. */
-  var FADE_LEN = 260;
+     [start, end] where the transition runs from 0 → 1.
+
+     FADE_LEN    — scroll units one section takes to dissolve into
+                   the next. Larger = the gallery advances more
+                   slowly per unit of scroll input.
+     SECTION_GAP — scroll units a section stays fully visible, at
+                   rest, between transitions. Larger = more distance
+                   between sections. */
+  var FADE_LEN    = 390;
+  var SECTION_GAP = 220;
   var SECTION_BOUNDARIES = {
-    s1Exit:  [0,        FADE_LEN],         /* section 1 fades out */
-    s2Enter: [0,        FADE_LEN],         /* section 2 fades in  */
-    s2Exit:  [FADE_LEN, FADE_LEN * 2],     /* section 2 fades out */
-    s3Enter: [FADE_LEN, FADE_LEN * 2]      /* section 3 fades in  */
+    s1Exit:  [0, FADE_LEN],                                        /* section 1 fades out */
+    s2Enter: [0, FADE_LEN],                                        /* section 2 fades in  */
+    s2Exit:  [FADE_LEN + SECTION_GAP, FADE_LEN * 2 + SECTION_GAP],  /* section 2 fades out */
+    s3Enter: [FADE_LEN + SECTION_GAP, FADE_LEN * 2 + SECTION_GAP]   /* section 3 fades in  */
   };
-  /* Total scroll range — one extra FADE_LEN past s3Enter end so
-     section 3 has a brief "rest" tail before the bounds clamp. */
-  var TOTAL_SCROLL = FADE_LEN * 2 + 40;
+  /* Total scroll range — one extra SECTION_GAP past s3Enter end so
+     section 3 has a "rest" tail before the bounds clamp. */
+  var TOTAL_SCROLL = FADE_LEN * 2 + SECTION_GAP * 2;
 
   /* Convert TOTAL_SCROLL to a camera-Z range. The gallery converts
      scroll → camera-Z via scrollToWorldFactor (default 0.02). */
   var SCROLL_TO_WORLD = 0.02;
-  var CAM_RANGE = TOTAL_SCROLL * SCROLL_TO_WORLD;  /* ≈ 11.2 units */
+  var CAM_RANGE = TOTAL_SCROLL * SCROLL_TO_WORLD;  /* ≈ 24.4 units */
 
   var gallery = null;
   var activeContainer = null;
