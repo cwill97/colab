@@ -702,11 +702,11 @@
 
   .project-overview-modal-section .project-info-label {
     margin-block-end: 0;
-    font-size: clamp(calc(var(--u) * 7), 1.2vw, calc(var(--u) * 9));
+    font-size: clamp(calc(var(--u) * 8), 1.2vw, calc(var(--u) * 10));
   }
 
   .project-overview-modal-section .project-info-text {
-    font-size: clamp(calc(var(--u) * 9), 1.4vw, calc(var(--u) * 11));
+    font-size: calc(var(--u) * 10);
     line-height: 1.55;
   }
 
