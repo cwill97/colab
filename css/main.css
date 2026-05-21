@@ -935,7 +935,7 @@ main {
   display: inline-block;
   margin-block-start: calc(var(--u) * 11);
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 8);
+  font-size: var(--section-label-height);
   font-weight: 400;
   line-height: 1;
   color: var(--color-fg);
@@ -2323,7 +2323,6 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     -webkit-box-orient: vertical;
   }
   .project-cta {
-    font-size: calc(var(--u) * 10);
     margin-block-start: calc(var(--u) * 8);
     opacity: 0;
     transition: opacity 0.3s var(--ease-out);
