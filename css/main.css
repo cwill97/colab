@@ -619,6 +619,14 @@ a.menu-nav-link:focus-visible {
   transform: translate3d(0, 0, 0);
 }
 
+/* The .line-hover class (added by js/line-hover.js) sets `color: inherit`
+   and is declared later in this file, so it would override the sub-link's
+   dark text and inherit the menu's white instead — invisible on the white
+   block. Pin the dark colour back with a higher-specificity selector. */
+.menu-sub-link.line-hover {
+  color: var(--color-bg);
+}
+
 a.menu-sub-link:hover,
 a.menu-sub-link:focus-visible {
   opacity: 0.78;
