@@ -611,7 +611,7 @@
   .project-page .project-mobile-hint {
     display: block;
     position: fixed;
-    inset-block-end: calc(var(--u) * 20);
+    inset-block-end: calc(var(--u) * 77);
     inset-inline-start: var(--m);
     z-index: 50;
     font-family: var(--font-mono);
