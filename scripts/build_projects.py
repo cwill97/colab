@@ -98,7 +98,7 @@ PROJECTS = [
         "index": "004",
         "title": "Hyde Park Ventures (Five Guys)",
         "services": "Web Design · Web Development · Brand Consolidation",
-        "logoSrc": "",
+        "logoSrc": "/assets/Project_Logo_Hydepark.svg",
         "timeline": "TBD",
         "metaDescription": (
             "Website consolidation and digital modernisation for Hyde Park Ventures — "
@@ -300,23 +300,23 @@ def project_info_html(p: dict, next_p: dict, prev_p: dict) -> str:
         '      <aside class="project-info" aria-label="Project information" data-project-info>\n'
         '        <div class="project-info-content">\n'
         '          <section class="project-info-section">\n'
-        '            <span class="project-info-label">[ CLIENT ]</span>\n'
+        '            <span class="project-info-label">CLIENT</span>\n'
         f'            <p class="project-info-text" data-project-client>{esc(client)}</p>\n'
         '          </section>\n'
         '          <section class="project-info-section project-info-section--timeline">\n'
-        '            <span class="project-info-label">[ TIMELINE ]</span>\n'
+        '            <span class="project-info-label">TIMELINE</span>\n'
         f'            <p class="project-info-text" data-project-timeline>{esc(timeline)}</p>\n'
         '          </section>\n'
         '          <section class="project-info-section">\n'
-        '            <span class="project-info-label">[ SERVICES ]</span>\n'
+        '            <span class="project-info-label">SERVICES</span>\n'
         f'            <p class="project-info-text" data-project-services>{esc(services)}</p>\n'
         '          </section>\n'
         '          <section class="project-info-section">\n'
-        '            <span class="project-info-label">[ OVERVIEW ]</span>\n'
+        '            <span class="project-info-label">OVERVIEW</span>\n'
         f'            <p class="project-info-text" data-project-detail>{esc(detail)}</p>\n'
         '          </section>\n'
         '          <section class="project-info-section">\n'
-        '            <span class="project-info-label">[ STRATEGY ]</span>\n'
+        '            <span class="project-info-label">STRATEGY</span>\n'
         f'            <p class="project-info-text" data-project-strategy>{esc(strategy)}</p>\n'
         '          </section>\n'
         '          <a class="project-live-link" href="#" target="_blank" rel="noopener noreferrer" data-live-project style="display:none;">View Live Project</a>\n'
@@ -353,23 +353,23 @@ def project_overview_modal_html(p: dict) -> str:
         '          </div>\n'
         '          <div class="project-overview-modal-content">\n'
         '            <section class="project-overview-modal-section">\n'
-        '              <span class="project-info-label">[ CLIENT ]</span>\n'
+        '              <span class="project-info-label">CLIENT</span>\n'
         f'              <p class="project-info-text" data-overview-client>{esc(client)}</p>\n'
         '            </section>\n'
         '            <section class="project-overview-modal-section">\n'
-        '              <span class="project-info-label">[ TIMELINE ]</span>\n'
+        '              <span class="project-info-label">TIMELINE</span>\n'
         f'              <p class="project-info-text" data-overview-timeline>{esc(timeline)}</p>\n'
         '            </section>\n'
         '            <section class="project-overview-modal-section">\n'
-        '              <span class="project-info-label">[ SERVICES ]</span>\n'
+        '              <span class="project-info-label">SERVICES</span>\n'
         f'              <p class="project-info-text" data-overview-services>{esc(services)}</p>\n'
         '            </section>\n'
         '            <section class="project-overview-modal-section">\n'
-        '              <span class="project-info-label">[ OVERVIEW ]</span>\n'
+        '              <span class="project-info-label">OVERVIEW</span>\n'
         f'              <p class="project-info-text" data-overview-detail>{esc(detail)}</p>\n'
         '            </section>\n'
         '            <section class="project-overview-modal-section">\n'
-        '              <span class="project-info-label">[ STRATEGY ]</span>\n'
+        '              <span class="project-info-label">STRATEGY</span>\n'
         f'              <p class="project-info-text" data-overview-strategy>{esc(strategy)}</p>\n'
         '            </section>\n'
         '          </div>\n'
@@ -432,7 +432,7 @@ def project_html(p: dict, idx: int, total: int) -> str:
 
       <h2 class="project-mobile-title" data-mobile-title>{esc(p['title'])}</h2>
 
-      <button class="project-mobile-overview-trigger" type="button" data-mobile-overview-trigger>read overview</button>
+      <button class="project-mobile-overview-trigger" type="button" data-mobile-overview-trigger>[ read overview ]</button>
 
       <span class="project-mobile-hint" aria-hidden="true">scroll / hold to explore</span>
 

@@ -83,7 +83,7 @@
       index:    '004',
       title:    'Hyde Park Ventures (Five Guys)',
       services: 'Web Design · Web Development · Brand Consolidation',
-      logoSrc:  '',
+      logoSrc:  '/assets/Project_Logo_Hydepark.svg',
       liveUrl:  'https://www.hydeparkventures.com/five-guys',
       timeline: 'TBD',
       metaDescription: 'Website consolidation and digital modernisation for Hyde Park Ventures — a unified platform that brings clarity to a diverse portfolio.',
