@@ -125,7 +125,7 @@
   --bottom-padding:   calc(var(--u) * 20);   /* breathing room at viewport bottom */
   --viz-width:        calc(var(--u) * 255);
   --viz-height:       calc(var(--u) * 115);
-  --about-gap:        calc(var(--u) * 30);   /* gap below visualizer to about text */
+  --about-gap:        calc(var(--u) * 40);   /* gap below visualizer to about text */
   --about-height:     calc(var(--u) * 156);  /* 13 lines × 8px × 1.5lh = 156px */
   --services-gap:     calc(var(--u) * 60);   /* gap below about text to services */
   --services-height:  calc(var(--u) * 173);  /* 9 items × 8px × 2.4lh ≈ 173px */
