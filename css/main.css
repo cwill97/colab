@@ -119,7 +119,7 @@
   /* Layout spacing tokens — all content must fit within 100vh */
   --title-gap:        calc(var(--u) * 25);   /* nav bottom → display title */
   --title-height:     calc(var(--u) * 80);   /* 3 lines × 33px × 0.8lh ≈ 79px, rounded up */
-  --projects-gap:     calc(var(--u) * 50);   /* display title → project list (aligns [Featured Projects] with [Manifesto]) */
+  --projects-gap:     calc(var(--u) * 30);   /* display title → project list (aligns [Featured Projects] with [Manifesto]) */
   --image-gap:        calc(var(--u) * 50);   /* project list → image */
   --image-height:     calc(var(--u) * 190);  /* fixed image container height */
   --bottom-padding:   calc(var(--u) * 20);   /* breathing room at viewport bottom */
