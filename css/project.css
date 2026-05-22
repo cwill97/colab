@@ -318,7 +318,7 @@
 .project-info-content {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--u) * 22);
+  gap: calc(var(--u) * 32);
 }
 
 .project-info-nav {
