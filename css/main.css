@@ -123,14 +123,13 @@
   --image-gap:        calc(var(--u) * 50);   /* project list → image */
   --image-height:     calc(var(--u) * 190);  /* fixed image container height */
   --bottom-padding:   calc(var(--u) * 20);   /* breathing room at viewport bottom */
-
   --viz-width:        calc(var(--u) * 255);
   --viz-height:       calc(var(--u) * 115);
   --about-gap:        calc(var(--u) * 30);   /* gap below visualizer to about text */
   --about-height:     calc(var(--u) * 156);  /* 13 lines × 8px × 1.5lh = 156px */
-  --services-gap:     calc(var(--u) * 30);   /* gap below about text to services */
+  --services-gap:     calc(var(--u) * 120);   /* gap below about text to services */
   --services-height:  calc(var(--u) * 173);  /* 9 items × 8px × 2.4lh ≈ 173px */
-  --contact-gap:      calc(var(--u) * 90);   /* gap below services to contact */
+  --contact-gap:      calc(var(--u) * 120);   /* gap below services to contact */
 
   /* Section labels — small muted heading above each block.
      Label sits inside the gap above its section; total label-block
@@ -141,8 +140,8 @@
 
   /* Motion */
   --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
-  --duration-fast:  150ms;
-  --duration-base:  300ms;
+  --duration-fast:  120ms;
+  --duration-base:  260ms;
 }
 
 /* Mobile artboard — 393×852 (iPhone 14 Pro) — scales from its own baseline. */
