@@ -86,7 +86,7 @@
 .project-meta-num {
   display: block;
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   font-weight: 400;
   letter-spacing: 0.12em;
   color: var(--color-fg);
@@ -107,7 +107,7 @@
 
 .project-meta-services {
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 8);
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   letter-spacing: 0.06em;
   color: var(--color-fg);
@@ -143,7 +143,7 @@
 
 .project-meta-count {
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 8);
+  font-size: calc(var(--u) * 9);
   letter-spacing: 0.08em;
   color: var(--color-fg);
   opacity: 0.4;
@@ -173,7 +173,7 @@
 
 .project-scroll-hint span {
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 8);
+  font-size: calc(var(--u) * 9);
   letter-spacing: 0.1em;
   color: var(--color-fg);
   opacity: 0.35;
@@ -233,7 +233,7 @@
 
 .project-scroll-next span {
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   letter-spacing: 0.16em;
   color: var(--color-fg);
   text-transform: uppercase;
@@ -336,7 +336,7 @@
 .project-info-label {
   display: block;
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -347,7 +347,7 @@
 
 .project-info-text {
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   font-weight: 400;
   line-height: 1.55;
   letter-spacing: 0.02em;
@@ -366,7 +366,7 @@
   align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-fg);
@@ -385,7 +385,7 @@
   align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-fg);
@@ -615,7 +615,7 @@
     inset-inline-start: var(--m);
     z-index: 50;
     font-family: var(--font-mono);
-    font-size: calc(var(--u) * 9);
+    font-size: calc(var(--u) * 10);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-fg);
@@ -706,7 +706,7 @@
   }
 
   .project-overview-modal-section .project-info-text {
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
     line-height: 1.55;
   }
 
