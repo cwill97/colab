@@ -931,7 +931,7 @@ main {
 .project-detail {
   margin-block-start: calc(var(--u) * 10);
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   font-weight: 400;
   line-height: 1.4;
   color: var(--color-fg);
@@ -1113,7 +1113,7 @@ main {
 
 .services-list li {
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   font-weight: 400;
   line-height: 2.4;
   letter-spacing: 0.02em;
