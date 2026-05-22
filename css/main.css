@@ -929,7 +929,7 @@ main {
 
 /* Project detail — 9px below title */
 .project-detail {
-  margin-block-start: calc(var(--u) * 9);
+  margin-block-start: calc(var(--u) * 10);
   font-family: var(--font-display);
   font-size: calc(var(--u) * 9);
   font-weight: 400;
@@ -1060,7 +1060,7 @@ main {
   z-index: 50;
 
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 10);
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.02em;
@@ -2318,9 +2318,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     min-width: 0;
   }
 
-  .project-title   { font-size: calc(var(--u) * 11); }
+  .project-title   { font-size: calc(var(--u) * 12); }
   .project-detail  {
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
     max-width: none;
     margin-block-start: calc(var(--u) * 6);
     display: block;
@@ -2331,7 +2331,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     -webkit-box-orient: vertical;
   }
   .project-cta {
-    margin-block-start: calc(var(--u) * 8);
+    margin-block-start: calc(var(--u) * 9);
     opacity: 0;
     transition: opacity 0.3s var(--ease-out);
   }
