@@ -905,6 +905,21 @@ main {
   transform: scaleY(1);
 }
 
+/* Frosted dark card behind each item on the homepage list.
+   Scoped to .section-projects so the /project/ index page list,
+   which shares .project-item, keeps its existing flat layout. */
+.section-projects .project-item {
+  padding: calc(var(--u) * 18) calc(var(--u) * 24);
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(calc(var(--u) * 8));
+          backdrop-filter: blur(calc(var(--u) * 8));
+}
+
+/* Preserve the 8u hover nudge on top of the new 24u base padding. */
+.section-projects .project-item:hover {
+  padding-inline-start: calc(var(--u) * 32);
+}
+
 /* When list is hovered as a whole, dim all non-hovered items further */
 .project-list:hover .project-item:not(:hover) {
   opacity: 0.1;
@@ -2265,6 +2280,20 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     box-shadow: 0 0 calc(var(--u) * 10 * var(--focus))
                 rgba(255, 255, 255, calc(0.45 * var(--focus)));
     transition: none;
+  }
+
+  /* Frosted dark card on mobile homepage list. Padding inline-start
+     keeps the focus-driven nudge by adding to the new base padding. */
+  .section-projects .project-item {
+    padding: calc(var(--u) * 14) calc(var(--u) * 16);
+    background: rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(calc(var(--u) * 8));
+            backdrop-filter: blur(calc(var(--u) * 8));
+  }
+
+  .section-projects .project-item,
+  .section-projects .project-item:hover {
+    padding-inline-start: calc(var(--u) * (16 + 12 * var(--focus)));
   }
 
   /* Thumbnail injected by JS — scale + brightness ride --focus too,
