@@ -833,8 +833,11 @@ main {
     - var(--image-height)
     - var(--bottom-padding)
   );
-  overflow-y: scroll;
-  overflow-x: hidden;
+  /* Desktop: all 4 featured projects fit inside the container — no scroll.
+     The spacing tokens below (item padding, gap, detail/cta margins,
+     detail line-clamp) are tuned so the content height equals the
+     container height at the 1440×900 design baseline. */
+  overflow: hidden;
   padding-right: calc(var(--u) * 16);
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -867,9 +870,7 @@ main {
   padding-inline-start: 0;
   /* Whole card is clickable on desktop — signal selectability. */
   cursor: pointer;
-  transition:
-    opacity              0.3s var(--ease-out),
-    padding-inline-start 0.3s var(--ease-out);
+  transition: opacity 0.3s var(--ease-out);
 }
 
 /* All items start at same dim opacity — hover promotes one */
@@ -878,7 +879,7 @@ main {
 }
 
 .project-item + .project-item {
-  margin-block-start: calc(var(--u) * 30);
+  margin-block-start: calc(var(--u) * 10);
 }
 
 /* Drawn line — pseudo-element paints top→bottom on hover */
@@ -895,29 +896,32 @@ main {
   transition: transform 0.55s var(--ease-out);
 }
 
-/* On hover: line draws down, item nudges right, opacity lifts */
+/* On hover: line draws down and opacity lifts. No horizontal nudge —
+   the accent line is the sole "focused" cue. */
 .project-item:hover {
   opacity: 1;
-  padding-inline-start: calc(var(--u) * 8);
 }
 
 .project-item:hover::before {
   transform: scaleY(1);
 }
 
-/* Frosted dark card behind each item on the homepage list.
-   Scoped to .section-projects so the /project/ index page list,
-   which shares .project-item, keeps its existing flat layout. */
+/* Homepage list cards.
+   ─ flex: 1 — all 4 cards split the list height equally, so the
+     panels are uniform regardless of description length.
+   ─ justify-content: center — title/description/CTA cluster sits
+     visually in the middle of each panel.
+   The card carries the always-on frosted-glass backdrop. No hover
+   wipe layer — the only "active" cues are opacity, the left accent
+   line, and (on mobile) the thumbnail scale + brightness. */
 .section-projects .project-item {
-  padding: calc(var(--u) * 18) calc(var(--u) * 24);
-  background: rgba(0, 0, 0, 0.55);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 8));
-          backdrop-filter: blur(calc(var(--u) * 8));
-}
-
-/* Preserve the 8u hover nudge on top of the new 24u base padding. */
-.section-projects .project-item:hover {
-  padding-inline-start: calc(var(--u) * 32);
+  flex: 1 1 0;
+  min-height: 0;
+  justify-content: center;
+  padding: calc(var(--u) * 6) calc(var(--u) * 24);
+  background: rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(calc(var(--u) * 8)) saturate(140%);
+          backdrop-filter: blur(calc(var(--u) * 8)) saturate(140%);
 }
 
 /* When list is hovered as a whole, dim all non-hovered items further */
@@ -934,42 +938,41 @@ main {
   text-transform: uppercase;
   color: var(--color-fg);
   letter-spacing: 0.02em;
-  transition: letter-spacing 0.3s var(--ease-out);
 }
 
-.project-item:hover .project-title {
-  letter-spacing: 0.06em;
-}
-
-/* Project detail — 9px below title */
+/* Project detail — full text on desktop (no line-clamp). The
+   .project-list container is sized so all 4 cards' descriptions
+   render in full without any "…" truncation. */
 .project-detail {
-  margin-block-start: calc(var(--u) * 10);
+  margin-block-start: calc(var(--u) * 6);
   font-family: var(--font-display);
   font-size: calc(var(--u) * 10);
   font-weight: 400;
-  line-height: 1.4;
+  line-height: 1.35;
   color: var(--color-fg);
   max-width: 42ch;
 }
 
-/* CTA link — 11px below detail */
+/* CTA link — base style is kept for the /projects/ index page,
+   which has its own .projects-index-page .project-card-link
+   .project-cta override. On the homepage list it's hidden by
+   the .section-projects .project-cta { display: none } rule
+   below. Click delegation still works because the <a> stays
+   in the DOM — initProjectLinks() resolves it via
+   item.querySelector('[data-project-link]'). */
 .project-cta {
   display: inline-block;
-  margin-block-start: calc(var(--u) * 11);
+  margin-block-start: calc(var(--u) * 4);
   font-family: var(--font-mono);
   font-size: var(--section-label-height);
   font-weight: 400;
   line-height: 1;
   color: var(--color-fg);
   text-transform: uppercase;
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-/* CTA only visible on hovered item */
-.project-item:hover .project-cta {
-  opacity: 1;
-}
+/* Homepage list — CTA never shown (no hover reveal, no focus reveal). */
+.section-projects .project-cta { display: none; }
 
 .project-cta:hover {
   opacity: 0.55;
@@ -2242,26 +2245,18 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   /* Reset desktop hover — mobile uses scroll activation.
-     Inactive cards sit at low opacity, drift slightly left, and shrink
-     a touch; the focused card lerps back to 1/0/1 as --focus → 1. */
+     Only opacity and width ride --focus; no scale or translate, so
+     content stays at constant size and anchored to the same left
+     edge across the focus transition. */
   .project-item,
   .project-item:hover {
     opacity: calc(0.35 + 0.65 * var(--focus));
-    padding-inline-start: calc(var(--u) * 12 * var(--focus));
     width: calc(82% + 18% * var(--focus));
-    transform:
-      translate3d(calc(var(--u) * -4 * (1 - var(--focus))), 0, 0)
-      scale(calc(0.955 + 0.045 * var(--focus)));
-    transform-origin: 0% 50%;
     transition: none;
   }
 
   .project-item:hover::before {
     transform: scaleY(0);
-  }
-
-  .project-item:hover .project-title {
-    letter-spacing: 0.02em;
   }
 
   .project-item:hover .project-cta {
@@ -2282,32 +2277,27 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     transition: none;
   }
 
-  /* Frosted dark card on mobile homepage list. Padding inline-start
-     keeps the focus-driven nudge by adding to the new base padding. */
+  /* Mobile homepage card — base padding only. The frosted backdrop
+     lives on ::after and is wiped in by --focus (the desktop ::after
+     declaration covers the colour/blur values; only the clip-path
+     is rebound here to follow scroll position instead of :hover). */
   .section-projects .project-item {
     padding: calc(var(--u) * 14) calc(var(--u) * 16);
-    background: rgba(0, 0, 0, 0.55);
-    -webkit-backdrop-filter: blur(calc(var(--u) * 8));
-            backdrop-filter: blur(calc(var(--u) * 8));
   }
 
-  .section-projects .project-item,
-  .section-projects .project-item:hover {
-    padding-inline-start: calc(var(--u) * (16 + 12 * var(--focus)));
-  }
+  /* Mobile homepage cards keep the base 16u inline padding — no
+     focus-driven nudge. Content stays put as cards scroll into
+     focus; only opacity/scale/accent-line/::after-wipe animate. */
 
-  /* Thumbnail injected by JS — scale + brightness ride --focus too,
-     so the active card's thumb blooms into view rather than snapping. */
+  /* Thumbnail injected by JS — constant size and brightness. The card
+     opacity (driven by --focus) already dims unfocused thumbnails
+     along with their text. */
   .project-thumb-mobile {
     width: calc(2 * var(--cw));
     height: calc(var(--u) * 100);
     object-fit: cover;
     flex-shrink: 0;
     display: block;
-    transform: scale(calc(0.94 + 0.06 * var(--focus)));
-    filter: brightness(calc(0.55 + 0.45 * var(--focus)));
-    transform-origin: 50% 50%;
-    transition: none;
   }
 
   /* Wrapper for text content (injected by JS) */
@@ -2318,8 +2308,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
   .project-title {
     font-size: calc(var(--u) * 12);
-    letter-spacing: calc(0.02em + 0.06em * var(--focus));
-    transition: none;
+    /* Letter-spacing held constant — no resize as cards scroll into focus. */
   }
   .project-detail  {
     font-size: calc(var(--u) * 11);

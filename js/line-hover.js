@@ -251,6 +251,74 @@
     });
   }
 
+  // ── Project text enhancement (title + detail) ──────────────────────
+  // Splits the target text element into width-locked char spans and
+  // runs the same shuffle as services rows when the parent project-item
+  // is hovered. No backdrop wipe (cards have their own resting backdrop
+  // already); just the character animation. Touch devices are filtered
+  // out by canHover() inside the runner.
+  function enhanceProjectText(el) {
+    if (el.hasAttribute('data-line-hover-init')) return;
+    el.setAttribute('data-line-hover-init', '');
+
+    var originalText = el.textContent.replace(/\s+/g, ' ').trim();
+    if (!originalText) return;
+
+    // aria-label preserves the readable text for AT — char spans
+    // become visual-only (their textContent shuffles to gibberish
+    // mid-animation; aria-label overrides element name resolution).
+    el.setAttribute('aria-label', originalText);
+
+    el._lhChars = splitTextNodes(el);
+    lockCharWidths(el._lhChars);
+
+    var item = el.closest('.project-item');
+    if (!item) return;
+    // Tag the item so we can attach a single mouseenter listener that
+    // fans out to every shuffle target inside it — avoids stacking
+    // duplicate listeners per text element on Barba re-init.
+    if (!item._lhTargets) {
+      item._lhTargets = [];
+      item.addEventListener('mouseenter', function () {
+        for (var i = 0; i < item._lhTargets.length; i++) {
+          runShuffle(item._lhTargets[i]);
+        }
+      });
+    }
+    item._lhTargets.push(el);
+  }
+
+  // Same shuffle loop as activate() but pared down — no class toggle,
+  // no special-case skips, no backdrop wipe. Each mouseenter starts a
+  // fresh pass; the version counter cancels any in-flight tick from
+  // an earlier pass on its next fire.
+  function runShuffle(el) {
+    if (!canHover() || prefersReducedMotion()) return;
+    var chars = el._lhChars;
+    if (!chars || !chars.length) return;
+
+    el._lhVersion = (el._lhVersion || 0) + 1;
+    var myVersion = el._lhVersion;
+
+    chars.forEach(function (charSpan, i) {
+      var original   = charSpan.getAttribute('data-original');
+      var startDelay = i * SHUFFLE_STAGGER;
+      var endTime    = performance.now() + startDelay + SHUFFLE_DURATION;
+
+      function tick() {
+        if (myVersion !== el._lhVersion) return;
+        if (performance.now() >= endTime) {
+          charSpan.textContent = original;
+          return;
+        }
+        charSpan.textContent = randomGlyph();
+        setTimeout(tick, SHUFFLE_TICK_MS);
+      }
+
+      setTimeout(tick, startDelay);
+    });
+  }
+
   // ── Init ───────────────────────────────────────────────────────────
   function init() {
     awaitFonts().then(function () {
@@ -268,6 +336,19 @@
       // block was hidden at init time) gets a chance to lock now.
       Array.prototype.forEach.call(items, function (li) {
         if (li._lhChars) lockCharWidths(li._lhChars);
+      });
+
+      // Homepage project titles + descriptions — same shuffle, no
+      // backdrop wipe. Both targets share one mouseenter listener
+      // bound on .project-item, so a single hover fires both
+      // scrambles in parallel.
+      var projectText = document.querySelectorAll(
+        '.section-projects .project-title, ' +
+        '.section-projects .project-detail'
+      );
+      Array.prototype.forEach.call(projectText, enhanceProjectText);
+      Array.prototype.forEach.call(projectText, function (el) {
+        if (el._lhChars) lockCharWidths(el._lhChars);
       });
     });
   }
