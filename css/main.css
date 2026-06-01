@@ -2528,7 +2528,7 @@ body.about-page {
 .studio-copy {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(var(--u) * 17);
+  font-size: calc(var(--u) * 15);
   line-height: 1.5;
   letter-spacing: 0.004em;
   color: var(--color-fg);
