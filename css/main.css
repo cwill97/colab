@@ -89,6 +89,14 @@
      true size on every display instead of being bitmap-scaled. */
   --u: min(100vw / 1440, 100vh / 900);
 
+  /* Vertical companion unit. By default an alias for --u, so every page
+     and the mobile layout behave exactly as before. The desktop homepage
+     (see "Desktop homepage scale" block below §1) redefines --u to be
+     width-anchored while keeping --uy height-aware — so type stays at
+     full size on short viewports while vertical spacers compress to keep
+     the single no-scroll screen. */
+  --uy: var(--u);
+
   /* Palette */
   --color-bg:       #000000;
   --color-surface:  #0a0a0a;
@@ -155,6 +163,58 @@
 /* Mobile artboard — 393×852 (iPhone 14 Pro) — scales from its own baseline. */
 @media (max-width: 767px) {
   :root { --u: min(100vw / 393, 100dvh / 852); }
+}
+
+/* ------------------------------------------------------------
+   Desktop homepage scale — readable type on short viewports
+   ------------------------------------------------------------
+   The homepage is a single no-scroll screen authored on a
+   1440×900 artboard. The base --u (above) = min(100vw/1440,
+   100vh/900) scales the WHOLE artboard — type and spacing
+   together — to fit both axes. So on a short-but-wide screen
+   (e.g. a 14" laptop at ~1512×760, aspect > 1.6) the height
+   term wins and every font shrinks to ~84% — unreadable.
+
+   Fix: split the single scale into two.
+     --u  → width-anchored (100vw/1440). Drives type and the
+            intrinsic height of text blocks, so fonts match the
+            1440 baseline and never shrink when the viewport is
+            shorter than 900.
+     --uy → height-aware (identical to the old --u). Drives the
+            vertical SPACERS and graphic heights only, so the gaps
+            compress just enough to keep the full-size-type layout
+            on one screen.
+
+   Scoped to the desktop homepage (≥768px, the only body with no
+   page-class) so project / studio / index pages and the mobile
+   layout are untouched. On tall/portrait viewports --u and --uy
+   are equal, so this only changes behaviour on wide-short screens.
+   ------------------------------------------------------------ */
+@media (min-width: 768px) {
+  body:not(.about-page):not(.project-page):not(.projects-index-page) {
+    --u:  calc(100vw / 1440);
+    --uy: min(100vw / 1440, 100vh / 900);
+
+    /* Vertical spacers + graphic heights → compress with viewport height. */
+    --nav-height:        calc(var(--uy) * 64);
+    --title-gap:         calc(var(--uy) * 25);
+    --projects-gap:      calc(var(--uy) * 50);
+    --image-gap:         calc(var(--uy) * 50);
+    --image-height:      calc(var(--uy) * 190);
+    --bottom-padding:    calc(var(--uy) * 20);
+    --viz-height:        calc(var(--uy) * 115);
+    --about-gap:         calc(var(--uy) * 30);
+    --services-gap:      calc(var(--uy) * 60);
+    --contact-gap:       calc(var(--uy) * 60);
+    --section-label-gap: calc(var(--uy) * 6);
+    --side-label-gap:    calc(var(--uy) * 12);
+
+    /* Text-block heights (--title-height, --about-height,
+       --services-height, --section-label-height) intentionally keep
+       their :root definitions: they resolve var(--u) here = the
+       width-anchored unit, so each block reserves exactly the room its
+       full-size text needs and the block below never overlaps it. */
+  }
 }
 
 /* ------------------------------------------------------------
@@ -831,7 +891,7 @@ main {
   display: flex;
   flex-direction: column;
   height: calc(
-    calc(var(--u) * 900)
+    calc(var(--uy) * 900)
     - var(--nav-height)
     - var(--title-gap)
     - var(--title-height)
@@ -1795,8 +1855,15 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
                 and projects, clipping gracefully if needed
    ============================================================ */
 
-/* Desktop default — hide mobile-only image element */
-.project-image-wrap-mobile {
+/* Desktop default — hide mobile-only image elements.
+   .project-thumb-mobile is injected per-card by initMobileProjects()
+   (js/main.js) only at <768px and is never torn down, so without this
+   guard it would reappear at 179px on the desktop project cards if the
+   viewport is widened back above 768px without a reload — inflating each
+   card and clipping its description. The @media (max-width:767px) block
+   below re-shows it (display:block) at mobile widths. */
+.project-image-wrap-mobile,
+.project-thumb-mobile {
   display: none;
 }
 
