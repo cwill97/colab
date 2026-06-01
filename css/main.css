@@ -2288,8 +2288,10 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     will-change: transform, opacity;
   }
 
+  /* Same gap as the mobile overview modal cards
+     (.project-overview-modal-content). */
   .project-item + .project-item {
-    margin-block-start: calc(var(--u) * 16);
+    margin-block-start: clamp(calc(var(--u) * 3), 0.6vh, calc(var(--u) * 8));
   }
 
   /* Reset desktop hover — mobile uses scroll activation.

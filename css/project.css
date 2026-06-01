@@ -778,7 +778,7 @@
   .project-overview-modal-content {
     display: flex;
     flex-direction: column;
-    gap: clamp(calc(var(--u) * 6), 1.2vh, calc(var(--u) * 16));
+    gap: clamp(calc(var(--u) * 3), 0.6vh, calc(var(--u) * 8));
   }
 
   /* Each section is its own frosted card — label stacked above text.
