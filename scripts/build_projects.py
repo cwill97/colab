@@ -430,9 +430,20 @@ def project_html(p: dict, idx: int, total: int) -> str:
 
 {logo_block}
 
-      <h2 class="project-mobile-title" data-mobile-title>{esc(p['title'])}</h2>
-
-      <button class="project-mobile-overview-trigger" type="button" data-mobile-overview-trigger>[ read overview ]</button>
+      <div class="project-mobile-info">
+        <h2 class="project-mobile-title" data-mobile-title>{esc(p['title'])}</h2>
+        <div class="project-mobile-meta">
+          <div class="project-mobile-meta-row">
+            <span class="project-mobile-meta-label">Role</span>
+            <span class="project-mobile-meta-value" data-mobile-services>{esc(p['services'])}</span>
+          </div>
+          <div class="project-mobile-meta-row">
+            <span class="project-mobile-meta-label">Year</span>
+            <span class="project-mobile-meta-value" data-mobile-year>{esc(p['timeline'])}</span>
+          </div>
+        </div>
+        <button class="project-mobile-overview-trigger" type="button" data-mobile-overview-trigger>Read overview</button>
+      </div>
 
       <span class="project-mobile-hint" aria-hidden="true">scroll / hold to explore</span>
 

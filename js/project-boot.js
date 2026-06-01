@@ -155,6 +155,8 @@
   var overviewTimeline = document.querySelector('[data-overview-timeline]');
   var overviewLive     = document.querySelector('[data-overview-live-project]');
   var overviewTrigger  = document.querySelector('[data-mobile-overview-trigger]');
+  var mobileServices   = document.querySelector('[data-mobile-services]');
+  var mobileYear       = document.querySelector('[data-mobile-year]');
   var overviewClose    = document.querySelector('[data-overview-close]');
   var liveProjectLink  = document.querySelector('[data-live-project]');
 
@@ -186,6 +188,10 @@
     if (metaCount)    metaCount.textContent    = '0' + (index + 1) + ' / 0' + PROJECTS.length;
     if (metaFill)     metaFill.style.width     = ((index / Math.max(PROJECTS.length - 1, 1)) * 100) + '%';
     if (metaTitle)    metaTitle.textContent    = project.title;
+
+    /* Mobile info block (Role / Year, between title and CTA) */
+    if (mobileServices) mobileServices.textContent = project.services || '';
+    if (mobileYear)     mobileYear.textContent     = project.timeline || '';
 
     /* Right-rail panel */
     var parts = splitDescription(project.description);

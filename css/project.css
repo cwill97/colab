@@ -360,6 +360,30 @@
 }
 
 /* ------------------------------------------------------------
+   Frosted-glass card — project info rail
+   The whole info group sits inside one frosted card (glass over the
+   depth-gallery imagery), with thin divider lines separating each
+   section (Client, Timeline, Services, Overview, Strategy). Scoped to
+   .project-info so the overview modal (which reuses these classes)
+   is unaffected. Desktop only — .project-info is hidden on mobile.
+   ------------------------------------------------------------ */
+.project-page .project-info .project-info-content {
+  gap: 0;
+  padding: calc(var(--u) * 16);
+  background: rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
+          backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
+  border-radius: calc(var(--u) * 8);
+}
+
+/* Thin divider between consecutive sections — centred in the gap. */
+.project-page .project-info .project-info-section + .project-info-section {
+  margin-block-start: calc(var(--u) * 16);
+  padding-block-start: calc(var(--u) * 16);
+  border-block-start: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* ------------------------------------------------------------
    "View Live Project" link — sits after timeline
    ------------------------------------------------------------ */
 .project-live-link {
@@ -432,6 +456,7 @@
    Mobile-only elements — hidden on desktop by default.
    Activated inside the @media (max-width: 767px) block below.
    ------------------------------------------------------------ */
+.project-mobile-info,
 .project-mobile-overview-trigger,
 .project-overview-modal {
   display: none;
@@ -493,7 +518,7 @@
      scale token (main.css §1, overridden for mobile).
      -------------------------------------------------------- */
   :root {
-    --mp-canvas-h:      calc(var(--u) * 596);                                /* 70% of 852 */
+    --mp-canvas-h:      calc(var(--u) * 500);                                /* ~59% of 852 — leaves room for the info block */
     --mp-info-top:      calc(var(--nav-height) + var(--mp-canvas-h) + calc(var(--u) * 16));
     --mp-about-gap:     calc(var(--u) * 10);
     --mp-title-h:       calc(var(--u) * 16);
@@ -545,13 +570,28 @@
   /* --------------------------------------------------------
      M-P3. Mobile project title — below canvas
      -------------------------------------------------------- */
-  .project-page .project-mobile-title {
-    display: block;
+  /* Mobile info group — title, Role/Year meta and CTA stacked together,
+     sitting below the canvas. Shifted down for more breathing room above
+     the bottom hint. */
+  .project-page .project-mobile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: calc(var(--u) * 16);
     position: fixed;
-    inset-block-start: var(--mp-info-top);
+    inset-block-start: calc(var(--mp-info-top) + var(--u) * 12);
     inset-inline-start: var(--m);
     inset-inline-end: var(--m);
     z-index: 50;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .project-page.is-ready .project-mobile-info {
+    opacity: 1;
+  }
+
+  .project-page .project-mobile-title {
+    display: block;
     font-family: var(--font-display);
     font-size: calc(var(--u) * 21);
     font-weight: 400;
@@ -562,47 +602,64 @@
     margin: 0;
   }
 
-  /* Fade with page */
-  .project-page .project-mobile-title {
-    opacity: 0;
+  /* Role / Year — muted mono label above a display-type value. */
+  .project-page .project-mobile-meta {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 12);
   }
-  .project-page.is-ready .project-mobile-title {
-    opacity: 1;
+  .project-page .project-mobile-meta-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: calc(var(--u) * 9);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-muted);
+    margin-block-end: calc(var(--u) * 3);
+  }
+  .project-page .project-mobile-meta-value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: calc(var(--u) * 13);
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    color: var(--color-fg);
   }
 
   /* --------------------------------------------------------
      M-P4. "read overview" trigger — sits below the title,
      above the scroll/hold hint. Opens the overview modal.
      -------------------------------------------------------- */
+  /* White pill button with a plus symbol — flows inside .project-mobile-info. */
   .project-page .project-mobile-overview-trigger {
-    display: block;
-    position: fixed;
-    inset-block-start: calc(
-      var(--mp-info-top) + var(--mp-title-h) + var(--mp-about-gap)
-    );
-    inset-inline-start: var(--m);
-    z-index: 50;
-    background: none;
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 8);
+    background: #fff;
     border: none;
-    padding: calc(var(--u) * 4) 0;
+    padding: calc(var(--u) * 11) calc(var(--u) * 22);
     margin: 0;
+    border-radius: calc(var(--u) * 100);
     cursor: pointer;
     font-family: var(--font-mono);
     font-size: calc(var(--u) * 10);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--color-fg);
-    opacity: 0;
-    transition: opacity 0.4s ease;
+    color: var(--color-bg);
+    transition: opacity 0.2s ease;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .project-page.is-ready .project-mobile-overview-trigger {
-    opacity: 0.75;
+  .project-page .project-mobile-overview-trigger::after {
+    content: '';
+    width: calc(var(--u) * 13);
+    height: calc(var(--u) * 13);
+    flex-shrink: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E") center / contain no-repeat;
   }
 
   .project-page .project-mobile-overview-trigger:active {
-    opacity: 1;
+    opacity: 0.85;
   }
 
   /* --------------------------------------------------------
@@ -684,24 +741,27 @@
   .project-overview-modal-content {
     display: flex;
     flex-direction: column;
-    gap: clamp(calc(var(--u) * 12), 2.5vh, calc(var(--u) * 36));
+    gap: clamp(calc(var(--u) * 6), 1.2vh, calc(var(--u) * 16));
     flex: 1;
     min-height: 0;
     overflow: hidden;
   }
 
+  /* Each section is its own frosted card — label stacked above text. */
   .project-overview-modal-section {
-    display: grid;
-    grid-template-columns: calc(var(--u) * 110) 1fr;
-    gap: clamp(calc(var(--u) * 12), 2vw, calc(var(--u) * 24));
-    align-items: flex-start;
+    display: block;
     flex-shrink: 1;
     min-height: 0;
     overflow: hidden;
+    padding: calc(var(--u) * 20);
+    background: rgba(255, 255, 255, 0.06);
+    -webkit-backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
+            backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
+    border-radius: calc(var(--u) * 16);
   }
 
   .project-overview-modal-section .project-info-label {
-    margin-block-end: 0;
+    margin-block-end: calc(var(--u) * 10);
     font-size: clamp(calc(var(--u) * 8), 1.2vw, calc(var(--u) * 10));
   }
 
@@ -710,24 +770,36 @@
     line-height: 1.55;
   }
 
+  /* White pill button with up-right arrow. */
   .project-overview-live-link {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 8);
     align-self: center;
     flex-shrink: 0;
     font-family: var(--font-mono);
     font-size: calc(var(--u) * 11);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--color-fg);
+    color: var(--color-bg);
+    background: #fff;
     text-decoration: none;
-    opacity: 0.75;
-    padding: clamp(calc(var(--u) * 4), 0.8vh, calc(var(--u) * 8)) 0;
+    padding: calc(var(--u) * 11) calc(var(--u) * 22);
+    border-radius: calc(var(--u) * 100);
     margin-block-start: auto;
     transition: opacity 0.2s ease;
   }
 
+  .project-overview-live-link::after {
+    content: '';
+    width: calc(var(--u) * 13);
+    height: calc(var(--u) * 13);
+    flex-shrink: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17L17 7'/%3E%3Cpath d='M8 7h9v9'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+
   .project-overview-live-link:active {
-    opacity: 1;
+    opacity: 0.85;
   }
 
   .project-overview-close {
@@ -754,8 +826,7 @@
   /* Hide background chrome while overlay is open */
   body.has-overview-modal-open .audio-toggle,
   body.has-overview-modal-open .project-mobile-hint,
-  body.has-overview-modal-open .project-mobile-title,
-  body.has-overview-modal-open .project-mobile-overview-trigger {
+  body.has-overview-modal-open .project-mobile-info {
     visibility: hidden;
   }
 
