@@ -598,7 +598,7 @@
     align-items: flex-start;
     gap: calc(var(--u) * 16);
     position: fixed;
-    inset-block-start: calc(var(--mp-info-top) + var(--u) * 12);
+    inset-block-end: calc(var(--u) * 60);
     inset-inline-start: var(--m);
     inset-inline-end: var(--m);
     z-index: 50;
@@ -643,6 +643,10 @@
     line-height: 1.25;
     letter-spacing: 0.02em;
     color: var(--color-fg);
+    /* Balance the wrap so the services split into two even lines
+       (e.g. "Brand Development · Web Design" / "E-Commerce · 3D · Animation")
+       rather than orphaning the last word. */
+    text-wrap: balance;
   }
 
   /* --------------------------------------------------------
@@ -687,7 +691,7 @@
   .project-page .project-mobile-hint {
     display: block;
     position: fixed;
-    inset-block-end: calc(var(--u) * 77);
+    inset-block-end: calc(var(--u) * 28);
     inset-inline-start: var(--m);
     z-index: 50;
     font-family: var(--font-mono);
