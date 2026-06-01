@@ -99,6 +99,13 @@
   --color-border:   rgba(255, 255, 255, 0.08);
   --color-terminal: rgba(133, 254, 255, 1);
 
+  /* Frosted "bg card" — ONE shared recipe for every static glass card
+     (homepage project list, right-column panels, section labels,
+     project page info rail + overview modal sections) so they all read
+     as the same colour/brightness across the site. */
+  --card-bg:     rgba(255, 255, 255, 0.05);
+  --card-filter: blur(calc(var(--u) * 12)) saturate(100%) brightness(0.60);
+
   /* Grid — 10 columns, 30px gutters, 20px margins */
   --grid-columns:   10;
   --grid-gutter:    calc(var(--u) * 30);
@@ -921,9 +928,9 @@ main {
   min-height: 0;
   justify-content: center;
   padding: calc(var(--u) * 6) calc(var(--u) * 12);
-  background: rgba(255, 255, 255, 0.05);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 12)) saturate(100%) brightness(0.60);
-          backdrop-filter: blur(calc(var(--u) * 12)) saturate(100%) brightness(0.60);
+  background: var(--card-bg);
+  -webkit-backdrop-filter: var(--card-filter);
+          backdrop-filter: var(--card-filter);
   border-radius: calc(var(--u) * 8);
 }
 
@@ -1173,20 +1180,52 @@ main {
    applied directly (width: fit-content) so they wrap the text only.
    Homepage only — the project page reuses .about-text / .audio-visualizer.
    ------------------------------------------------------------ */
-body:not(.project-page) .about-text::before,
-body:not(.project-page) .services-block::before,
-body:not(.project-page) .contact-block::before {
+body:not(.project-page) .about-text::before {
   content: '';
   position: absolute;
   inset-block: calc(var(--u) * -6);
   inset-inline-start: calc(var(--u) * -12);
   inset-inline-end: calc(var(--u) * -12);
   z-index: -1;
-  background: rgba(255, 255, 255, 0.04);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 12)) saturate(100%) brightness(0.60);
-          backdrop-filter: blur(calc(var(--u) * 12)) saturate(100%) brightness(0.60);
+  background: var(--card-bg);
+  -webkit-backdrop-filter: var(--card-filter);
+          backdrop-filter: var(--card-filter);
   border-radius: calc(var(--u) * 8);
   pointer-events: none;
+}
+
+/* Services & Contact — each column is its own frosted bg card (desktop).
+   The card is painted by a ::before outset behind each .services-list,
+   so the text positions are untouched and the column gutter shows as a
+   clear gap between the two cards. Outer edges keep the 12u padding;
+   inner edges use 6u so the centre gap reads clearly. */
+body:not(.project-page) .services-block .services-list,
+body:not(.project-page) .contact-block .services-list {
+  position: relative;
+}
+body:not(.project-page) .services-block .services-list::before,
+body:not(.project-page) .contact-block .services-list::before {
+  content: '';
+  position: absolute;
+  inset-block: calc(var(--u) * -6);
+  inset-inline-start: calc(var(--u) * -12);
+  inset-inline-end: calc(var(--u) * -12);
+  z-index: -1;
+  background: var(--card-bg);
+  -webkit-backdrop-filter: var(--card-filter);
+          backdrop-filter: var(--card-filter);
+  border-radius: calc(var(--u) * 8);
+  pointer-events: none;
+}
+/* Tighten the inner edges so the two cards don't touch — the column
+   gutter becomes a visible gap between separate cards. */
+body:not(.project-page) .services-block .services-list:first-child::before,
+body:not(.project-page) .contact-block .services-list:first-child::before {
+  inset-inline-end: calc(var(--u) * -6);
+}
+body:not(.project-page) .services-block .services-list:last-child::before,
+body:not(.project-page) .contact-block .services-list:last-child::before {
+  inset-inline-start: calc(var(--u) * -6);
 }
 
 /* Labels — frosted card sized to text, not full content width.
@@ -1200,9 +1239,9 @@ body:not(.project-page) .section-label--contact {
   inset-inline-start: calc(100vw - var(--grid-margin) - var(--viz-width) - var(--u) * 12);
   margin-block-start: calc(var(--u) * -4);
   padding: calc(var(--u) * 4) calc(var(--u) * 12);
-  background: rgba(255, 255, 255, 0.04);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 12)) saturate(100%) brightness(0.60);
-          backdrop-filter: blur(calc(var(--u) * 12)) saturate(100%) brightness(0.60);
+  background: var(--card-bg);
+  -webkit-backdrop-filter: var(--card-filter);
+          backdrop-filter: var(--card-filter);
   border-radius: calc(var(--u) * 8);
 }
 
@@ -1289,9 +1328,9 @@ body:not(.project-page) .about-text {
   margin-block-end: calc(var(--u) * 4);
   width: fit-content;
   padding: calc(var(--u) * 4) calc(var(--u) * 12);
-  background: rgba(255, 255, 255, 0.06);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
-          backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
+  background: var(--card-bg);
+  -webkit-backdrop-filter: var(--card-filter);
+          backdrop-filter: var(--card-filter);
   border-radius: calc(var(--u) * 6);
 }
 

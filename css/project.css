@@ -370,9 +370,9 @@
 .project-page .project-info .project-info-content {
   gap: 0;
   padding: calc(var(--u) * 16);
-  background: rgba(255, 255, 255, 0.06);
-  -webkit-backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
-          backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
+  background: var(--card-bg);
+  -webkit-backdrop-filter: var(--card-filter);
+          backdrop-filter: var(--card-filter);
   border-radius: calc(var(--u) * 8);
 }
 
@@ -787,9 +787,9 @@
   .project-overview-modal-section {
     display: block;
     padding: calc(var(--u) * 20);
-    background: rgba(255, 255, 255, 0.06);
-    -webkit-backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
-            backdrop-filter: blur(calc(var(--u) * 20)) saturate(160%) brightness(1.05);
+    background: var(--card-bg);
+    -webkit-backdrop-filter: var(--card-filter);
+            backdrop-filter: var(--card-filter);
     border-radius: calc(var(--u) * 16);
   }
 
