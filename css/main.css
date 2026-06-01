@@ -2532,7 +2532,7 @@ body.about-page {
   line-height: 1.5;
   letter-spacing: 0.004em;
   color: var(--color-fg);
-  text-align: justify;
+  text-align: left;
 }
 
 .studio-copy p {
