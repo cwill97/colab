@@ -95,6 +95,7 @@
   --color-fg:       #ffffff;
   --color-accent:   #ee44ee; /* magenta from the grid image */
   --color-muted:    rgba(255, 255, 255, 0.35);
+  --color-grey:     #e1e5e280;
   --color-border:   rgba(255, 255, 255, 0.08);
   --color-terminal: rgba(133, 254, 255, 1);
 
@@ -950,7 +951,7 @@ main {
   font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.35;
-  color: var(--color-fg);
+  color: var(--color-grey);
   max-width: 42ch;
 }
 
@@ -2369,9 +2370,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     /* Letter-spacing held constant — no resize as cards scroll into focus. */
   }
   .project-detail  {
-    font-size: calc(var(--u) * 14);
+    font-size: calc(var(--u) * 13);
     max-width: none;
-    color: var(--color-muted);
+    color: var(--color-grey);
     margin-block-start: calc(var(--u) * 6);
     display: block;
     line-height: 1.4;
@@ -2379,7 +2380,6 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
-     
   }
   .project-cta {
     margin-block-start: calc(var(--u) * 9);
