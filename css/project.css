@@ -394,7 +394,7 @@
   gap: calc(var(--u) * 8);
   margin-block-start: calc(var(--u) * 16);
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-bg);
@@ -428,7 +428,7 @@
   align-self: flex-start;
   display: inline-block;
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--color-fg);
@@ -661,7 +661,7 @@
     border-radius: calc(var(--u) * 100);
     cursor: pointer;
     font-family: var(--font-mono);
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-bg);
@@ -781,11 +781,11 @@
 
   .project-overview-modal-section .project-info-label {
     margin-block-end: calc(var(--u) * 10);
-    font-size: clamp(calc(var(--u) * 9), 1.2vw, calc(var(--u) * 11));
+    font-size: calc(var(--u) * 10);
   }
 
   .project-overview-modal-section .project-info-text {
-    font-size: calc(var(--u) * 12);
+    font-size: calc(var(--u) * 14);
     line-height: 1.55;
   }
 
@@ -797,7 +797,7 @@
     align-self: center;
     flex-shrink: 0;
     font-family: var(--font-mono);
-    font-size: calc(var(--u) * 11);
+    font-size: calc(var(--u) * 12);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-bg);
@@ -828,7 +828,7 @@
     border: none;
     color: var(--color-fg);
     font-family: var(--font-mono);
-    font-size: calc(var(--u) * 11);
+    font-size: calc(var(--u) * 12);
     letter-spacing: 0.1em;
     cursor: pointer;
     padding: clamp(calc(var(--u) * 8), 1.5vh, calc(var(--u) * 16)) calc(var(--u) * 24);
