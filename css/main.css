@@ -2298,13 +2298,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   /* Reset desktop hover — mobile uses scroll activation.
-     Only opacity and width ride --focus; no scale or translate, so
-     content stays at constant size and anchored to the same left
-     edge across the focus transition. */
+     Cards stay at constant opacity and full width regardless of
+     focus; the accent line, CTA, and thumbnail are the only
+     scroll-driven cues. */
   .project-item,
   .project-item:hover {
-    opacity: calc(0.35 + 0.65 * var(--focus));
-    width: calc(82% + 18% * var(--focus));
+    opacity: 1;
+    width: 100%;
     transition: none;
   }
 

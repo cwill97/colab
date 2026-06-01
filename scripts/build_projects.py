@@ -30,6 +30,7 @@ PROJECTS = [
         "services": "Brand Development · Web Design · E-Commerce · 3D · Animation",
         "logoSrc": "/assets/Project_Logo_Viking.svg",
         "timeline": "October 2025 — May 2026",
+        "credits": "Creative Direction, Design & Development — co:lab",
         "metaDescription": (
             "Brand development, web design, e-commerce, 3D and animation for "
             "Viking Gear — primal training tools reimagined as modern rituals "
@@ -53,6 +54,7 @@ PROJECTS = [
         "services": "Brand Development · Photography · E-Commerce · Web Design",
         "logoSrc": "",
         "timeline": "TBD",
+        "credits": "Creative Direction, Design & Development — co:lab",
         "metaDescription": (
             "Gender-neutral toddler fashion brand. Full identity system, photography "
             "direction and e-commerce design for Rebel Kids Club — bold, inclusive and "
@@ -76,6 +78,7 @@ PROJECTS = [
         "services": "Brand Development · Web Design · Motion",
         "logoSrc": "",
         "timeline": "TBD",
+        "credits": "Creative Direction, Design & Development — co:lab",
         "metaDescription": (
             "Cinematic rebrand for Mannequin Films — brand identity, web design and motion "
             "that distil their visual storytelling into a timeless, alive language."
@@ -100,6 +103,7 @@ PROJECTS = [
         "services": "Web Design · Web Development · Brand Consolidation",
         "logoSrc": "/assets/Project_Logo_Hydepark.svg",
         "timeline": "TBD",
+        "credits": "Creative Direction, Design & Development — co:lab",
         "metaDescription": (
             "Website consolidation and digital modernisation for Hyde Park Ventures — "
             "a unified platform that brings clarity to a diverse portfolio."
@@ -319,6 +323,10 @@ def project_info_html(p: dict, next_p: dict, prev_p: dict) -> str:
         '            <span class="project-info-label">STRATEGY</span>\n'
         f'            <p class="project-info-text" data-project-strategy>{esc(strategy)}</p>\n'
         '          </section>\n'
+        '          <section class="project-info-section">\n'
+        '            <span class="project-info-label">CREDITS</span>\n'
+        f'            <p class="project-info-text" data-project-credits>{esc(p["credits"])}</p>\n'
+        '          </section>\n'
         '          <a class="project-live-link" href="#" target="_blank" rel="noopener noreferrer" data-live-project style="display:none;">Visit Website</a>\n'
         '        </div>\n'
         '        <div class="project-info-nav">\n'
@@ -371,6 +379,10 @@ def project_overview_modal_html(p: dict) -> str:
         '            <section class="project-overview-modal-section">\n'
         '              <span class="project-info-label">STRATEGY</span>\n'
         f'              <p class="project-info-text" data-overview-strategy>{esc(strategy)}</p>\n'
+        '            </section>\n'
+        '            <section class="project-overview-modal-section">\n'
+        '              <span class="project-info-label">CREDITS</span>\n'
+        f'              <p class="project-info-text" data-overview-credits>{esc(p["credits"])}</p>\n'
         '            </section>\n'
         '          </div>\n'
         '          <a class="project-overview-live-link" href="#" target="_blank" rel="noopener noreferrer" data-overview-live-project style="display:none;">View Live Project</a>\n'

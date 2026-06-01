@@ -16,6 +16,7 @@
       logoSrc:  '/assets/Project_Logo_Viking.svg',
       liveUrl:  'https://viking-gear.store/',
       timeline: 'October 2025 — May 2026',
+      credits:  'Creative Direction, Design & Development — co:lab',
       metaDescription: 'Brand development, web design, e-commerce, 3D and animation for Viking Gear — primal training tools reimagined as modern rituals of discipline and mastery.',
       description: 'Viking Gear forges strength through primal movement. Rooted in the warrior spirit, it reimagines ancient training tools such as maces, clubs, and hammers as modern extensions of discipline, flow, and mastery. Every piece honours resilience, balance, and raw power, turning training into ritual.\n\nWe built the brand from the ground up. We shaped the strategy, art direction, and complete visual identity, creating a bold, purposeful world where ancient form meets contemporary performance.',
       images: [
@@ -47,6 +48,7 @@
       logoSrc:  '/assets/Project_Logo_Rebel.svg',
       liveUrl:  '',
       timeline: 'TBD',
+      credits:  'Creative Direction, Design & Development — co:lab',
       metaDescription: 'Gender-neutral toddler fashion brand. Full identity system, photography direction and e-commerce design for Rebel Kids Club — bold, inclusive and unmistakably its own.',
       description: 'Rebel Kids Club breaks the pink and blue code. It redefines toddler fashion with gender neutral clothing that celebrates individuality, intention, and timeless style from day one. Bold yet grounded, modern yet wearable, every piece gives parents a fresh way to dress their little rebels.\n\nWe built the brand from the ground up. We created the full identity system, from name and positioning to visual language and guidelines, crafting a distinctive voice that feels confident, inclusive, and unmistakably its own.',
       images: [
@@ -70,6 +72,7 @@
       logoSrc:  '/assets/Project_Logo_Mannequin.svg',
       liveUrl:  'https://www.mannequinfilms.co.za/',
       timeline: 'TBD',
+      credits:  'Creative Direction, Design & Development — co:lab',
       metaDescription: 'Cinematic rebrand for Mannequin Films — brand identity, web design and motion that distil their visual storytelling into a timeless, alive language.',
       description: 'Mannequin Films captures the raw poetry of visual storytelling. Through photography and video, they transform fleeting moments into enduring narratives that resonate with authenticity and precision. Every frame is crafted with intention, blending creativity, emotion, and technical excellence to bring stories to life.\n\nWe led a full rebrand, forging a new identity that honours their cinematic roots while sharpening their contemporary edge. From the refined brandmark to the complete visual system, we distilled their essence into a cohesive language that feels both timeless and alive.',
       images: [
@@ -93,6 +96,7 @@
       logoSrc:  '/assets/Project_Logo_Hydepark.svg',
       liveUrl:  'https://www.hydeparkventures.com/five-guys',
       timeline: 'TBD',
+      credits:  'Creative Direction, Design & Development — co:lab',
       metaDescription: 'Website consolidation and digital modernisation for Hyde Park Ventures — a unified platform that brings clarity to a diverse portfolio.',
       description: 'Website consolidation and digital modernisation for Hyde Park Ventures, creating a unified platform that brings clarity to a diverse portfolio. Delivered a streamlined, future-ready experience that improves navigation, strengthens brand consistency, and supports ongoing growth.',
       images: [
@@ -144,6 +148,7 @@
   var projectDetailEl  = document.querySelector('[data-project-detail]');
   var projectStrategy  = document.querySelector('[data-project-strategy]');
   var projectTimeline  = document.querySelector('[data-project-timeline]');
+  var projectCredits   = document.querySelector('[data-project-credits]');
   var nextProjectLink  = document.querySelector('[data-next-project]');
   var prevProjectLink  = document.querySelector('[data-prev-project]');
   var overviewModal    = document.querySelector('[data-overview-modal]');
@@ -153,6 +158,7 @@
   var overviewDetail   = document.querySelector('[data-overview-detail]');
   var overviewStrategy = document.querySelector('[data-overview-strategy]');
   var overviewTimeline = document.querySelector('[data-overview-timeline]');
+  var overviewCredits  = document.querySelector('[data-overview-credits]');
   var overviewLive     = document.querySelector('[data-overview-live-project]');
   var overviewTrigger  = document.querySelector('[data-mobile-overview-trigger]');
   var mobileServices   = document.querySelector('[data-mobile-services]');
@@ -200,6 +206,7 @@
     if (projectDetailEl)  projectDetailEl.textContent  = parts.detail;
     if (projectStrategy)  projectStrategy.textContent  = parts.strategy;
     if (projectTimeline)  projectTimeline.textContent  = project.timeline || '';
+    if (projectCredits)   projectCredits.textContent   = project.credits || '';
     setLogo(projectLogo, project);
 
     /* View live project link */
@@ -230,6 +237,7 @@
     if (overviewDetail)   overviewDetail.textContent   = parts.detail;
     if (overviewStrategy) overviewStrategy.textContent = parts.strategy;
     if (overviewTimeline) overviewTimeline.textContent = project.timeline || '';
+    if (overviewCredits)  overviewCredits.textContent  = project.credits || '';
     if (overviewLive) {
       if (project.liveUrl) {
         overviewLive.setAttribute('href', project.liveUrl);
