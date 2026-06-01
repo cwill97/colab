@@ -135,8 +135,10 @@
       /* Pause tesseract to save GPU */
       if (window.colabTesseract) window.colabTesseract.pause();
 
-      /* Mount the About depth gallery into the new container */
-      if (window.colabAbout) window.colabAbout.init(nextContainer);
+      /* Studio page is a normal-scroll document — no depth gallery to
+         mount. Reset scroll to the top after the container swap. */
+      window.scrollTo(0, 0);
+      if (nextContainer) nextContainer.scrollTop = 0;
 
       /* Re-bind nav toggle for the new container context */
       if (window.colabMainBoot) window.colabMainBoot();
@@ -148,8 +150,7 @@
     }
 
     function leaveAbout() {
-      /* Destroy About depth gallery before container is removed */
-      if (window.colabAbout) window.colabAbout.destroy();
+      /* Studio page holds no depth gallery / RAF loop to tear down. */
     }
 
     /* ── Barba init ── */

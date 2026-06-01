@@ -1415,6 +1415,12 @@ body:not(.project-page) .about-text {
   background: var(--color-fg);
   -webkit-backdrop-filter: none;
           backdrop-filter: none;
+  /* The big menu type has tall line-boxes; the default -2u outset makes
+     the white wipe collide with the item below. Pull the block edges in
+     (em-based, so it tracks the clamped font size) so the block hugs the
+     word and clears the next line. */
+  inset-block-start: 0.06em;
+  inset-block-end: 0.12em;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -1794,230 +1800,6 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   display: none;
 }
 
-/* ============================================================
-   About / Studio page — editorial multi-column layout.
-   Snapped to the site's 10-column grid (1440 master artboard).
-     col-w   = (100% - 2*margin - 9*gutter) / 10
-     col(n)  = margin + (n-1) * (col-w + gutter)   (column n start)
-     span(n) = n * col-w + (n-1) * gutter           (n-column width)
-   Background sculpture image + blurred display manifesto behind,
-   pillar labels top, intro stack top-right, three figure blocks
-   along the bottom row, ( 47 ) mark at centre.
-   ============================================================ */
-.about-main {
-  /* Local layout tokens — derived from the existing site grid. */
-  --col-w:   calc((100% - 2 * var(--grid-margin) - 9 * var(--grid-gutter)) / 10);
-  --col-1:   var(--grid-margin);
-  --col-3:   calc(var(--grid-margin) + 2  * (var(--col-w) + var(--grid-gutter)));
-  --col-5:   calc(var(--grid-margin) + 4  * (var(--col-w) + var(--grid-gutter)));
-  --col-7:   calc(var(--grid-margin) + 6  * (var(--col-w) + var(--grid-gutter)));
-  --col-8:   calc(var(--grid-margin) + 7  * (var(--col-w) + var(--grid-gutter)));
-  --col-9:   calc(var(--grid-margin) + 8  * (var(--col-w) + var(--grid-gutter)));
-  --span-1:  var(--col-w);
-  --span-2:  calc(2 * var(--col-w) + 1 * var(--grid-gutter));
-  --span-3:  calc(3 * var(--col-w) + 2 * var(--grid-gutter));
-  --span-4:  calc(4 * var(--col-w) + 3 * var(--grid-gutter));
-
-  position: fixed;
-  inset-block-start: var(--nav-height);
-  inset-inline: 0;
-  height: calc(100vh - var(--nav-height));
-  padding: 0;
-  overflow: hidden;
-  z-index: 10;
-  pointer-events: none;
-}
-
-/* Anything inside that should still receive clicks must opt back in */
-.about-main a,
-.about-main button {
-  pointer-events: auto;
-}
-
-
-/* ── Blurred display manifesto ─────────────────────────────── */
-.about-manifesto {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  font-family: var(--font-display);
-  font-weight: 200;
-  text-transform: lowercase;
-  letter-spacing: -0.01em;
-  color: rgba(255, 255, 255, 0.28);
-  filter: blur(calc(var(--u) * 5));
-}
-
-.about-manifesto-line {
-  position: absolute;
-  inset-inline-start: var(--grid-margin);
-  inset-inline-end: var(--grid-margin);
-  margin: 0;
-  font-size: clamp(calc(var(--u) * 40), 5.4vw, calc(var(--u) * 80));
-  line-height: 0.92;
-}
-
-/* Top line sits in the upper-middle band */
-.about-manifesto-line--top {
-  inset-block-start: 14%;
-}
-
-/* Bottom line sits in the lower band */
-.about-manifesto-line--bottom {
-  inset-block-end: 4%;
-}
-
-/* ── ( 47 ) centre mark ────────────────────────────────────── */
-.about-mark {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-size: clamp(calc(var(--u) * 96), 9.5vw, calc(var(--u) * 148));
-  line-height: 1;
-  color: rgba(255, 255, 255, 0.7);
-  filter: blur(calc(var(--u) * 0.3));
-  letter-spacing: 0.04em;
-  pointer-events: none;
-}
-
-/* ── Pillars: FORM (col 1) · CULTURE (col 3) · LIGHT (col 5) ─ */
-.about-pillars {
-  position: absolute;
-  inset-block-start: calc(var(--u) * 18);
-  inset-inline-start: 0;
-  inset-inline-end: 0;
-  z-index: 3;
-}
-
-.about-pillar {
-  position: absolute;
-  inset-block-start: 0;
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--u) * 2);
-  width: var(--span-1);
-}
-
-.about-pillar:nth-child(1) { inset-inline-start: var(--col-1); }
-.about-pillar:nth-child(2) { inset-inline-start: var(--col-3); }
-.about-pillar:nth-child(3) { inset-inline-start: var(--col-5); }
-
-.about-pillar-title {
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: calc(var(--u) * 10);
-  line-height: 1;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  color: var(--color-fg);
-  margin: 0;
-}
-
-.about-pillar-sub,
-.about-fig-sub {
-  font-family: var(--font-display);
-  font-weight: 300;
-  font-size: calc(var(--u) * 10);
-  line-height: 1;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  color: var(--color-muted);
-}
-
-/* ── Intro stack — cols 8–10 (top-right) ───────────────────── */
-.about-intro {
-  position: absolute;
-  inset-block-start: calc(var(--u) * 18);
-  inset-inline-start: var(--col-8);
-  width: var(--span-3);
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--u) * 14);
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: calc(var(--u) * 10);
-  line-height: 1.35;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  color: var(--color-fg);
-}
-
-.about-intro-stanza,
-.about-intro-passage {
-  margin: 0;
-}
-
-.about-intro-passage {
-  margin-block-start: calc(var(--u) * 6);
-  font-weight: 300;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* ── Figure row — bottom three blocks, snapped to grid ─────── */
-.about-fig {
-  position: absolute;
-  z-index: 3;
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--u) * 14);
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: calc(var(--u) * 10);
-  line-height: 1.35;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  color: var(--color-fg);
-}
-
-/* FIG 001 — col 3, label only (no body in this state) */
-.about-fig--001 {
-  inset-block-start: 56%;
-  inset-inline-start: var(--col-3);
-  width: var(--span-2);
-}
-
-/* FIG 002 — cols 5–7, body extends to bottom of viewport */
-.about-fig--002 {
-  inset-block-start: 56%;
-  inset-block-end: calc(var(--u) * 24);
-  inset-inline-start: var(--col-5);
-  width: var(--span-3);
-  overflow: hidden;
-}
-
-/* FIG 003 — cols 9–10, body extends to bottom of viewport */
-.about-fig--003 {
-  inset-block-start: 56%;
-  inset-block-end: calc(var(--u) * 24);
-  inset-inline-start: var(--col-9);
-  width: var(--span-2);
-  overflow: hidden;
-}
-
-.about-fig-title {
-  font-weight: 400;
-  font-size: calc(var(--u) * 10);
-  line-height: 1;
-  letter-spacing: 0.02em;
-  text-transform: lowercase;
-  color: var(--color-fg);
-  margin: 0;
-}
-
-.about-fig-stanza {
-  margin: 0;
-}
-
-.about-fig-stanza--refrain {
-  color: rgba(255, 255, 255, 0.85);
-}
-
 @media (max-width: 767px) {
 
   /* --------------------------------------------------------
@@ -2063,8 +1845,8 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   /* Homepage only — full position:fixed kills iOS bounce-scroll.
-     Project page excluded so depth gallery touch-scroll still works. */
-  body:not(.project-page) {
+     Project + Studio pages excluded so their normal scroll works. */
+  body:not(.project-page):not(.about-page) {
     position: fixed;
     width: 100%;
   }
@@ -2523,142 +2305,6 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     grid-template-columns: repeat(5, 1fr);
     gap: var(--g);
   }
-
-  /* --------------------------------------------------------
-     M-14. About / Studio page — mobile editorial layout
-     Page becomes scrollable; content stacks in a 5-col grid.
-     -------------------------------------------------------- */
-  body.about-page,
-  body.about-page html {
-    position: static;
-    overflow: auto;
-    height: auto;
-  }
-
-  .about-page main {
-    position: static;
-    height: auto;
-    overflow: visible;
-  }
-
-  .about-main {
-    position: relative;
-    inset: auto;
-    height: auto;
-    min-height: 100vh;
-    padding: calc(var(--nav-height) + calc(var(--u) * 12)) var(--m) calc(var(--u) * 40);
-    overflow: visible;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    column-gap: var(--g);
-    row-gap: calc(var(--u) * 18);
-  }
-
-  /* Manifesto becomes much smaller and sits behind content */
-  .about-manifesto {
-    position: fixed;
-    inset: 0;
-    z-index: 1;
-    filter: blur(calc(var(--u) * 4));
-  }
-
-  .about-manifesto-line {
-    inset-inline-start: var(--m);
-    inset-inline-end: var(--m);
-    font-size: clamp(calc(var(--u) * 36), 11vw, calc(var(--u) * 64));
-    line-height: 0.92;
-  }
-
-  .about-manifesto-line--top {
-    inset-block-start: 22%;
-  }
-
-  .about-manifesto-line--bottom {
-    inset-block-end: 22%;
-  }
-
-  /* ( 47 ) sits inline between the pillars row and FIG row.
-     Grid rows are auto-flowed; we explicitly slot the mark to row 3. */
-  .about-mark {
-    position: relative;
-    inset: auto;
-    transform: none;
-    grid-column: 1 / -1;
-    grid-row: 3;
-    justify-self: center;
-    font-size: calc(var(--u) * 80);
-    margin-block: calc(var(--u) * 8) calc(var(--u) * 8);
-    filter: blur(calc(var(--u) * 0.4));
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  /* Pillars span left half — row 1. Children become inline flex items
-     so the desktop col-X absolute positioning is neutralised. */
-  .about-pillars {
-    position: relative;
-    inset: auto;
-    grid-column: 1 / 4;
-    grid-row: 1;
-    width: auto;
-    align-self: start;
-    display: flex;
-    gap: var(--g);
-  }
-
-  .about-pillar {
-    position: relative;
-    inset: auto;
-    width: auto;
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .about-pillar-title,
-  .about-pillar-sub,
-  .about-fig-title,
-  .about-fig-sub {
-    font-size: calc(var(--u) * 10);
-  }
-
-  /* Intro stack — right column, row 2 (alongside pillars) */
-  .about-intro {
-    position: relative;
-    inset: auto;
-    grid-column: 3 / -1;
-    grid-row: 2;
-    width: auto;
-    font-size: calc(var(--u) * 11);
-    line-height: 1.4;
-    gap: calc(var(--u) * 12);
-  }
-
-  /* Figure blocks — placed below the ( 47 ) mark in rows 4+ */
-  .about-fig {
-    position: relative;
-    inset: auto;
-    width: auto;
-    max-height: none;
-    overflow: visible;
-    font-size: calc(var(--u) * 11);
-    line-height: 1.4;
-    gap: calc(var(--u) * 12);
-  }
-
-  .about-fig--001 {
-    grid-column: 1 / -1;
-    grid-row: 4;
-  }
-
-  .about-fig--002 {
-    grid-column: 1 / 4;
-    grid-row: 5;
-  }
-
-  .about-fig--003 {
-    grid-column: 4 / -1;
-    grid-row: 5;
-  }
-
 } /* end @media (max-width: 767px) */
 
 /* ----------------------------------------------------------
@@ -2762,298 +2408,86 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 }
 
 /* ============================================================
-   Studio / About — redesigned fullscreen typographic poster.
-   Used by /about.html. Big distressed display title fills the
-   viewport, three small meta info groups overlay on top.
+   Studio / About — editorial, normal-scroll layout.
+   Used by /about.html and /about/. Replaces the previous
+   depth-gallery poster: the page now scrolls with the default
+   browser scrollbar. html/body are globally overflow-locked, so
+   they're unlocked here while the .about-page class is active
+   (Barba toggles that class on navigation; :has() keys html off it).
    ============================================================ */
-.studio-main {
-  position: fixed;
-  inset-block-start: var(--nav-height);
-  inset-inline: 0;
-  /* Height tracks the real viewport minus the nav, so the
-     flex-centred sections never drift below the visible area. */
-  height: calc(100vh - var(--nav-height));
-  padding: 0;
-  overflow: hidden;
-  z-index: 10;
-  pointer-events: none;
-}
-
-.studio-main a,
-.studio-main button {
-  pointer-events: auto;
-}
-
-/* ── Big display title (distressed texture baked into the SVG) ── */
-.studio-display {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  z-index: 1;
-  user-select: none;
-  pointer-events: none;
-}
-
-.studio-display picture {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-/* Two design baselines:
-     Title_D.svg = 1214 × 621 (desktop, on 1440 × 900 artboard)
-     Title_M.svg = 378 × 604  (mobile,  on 393 × 852 artboard)
-   Width is pinned to the SVG's artboard width scaled by --u (the
-   mobile baseline is overridden in the max-width:767px block), so
-   the title scales in lockstep with every other element.
-   height:auto preserves the SVG aspect ratio; max-width/max-height
-   stop it bleeding past studio-main on under-sized viewports. */
-.studio-display-img {
-  display: block;
-  width: calc(var(--u) * 1214);
+html:has(body.about-page) {
+  overflow-y: auto;
   height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  /* Hard-light blends the title against the body background image
-     (the sculpture). Light tones in the SVG lift the background;
-     dark tones darken it. */
-  mix-blend-mode: hard-light;
-  /* ── Entrance reveal ────────────────────────────────────────
-     Starts blurred + transparent; title-reveal.js drops the
-     `is-revealed` class onto .studio-display 1.5s after the
-     page-level shader-reveal completes, which trips both
-     transitions simultaneously. */
-  opacity: 0;
-  filter: blur(calc(var(--u) * 40));
-  transition:
-    opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1),
-    filter  1.8s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: opacity, filter;
 }
 
-.studio-display.is-revealed .studio-display-img {
-  opacity: 1;
-  filter: blur(0);
+body.about-page {
+  position: static;
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
-/* Mobile swaps in Title_M.svg (378 × 604 on the 393 artboard). */
-@media (max-width: 767px) {
-  .studio-display-img { width: calc(var(--u) * 378); }
-}
-
-/* ── Meta info groups (mono labels) ───────────────────────── */
-.studio-meta {
-  position: absolute;
+.studio {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: auto;          /* override global `main { height: calc(100vh - nav) }` */
+  min-height: 100vh;
+  overflow: visible;
+  box-sizing: border-box;
+  padding:
+    calc(var(--nav-height) + calc(var(--u) * 90))
+    var(--grid-margin)
+    calc(var(--u) * 120);
   display: flex;
   flex-direction: column;
-  gap: calc(var(--u) * 2);
-  font-family: var(--font-mono);
+  gap: calc(var(--u) * 96);
+  z-index: 10;
+}
+
+/* -- Lead statement -------------------------------------------------- */
+.studio-lead {
+  margin: 0;
+  max-width: calc(var(--u) * 1240);
+  font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(var(--u) * 11);
-  line-height: 1.4;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: calc(var(--u) * 72);
+  line-height: 1;
+  letter-spacing: -0.015em;
   color: var(--color-fg);
-  z-index: 3;
 }
 
-/* Desktop layout — three groups on one row at mid-height
-   (left margin / centered / right margin). */
-.studio-meta--origin {
-  inset-block-start: 50%;
-  inset-inline-start: var(--grid-margin);
-  transform: translateY(-50%);
-  text-align: left;
-  align-items: flex-start;
+/* greyed "co:lab" mark opening the sentence */
+.studio-lead-mark {
+  color: var(--color-grey);
 }
 
-.studio-meta--practice {
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-  align-items: center;
-}
-
-.studio-meta--scope {
-  inset-block-start: 50%;
-  inset-inline-end: var(--grid-margin);
-  transform: translateY(-50%);
-  text-align: right;
-  align-items: flex-end;
-}
-
-/* Hide mobile-only prefix labels on desktop */
-.studio-meta-mobile-only {
-  display: none;
-}
-
-/* ── Mobile — stack centered, hide some meta labels ───────── */
-@media (max-width: 767px) {
-  /* Keep about page fixed (single-screen) for the redesign */
-  body.about-page,
-  body.about-page html {
-    position: fixed;
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
-  }
-
-  .about-page main.studio-main {
-    position: fixed;
-    inset-block-start: var(--nav-height);
-    inset-inline: 0;
-    height: calc(100vh - var(--nav-height));
-    overflow: hidden;
-  }
-
-  /* Mobile uses Title_M.svg (378 × 604 native viewBox).
-     The <picture> element handles the swap via its
-     <source media="(min-width: 768px)">. No mobile-specific
-     overrides needed — the base .studio-display rules apply. */
-
-  .studio-display-inner {
-    text-align: center;
-  }
-
-  .studio-meta {
-    inset-inline-start: 50%;
-    inset-inline-end: auto;
-    transform: translateX(-50%);
-    text-align: center;
-    align-items: center;
-    font-size: calc(var(--u) * 11);
-    gap: calc(var(--u) * 1);
-  }
-
-  .studio-meta--origin {
-    inset-block-start: 27%;
-    transform: translate(-50%, -50%);
-  }
-
-  .studio-meta--practice {
-    inset-block-start: 49%;
-    transform: translate(-50%, -50%);
-  }
-
-  .studio-meta--scope {
-    inset-block-start: 72%;
-    inset-inline-end: auto;
-    transform: translate(-50%, -50%);
-  }
-
-  .studio-meta-mobile-only {
-    display: inline;
-  }
-}
-
-/* ============================================================
-   STUDIO / ABOUT — Depth-gallery mode
-   The .about-depth modifier on .studio-main keeps the existing
-   typographic-poster layout (.studio-display + .studio-meta) AND
-   layers a WebGL depth canvas BEHIND it. Section 1 stays live HTML;
-   sections 2+ are baked WebPs on depth planes. /js/about-boot.js
-   polls gallery.scrollCurrent and dissolves the section-1 HTML out
-   (scale + blur + opacity) as the user scrolls into depth.
-   ============================================================ */
-
-/* Canvas wrap lives OUTSIDE .studio-main (z:10) so the title's
-   mix-blend-mode:hard-light composites against the BODY background
-   (BG.webp sculpture) rather than the canvas's mostly-black backdrop.
-   Sits between body (z:auto) and studio-main (z:10). */
-.about-page .about-canvas-wrap {
-  position: fixed;
-  inset-block-start: var(--nav-height);
-  inset-inline: 0;
-  inset-block-end: 0;
-  overflow: hidden;
-  z-index: 5;
-  pointer-events: auto;
-}
-
-.about-depth-canvas {
+/* second sentence drops to its own line in a lighter weight */
+.studio-lead-soft {
   display: block;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-  pointer-events: auto;
-  /* Suppress browser gestures so vertical swipes drive
-     scrollTarget instead of scrolling the page on mobile WebKit. */
-  touch-action: none;
+  font-weight: 400;
+  letter-spacing: -0.005em;
 }
 
-/* Section-1 elements are driven by JS-set inline styles each frame.
-   Kill the entrance transition once .is-revealed has played, so
-   per-frame opacity / filter writes don't lag through the 1.8s
-   easing curve. The .about-scroll-active class is added by
-   /js/about-boot.js ~2.2s after gallery boot. */
-.about-page.about-scroll-active .studio-display-img {
-  transition: none;
-  will-change: opacity, filter, transform;
-}
-
-.about-page.about-scroll-active .studio-meta {
-  will-change: opacity;
-}
-
-/* ============================================================
-   ABOUT — SECTION 2 & 3 (live HTML layouts)
-   Each section is an absolutely-positioned overlay filling the
-   .studio-main envelope. /js/about-boot.js drives opacity, scale
-   and blur per frame from gallery.scrollCurrent so they crossfade
-   as the user scrolls. Section 1 stays as the existing typographic
-   poster (.studio-display + .studio-meta) — those are driven by
-   the same engine but live in separate DOM nodes.
-   ============================================================ */
-.about-section {
-  position: absolute;
-  inset: 0;
-  z-index: 4;       /* above .studio-display (z:1) within studio-main (z:10) */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  /* Always pointer-events:none so wheel/touch events pass through
-     to the canvas underneath (where the depth-gallery scroll engine
-     listens). Sections are visual-only — no interactive elements. */
-  pointer-events: none;
-  visibility: hidden;
-  will-change: opacity, transform, filter;
-}
-
-.about-section.is-active {
-  visibility: visible;
-}
-
-/* ---------- SECTION 2 — desktop ---------- */
-.about-s2-grid {
+/* -- Collage + copy row ---------------------------------------------- */
+.studio-body {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  gap: calc(var(--u) * 24);
-  width: calc(100% - var(--grid-margin) * 2);
-  max-width: calc(var(--u) * 1180);
-  height: 78%;
-  max-height: calc(var(--u) * 720);
-  padding: 0 var(--grid-margin);
-  box-sizing: border-box;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  gap: calc(var(--u) * 64);
+  align-items: end;
 }
 
-.about-s2-collage {
+.studio-collage {
+  position: relative;
   margin: 0;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
   background: #000;
 }
 
-.about-s2-collage img {
+.studio-collage img {
   display: block;
   width: 100%;
   height: 100%;
@@ -3061,176 +2495,85 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   object-position: left top;
 }
 
-.about-s2-right {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--u) * 22);
-  min-width: 0;
+/* Translucent panels layered over the collage (per the comp). */
+.studio-collage-panel {
+  position: absolute;
+  pointer-events: none;
 }
 
-.about-s2-flowers {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: calc(var(--u) * 8);
-  flex: 0 0 56%;
-  min-height: 0;
+.studio-collage-panel--light {
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  width: 40%;
+  height: 33%;
+  background: rgba(232, 232, 232, 0.85);
 }
 
-.about-s2-flower {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  background: #000;
+.studio-collage-panel--mid {
+  inset-block-start: 26%;
+  inset-inline-end: 0;
+  width: 52%;
+  height: 17%;
+  background: rgba(150, 150, 150, 0.4);
 }
 
-.about-s2-copy {
-  font-family: var(--font-mono, 'Space Mono', monospace);
-  font-size: calc(var(--u) * 11);
-  line-height: 1.55;
-  letter-spacing: 0.02em;
+.studio-collage-panel--dark {
+  inset-block-start: 22%;
+  inset-inline-start: 18%;
+  width: 30%;
+  height: 30%;
+  background: rgba(8, 8, 8, 0.42);
+}
+
+.studio-copy {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(var(--u) * 17);
+  line-height: 1.5;
+  letter-spacing: 0.005em;
   color: var(--color-fg);
   text-align: justify;
-  max-width: 38ch;
-  margin-left: auto;
 }
 
-.about-s2-copy p {
-  margin: 0 0 1.1em;
+.studio-copy p {
+  margin: 0 0 1.4em;
 }
 
-.about-s2-copy p:last-child {
+.studio-copy p:last-child {
   margin-bottom: 0;
 }
 
-/* ---------- SECTION 3 — desktop ---------- */
-.about-s3-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: calc(var(--u) * 24);
-  row-gap: calc(var(--u) * 56);
-  width: calc(100% - var(--grid-margin) * 2);
-  max-width: calc(var(--u) * 1100);
-  padding: 0 var(--grid-margin);
-  box-sizing: border-box;
-  font-family: var(--font-mono, 'Space Mono', monospace);
-  font-size: calc(var(--u) * 12);
-  line-height: 1.55;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-fg);
-}
-
-.about-s3-block {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--u) * 6);
-  min-width: 0;
-}
-
-.about-s3-row {
-  display: flex;
-  gap: calc(var(--u) * 16);
-  align-items: baseline;
-}
-
-.about-s3-k {
-  opacity: 0.55;
-  white-space: nowrap;
-}
-
-.about-s3-v {
-  white-space: nowrap;
-}
-
-.about-s3-block--values .about-s3-v {
-  opacity: 0.9;
-}
-
-.about-s3-footer {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  column-gap: calc(var(--u) * 24);
-  margin-block-start: calc(var(--u) * 8);
-}
-
-.about-s3-footer > div {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--u) * 4);
-}
-
-.about-s3-footer .about-s3-k {
-  opacity: 1;
-}
-
-.about-s3-footer .about-s3-v {
-  opacity: 0.55;
-}
-
-/* ---------- Section 2 & 3 — mobile ---------- */
+/* -- Mobile ---------------------------------------------------------- */
 @media (max-width: 767px) {
-  .about-s2-grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1.2fr) minmax(0, 1fr);
-    width: calc(100% - var(--m) * 2);
-    padding: 0 var(--m);
-    height: 88%;
-    gap: calc(var(--u) * 18);
+  .studio {
+    padding:
+      calc(var(--nav-height) + calc(var(--u) * 56))
+      var(--m)
+      calc(var(--u) * 80);
+    gap: calc(var(--u) * 44);
   }
 
-  .about-s2-right {
-    flex-direction: column;
-    gap: calc(var(--u) * 16);
-  }
-
-  .about-s2-flowers {
-    grid-template-columns: 1fr 1fr;
-    flex: 0 0 auto;
-    aspect-ratio: 1 / 0.85;
-  }
-
-  .about-s2-copy {
-    font-size: calc(var(--u) * 10);
+  .studio-lead {
+    font-size: calc(var(--u) * 40);
+    line-height: 1.04;
     max-width: none;
-    margin-left: 0;
   }
 
-  /* Section 3 — stack pairs (label/value blocks) into 2 columns */
-  .about-s3-grid {
-    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-    column-gap: calc(var(--u) * 14);
-    row-gap: calc(var(--u) * 30);
-    width: calc(100% - var(--m) * 2);
-    padding: 0 var(--m);
-    font-size: calc(var(--u) * 11);
+  .studio-body {
+    grid-template-columns: 1fr;
+    gap: calc(var(--u) * 40);
+    align-items: stretch;
   }
 
-  .about-s3-footer {
-    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
-    row-gap: calc(var(--u) * 18);
-    column-gap: calc(var(--u) * 14);
-  }
-}
-
-
-/* When depth mode is active on mobile, keep the page locked
-   (no body scroll); the canvas owns all vertical gestures. */
-@media (max-width: 767px) {
-  body.about-page,
-  body.about-page html {
-    position: fixed;
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
+  .studio-collage {
+    width: 86%;
+    aspect-ratio: 3 / 4;
   }
 
-  .about-page main.studio-main.about-depth {
-    position: fixed;
-    inset-block-start: var(--nav-height);
-    inset-inline: 0;
-    height: calc(100vh - var(--nav-height));
-    overflow: hidden;
+  .studio-copy {
+    font-size: calc(var(--u) * 15);
+    align-self: flex-end;
+    max-width: 92%;
+    margin-inline-start: auto;
   }
 }
