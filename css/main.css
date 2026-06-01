@@ -199,15 +199,23 @@
     --nav-height:        calc(var(--uy) * 64);
     --title-gap:         calc(var(--uy) * 25);
     --projects-gap:      calc(var(--uy) * 50);
-    --image-gap:         calc(var(--uy) * 50);
-    --image-height:      calc(var(--uy) * 190);
+    /* Image shrunk and its gap widened by the same amount, so the project
+       list height calc (which subtracts both) is unchanged and the cards
+       stay safe — but the bottom-anchored image now moves DOWN as it
+       shrinks, opening a real gap above it instead of touching the list. */
+    --image-gap:         calc(var(--uy) * 85);
+    --image-height:      calc(var(--uy) * 155);
     --bottom-padding:    calc(var(--uy) * 20);
     --viz-height:        calc(var(--uy) * 115);
-    --about-gap:         calc(var(--uy) * 30);
+    --about-gap:         calc(var(--uy) * 48);   /* widened so viz→Manifesto→Services→Contact gaps read evenly */
     --services-gap:      calc(var(--uy) * 60);
     --contact-gap:       calc(var(--uy) * 60);
     --section-label-gap: calc(var(--uy) * 6);
     --side-label-gap:    calc(var(--uy) * 12);
+
+    /* Height reserved for the bottom-anchored Contact block (4 rows), so its
+       label can ride just above it. Text-driven → width-anchored (--u). */
+    --contact-height:    calc(var(--u) * 88);
 
     /* Text-block heights (--title-height, --about-height,
        --services-height, --section-label-height) intentionally keep
@@ -1347,6 +1355,23 @@ body:not(.project-page) .about-text {
     + var(--contact-gap)
     - var(--section-label-height)
     - var(--section-label-gap)
+  );
+}
+
+/* Homepage — anchor Contact to the bottom so its baseline lines up with the
+   project image (both sit at --bottom-padding from the viewport floor). This
+   removes the dead space that used to float below Contact and opens up the
+   previously-cramped Services→Contact gap. The label rides just above the
+   block via --contact-height. Scoped to the desktop homepage; other pages and
+   the mobile layout keep the original top-down cumulative positioning. */
+body:not(.about-page):not(.project-page):not(.projects-index-page) .contact-block {
+  inset-block-start: auto;
+  inset-block-end: var(--bottom-padding);
+}
+body:not(.about-page):not(.project-page):not(.projects-index-page) .section-label--contact {
+  inset-block-start: auto;
+  inset-block-end: calc(
+    var(--bottom-padding) + var(--contact-height) + var(--section-label-gap)
   );
 }
 
