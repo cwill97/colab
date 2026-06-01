@@ -354,19 +354,12 @@
   }
 
   /* ----------------------------------------------------------
-     Mobile project list — Porto Rocha-style scroll
+     Mobile project list — plain native scroll
      ----------------------------------------------------------
-     Native touch momentum stays (so iOS feels like iOS), but on
-     top of it we run a RAF loop that:
-       1. Maps every card's distance-from-focus-line to a 0..1
-          "--focus" CSS variable, so opacity/scale/translate
-          interpolate smoothly with scroll position rather than
-          snapping on a class toggle.
-       2. After the user lifts off and momentum settles, eases
-          scrollTop to the nearest card top with an expo-out
-          curve (the same shape Porto Rocha uses via GSAP).
-     The legacy .is-scrolled-active class is still applied for
-     downstream code (audio, click handlers) that may listen.
+     Cards are a simple vertical, natively-scrolling list. No
+     scroll-focus highlighting and no snap-to-top — JS here only
+     injects each card's thumbnail and wraps its text content so
+     the CSS flex-row layout has the two columns it expects.
      ---------------------------------------------------------- */
   function initMobileProjects() {
     if (window.innerWidth >= 768) return;
@@ -375,9 +368,9 @@
     var list  = document.querySelector('[data-scroll-list]');
     if (!items.length || !list) return;
 
-    /* Guard: rebinding would stack RAF loops on every Barba return. */
-    if (list._colabSmoothScroll) return;
-    list._colabSmoothScroll = true;
+    /* Guard against re-running on every Barba return. */
+    if (list._colabMobileProjects) return;
+    list._colabMobileProjects = true;
 
     /* ── Inject thumbnails + wrap text content ── */
     items.forEach(function (item) {
@@ -399,186 +392,6 @@
       item.appendChild(img);
       item.appendChild(wrapper);
     });
-
-    /* ── Measure snap targets ── */
-    var snapTops = [];     /* offsetTop of each card, used as snap points */
-    var snapSpan = 1;      /* avg distance between snaps — drives focus falloff */
-
-    function measure() {
-      snapTops.length = 0;
-      for (var i = 0; i < items.length; i++) snapTops.push(items[i].offsetTop);
-      if (snapTops.length > 1) {
-        var total = 0;
-        for (var j = 1; j < snapTops.length; j++) total += (snapTops[j] - snapTops[j - 1]);
-        snapSpan = total / (snapTops.length - 1);
-      } else {
-        snapSpan = list.clientHeight || 1;
-      }
-    }
-    measure();
-
-    /* ── Per-frame focus update — bind --focus to scrollTop ──
-       Called directly from the scroll handler. Browsers already cap
-       scroll events to the frame rate, so an extra RAF hop adds
-       latency without saving work (and in headless/hidden tabs it
-       stops the focus pipeline entirely). */
-    var activeItem = null;
-    var lastScrollTop = -2;
-
-    function updateFocus() {
-      var st = list.scrollTop;
-      if (st === lastScrollTop) return;
-      lastScrollTop = st;
-
-      var bestIdx = 0;
-      var bestFocus = -1;
-
-      for (var i = 0; i < items.length; i++) {
-        var dist  = Math.abs(snapTops[i] - st);
-        /* Focus = 1 at the snap point, 0 at one full span away.
-           Smoothstep falloff so the active card holds focus longer
-           and neighbours fade in more gently — matches the Porto
-           Rocha "weighted center" feel where one card dominates. */
-        var t     = Math.min(dist / snapSpan, 1);
-        var focus = 1 - t * t * (3 - 2 * t);
-        items[i].style.setProperty('--focus', focus.toFixed(3));
-        if (focus > bestFocus) {
-          bestFocus = focus;
-          bestIdx   = i;
-        }
-      }
-
-      var best = items[bestIdx];
-      if (best !== activeItem) {
-        if (activeItem) activeItem.classList.remove('is-scrolled-active');
-        best.classList.add('is-scrolled-active');
-        activeItem = best;
-      }
-    }
-
-    /* ── Eased snap-to-nearest after momentum settles ── */
-    var snapAnim   = null;       /* { startTop, target, startTime, dur } */
-    var snapRaf    = 0;
-    var idleTimer  = 0;
-    var touching   = false;
-    var lastScrollEventAt = 0;
-    var SNAP_IDLE_MS  = 140;     /* time of no scroll events before we snap */
-    var SNAP_DUR_BASE = 520;     /* base ease duration */
-    var SNAP_DUR_MAX  = 880;     /* scaled up for longer travel */
-
-    /* Expo-out — the curve Porto Rocha favours (GSAP "expo"). */
-    function easeOutExpo(t) {
-      return t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-    }
-
-    function cancelSnap() {
-      if (snapRaf) cancelAnimationFrame(snapRaf);
-      snapRaf  = 0;
-      snapAnim = null;
-    }
-
-    function nearestSnapTop(from) {
-      var best = snapTops[0];
-      var bestDist = Math.abs(from - best);
-      for (var i = 1; i < snapTops.length; i++) {
-        var d = Math.abs(from - snapTops[i]);
-        if (d < bestDist) { bestDist = d; best = snapTops[i]; }
-      }
-      /* Clamp to scrollable range so we never animate past the bottom. */
-      var max = list.scrollHeight - list.clientHeight;
-      if (best > max) best = max;
-      if (best < 0)   best = 0;
-      return best;
-    }
-
-    function tickSnap() {
-      if (!snapAnim) return;
-      var now = performance.now();
-      var p   = (now - snapAnim.startTime) / snapAnim.dur;
-      if (p >= 1) {
-        list.scrollTop = snapAnim.target;
-        snapAnim = null;
-        snapRaf  = 0;
-        updateFocus();
-        return;
-      }
-      var eased = easeOutExpo(p);
-      list.scrollTop = snapAnim.startTop + (snapAnim.target - snapAnim.startTop) * eased;
-      snapRaf = requestAnimationFrame(tickSnap);
-    }
-
-    function startSnap() {
-      if (touching) return;
-      var from   = list.scrollTop;
-      var target = nearestSnapTop(from);
-      if (Math.abs(target - from) < 0.5) return;
-      var travel = Math.abs(target - from);
-      /* Longer travel = slightly longer ease, capped — keeps short
-         settles snappy without making big jumps feel rushed. */
-      var dur = Math.min(SNAP_DUR_BASE + travel * 0.6, SNAP_DUR_MAX);
-      cancelSnap();
-      snapAnim = {
-        startTop:  from,
-        target:    target,
-        startTime: performance.now(),
-        dur:       dur
-      };
-      snapRaf = requestAnimationFrame(tickSnap);
-    }
-
-    function scheduleSnap() {
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(function () {
-        /* Only snap if scroll has actually been quiet for the full window
-           and the finger is up — guards against snapping mid-momentum. */
-        if (touching) return;
-        if (performance.now() - lastScrollEventAt < SNAP_IDLE_MS - 10) return;
-        startSnap();
-      }, SNAP_IDLE_MS);
-    }
-
-    /* ── Wire events ── */
-    list.addEventListener('scroll', function () {
-      lastScrollEventAt = performance.now();
-      updateFocus();
-      /* Our own tickSnap writes scrollTop, which fires this same event.
-         If a snap is in flight, treating it as user motion would cancel
-         the animation by its own movement. The user-grab case is handled
-         in touchstart (sets touching + cancelSnap). */
-      if (snapAnim || touching) return;
-      scheduleSnap();
-    }, { passive: true });
-
-    list.addEventListener('touchstart', function () {
-      touching = true;
-      cancelSnap();
-      clearTimeout(idleTimer);
-    }, { passive: true });
-
-    list.addEventListener('touchend', function () {
-      touching = false;
-      /* Give momentum a beat to start before we start watching for idle. */
-      scheduleSnap();
-    }, { passive: true });
-
-    list.addEventListener('touchcancel', function () {
-      touching = false;
-      scheduleSnap();
-    }, { passive: true });
-
-    /* Re-measure on resize / orientation change. */
-    var resizeTimer = 0;
-    window.addEventListener('resize', function () {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function () {
-        measure();
-        updateFocus();
-      }, 120);
-    }, { passive: true });
-
-    /* Initial paint — set --focus on every card so the first card
-       reads as focused without waiting for a scroll event. */
-    updateFocus();
   }
 
   /* ----------------------------------------------------------

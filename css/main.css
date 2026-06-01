@@ -927,11 +927,6 @@ main {
   border-radius: calc(var(--u) * 8);
 }
 
-/* When list is hovered as a whole, dim all non-hovered items further */
-.project-list:hover .project-item:not(:hover) {
-  opacity: 0.06;
-}
-
 /* Project title */
 .project-title {
   font-family: var(--font-display);
@@ -972,8 +967,10 @@ main {
   color: var(--color-fg);
 }
 
-/* Homepage list — CTA never shown (no hover reveal, no focus reveal). */
-.section-projects .project-cta { display: block; }
+/* Homepage list — CTA removed entirely. The <a data-project-link>
+   stays in the DOM (display:none) so initProjectLinks() can still
+   resolve it for whole-card click delegation. */
+.section-projects .project-cta { display: none; }
 
 .project-cta:hover {
   opacity: 0.55;
@@ -2234,6 +2231,18 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .section-label--projects {
     grid-column: unset;
     flex: 0 0 auto;
+    /* Match the mobile project page "Role" label + scroll hint:
+       plain mono-muted uppercase, no frosted pill. */
+    width: auto;
+    padding: 0;
+    background: none;
+    -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+    border-radius: 0;
+    font-size: calc(var(--u) * 10);
+    letter-spacing: 0.1em;
+    color: var(--color-muted);
+    margin-block-end: calc(var(--u) * 14);
   }
 
   .project-list-wrap {
@@ -2256,24 +2265,11 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     overflow-x: hidden;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
-    /* JS-driven smooth snap (see initMobileProjects). Native scroll-snap
-       removed so we can lerp into focus with a Porto Rocha-style ease. */
     padding-right: calc(var(--u) * 12);
     scrollbar-width: none;
   }
 
   .project-list::-webkit-scrollbar { display: none; }
-
-  /* Trailing spacer — without this the last items can never reach
-     their snap-start position because scrollHeight - clientHeight
-     (the max scroll distance) is shorter than their offset.
-     Height = container minus one item so every item can snap to top. */
-  .project-list::after {
-    content: '';
-    flex-shrink: 0;
-    display: block;
-    min-height: calc(100% - calc(var(--u) * 100));
-  }
 
   .project-item:nth-child(n+5) { display: flex; }
 
@@ -2311,21 +2307,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     transform: scaleY(0);
   }
 
-  .project-item:hover .project-cta {
-    opacity: 0;
-  }
-
-  .project-list:hover .project-item:not(:hover) {
-    opacity: 0.50;
-  }
-
-  /* Left accent line — width / brightness / glow all bound to --focus
-     so the line "lights up" smoothly as the card lerps into focus. */
+  /* Left accent line — static resting state. Scroll-focus highlighting
+     removed, so every card shows the same subtle line (no lerp). */
   .project-item::before {
-    width: calc(var(--u) * (1 + 1 * var(--focus)));
-    background: rgba(255, 255, 255, calc(0.35 + 0.65 * var(--focus)));
-    box-shadow: 0 0 calc(var(--u) * 10 * var(--focus))
-                rgba(255, 255, 255, calc(0.45 * var(--focus)));
+    width: calc(var(--u) * 1);
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: none;
     transition: none;
   }
 
@@ -2343,15 +2330,9 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     padding: calc(var(--u) * 14) calc(var(--u) * 16);
   }
 
-  /* Mobile homepage cards keep the base 16u inline padding — no
-     focus-driven nudge. Content stays put as cards scroll into
-     focus; only opacity/scale/accent-line/::after-wipe animate. */
-
-  /* Thumbnail injected by JS — constant size and brightness. The card
-     opacity (driven by --focus) already dims unfocused thumbnails
-     along with their text. */
+  /* Thumbnail injected by JS — constant size and brightness. */
   .project-thumb-mobile {
-    width: calc(2 * var(--cw));
+    width: calc(1.7 * var(--cw));
     height: calc(var(--u) * 100);
     object-fit: cover;
     flex-shrink: 0;
@@ -2366,7 +2347,8 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
   .project-title {
     font-size: calc(var(--u) * 14);
-    /* Letter-spacing held constant — no resize as cards scroll into focus. */
+    overflow-wrap: break-word;
+    word-break: normal;
   }
   .project-detail  {
     font-size: calc(var(--u) * 13);
@@ -2375,15 +2357,11 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     margin-block-start: calc(var(--u) * 6);
     display: block;
     line-height: 1.4;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-  }
-  .project-cta {
-    margin-block-start: calc(var(--u) * 9);
-    opacity: var(--focus);
-    transition: none;
+    /* Full text, wrapped on word boundaries — no clamp/truncation and
+       no mid-word breaks. */
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
   }
 
   /* --------------------------------------------------------
