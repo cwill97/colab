@@ -631,7 +631,6 @@
     font-size: calc(var(--u) * 21);
     font-weight: 400;
     letter-spacing: 0.06em;
-    text-transform: uppercase;
     color: var(--color-fg);
     line-height: 1;
     margin: 0;
