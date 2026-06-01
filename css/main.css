@@ -877,7 +877,7 @@ main {
 
 /* All items start at same dim opacity — hover promotes one */
 .project-item {
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .project-item + .project-item {
