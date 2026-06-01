@@ -2365,12 +2365,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .project-title {
-    font-size: calc(var(--u) * 12);
+    font-size: calc(var(--u) * 14);
     /* Letter-spacing held constant — no resize as cards scroll into focus. */
   }
   .project-detail  {
-    font-size: calc(var(--u) * 12);
+    font-size: calc(var(--u) * 14);
     max-width: none;
+    color: var(--color-muted);
     margin-block-start: calc(var(--u) * 6);
     display: block;
     line-height: 1.4;
@@ -2378,6 +2379,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+     
   }
   .project-cta {
     margin-block-start: calc(var(--u) * 9);
