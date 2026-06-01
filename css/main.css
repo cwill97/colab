@@ -965,16 +965,15 @@ main {
 .project-cta {
   display: inline-block;
   margin-block-start: calc(var(--u) * 4);
-  font-family: var(--font-mono);
-  font-size: var(--section-label-height);
+  font-family: var(--font-display);
+  font-size: calc(var(--u) * 9);;
   font-weight: 400;
   line-height: 1;
   color: var(--color-fg);
-  text-transform: uppercase;
 }
 
 /* Homepage list — CTA never shown (no hover reveal, no focus reveal). */
-.section-projects .project-cta { display: none; }
+.section-projects .project-cta { display: block; }
 
 .project-cta:hover {
   opacity: 0.55;
