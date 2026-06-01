@@ -614,7 +614,7 @@
     align-items: flex-start;
     gap: calc(var(--u) * 16);
     position: fixed;
-    inset-block-end: calc(var(--u) * 65);
+    inset-block-end: calc(var(--u) * 90);
     inset-inline-start: var(--m);
     inset-inline-end: var(--m);
     z-index: 50;
