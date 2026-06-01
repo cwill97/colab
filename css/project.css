@@ -746,7 +746,7 @@
   .project-overview-modal-inner {
     display: flex;
     flex-direction: column;
-    padding: calc(var(--nav-height) + calc(var(--u) * 17)) var(--m) calc(var(--u) * 26);
+    padding: calc(var(--u) * 28) var(--m) calc(var(--u) * 26);
     gap: calc(var(--u) * 21);
     min-height: 100vh;
     min-height: 100dvh;

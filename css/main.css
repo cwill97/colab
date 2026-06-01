@@ -1180,7 +1180,9 @@ main {
    applied directly (width: fit-content) so they wrap the text only.
    Homepage only — the project page reuses .about-text / .audio-visualizer.
    ------------------------------------------------------------ */
-body:not(.project-page) .about-text::before {
+body:not(.project-page) .about-text::before,
+body:not(.project-page) .services-block::before,
+body:not(.project-page) .contact-block::before {
   content: '';
   position: absolute;
   inset-block: calc(var(--u) * -6);
@@ -1192,40 +1194,6 @@ body:not(.project-page) .about-text::before {
           backdrop-filter: var(--card-filter);
   border-radius: calc(var(--u) * 8);
   pointer-events: none;
-}
-
-/* Services & Contact — each column is its own frosted bg card (desktop).
-   The card is painted by a ::before outset behind each .services-list,
-   so the text positions are untouched and the column gutter shows as a
-   clear gap between the two cards. Outer edges keep the 12u padding;
-   inner edges use 6u so the centre gap reads clearly. */
-body:not(.project-page) .services-block .services-list,
-body:not(.project-page) .contact-block .services-list {
-  position: relative;
-}
-body:not(.project-page) .services-block .services-list::before,
-body:not(.project-page) .contact-block .services-list::before {
-  content: '';
-  position: absolute;
-  inset-block: calc(var(--u) * -6);
-  inset-inline-start: calc(var(--u) * -12);
-  inset-inline-end: calc(var(--u) * -12);
-  z-index: -1;
-  background: var(--card-bg);
-  -webkit-backdrop-filter: var(--card-filter);
-          backdrop-filter: var(--card-filter);
-  border-radius: calc(var(--u) * 8);
-  pointer-events: none;
-}
-/* Tighten the inner edges so the two cards don't touch — the column
-   gutter becomes a visible gap between separate cards. */
-body:not(.project-page) .services-block .services-list:first-child::before,
-body:not(.project-page) .contact-block .services-list:first-child::before {
-  inset-inline-end: calc(var(--u) * -6);
-}
-body:not(.project-page) .services-block .services-list:last-child::before,
-body:not(.project-page) .contact-block .services-list:last-child::before {
-  inset-inline-start: calc(var(--u) * -6);
 }
 
 /* Labels — frosted card sized to text, not full content width.
@@ -2073,7 +2041,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     --nav-height:   calc(var(--u) * 50);
     --logo-width:   calc(var(--u) * 82);
     --logo-height:  calc(var(--u) * 20);
-    --nav-btn-size: calc(var(--u) * 18);
+    --nav-btn-size: calc(var(--u) * 20);
 
     /* TOP-DOWN — tesseract → title → gap → projects.
        h-tesseract = 38% of 852 design height. */
@@ -2270,16 +2238,20 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .section-label--projects {
     grid-column: unset;
     flex: 0 0 auto;
-    /* Match the mobile project page "Role" label + scroll hint:
-       plain mono-muted uppercase, no frosted pill. */
+    /* Match the menu footer "Contact" / "Socials" labels
+       (.menu-footer-label): Helvetica display, muted, no frosted pill. */
     width: auto;
     padding: 0;
     background: none;
     -webkit-backdrop-filter: none;
             backdrop-filter: none;
     border-radius: 0;
-    font-size: calc(var(--u) * 10);
-    letter-spacing: 0.1em;
+    font-family: var(--font-display);
+    font-size: calc(var(--u) * 11);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    text-transform: none;
     color: var(--color-muted);
     margin-block-end: calc(var(--u) * 14);
   }
@@ -2378,6 +2350,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     object-fit: cover;
     flex-shrink: 0;
     display: block;
+    border-radius: calc(var(--u) * 4);
   }
 
   /* Wrapper for text content (injected by JS) */
