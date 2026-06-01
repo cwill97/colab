@@ -2530,7 +2530,7 @@ body.about-page {
   font-weight: 400;
   font-size: calc(var(--u) * 17);
   line-height: 1.5;
-  letter-spacing: 0.005em;
+  letter-spacing: 0.004em;
   color: var(--color-fg);
   text-align: justify;
 }
