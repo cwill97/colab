@@ -2042,7 +2042,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     --h-tesseract: calc(var(--u) * 324);
     --t-title:     calc(var(--t-tesseract) + var(--h-tesseract) + calc(var(--u) * 10));
     --h-title:     calc(var(--u) * 80);
-    --title-proj-gap: calc(var(--u) * 90);
+    --title-proj-gap: calc(var(--u) * 80);
     --t-projects:  calc(var(--t-title) + var(--h-title) + var(--title-proj-gap));
   }
 
