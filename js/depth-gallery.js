@@ -645,6 +645,8 @@
   };
 
   DepthGallery.prototype._onWheel = function (e) {
+    /* While the overview modal is open, let it scroll natively. */
+    if (document.body.classList.contains('has-overview-modal-open')) return;
     e.preventDefault();
     var delta = e.deltaY;
     if (e.deltaMode === 1) delta *= 16;
@@ -657,6 +659,7 @@
   };
 
   DepthGallery.prototype._onTouchStart = function (e) {
+    if (document.body.classList.contains('has-overview-modal-open')) return;
     var touch = e.touches[0];
     if (!touch) return;
 
@@ -680,6 +683,8 @@
   };
 
   DepthGallery.prototype._onTouchMove = function (e) {
+    /* While the overview modal is open, let it scroll natively. */
+    if (document.body.classList.contains('has-overview-modal-open')) return;
     e.preventDefault();
     var touch = e.touches[0];
     if (!touch) return;

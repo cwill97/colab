@@ -266,7 +266,7 @@ PROJECT_SCRIPTS = """  <script src="https://cdnjs.cloudflare.com/ajax/libs/three
   <script src="/js/bg-reveal.js?v=3" defer></script>
   <script src="/js/menu-ripple.js?v=3" defer></script>
   <script src="/js/video-preview.js?v=3" defer></script>
-  <script src="/js/depth-gallery.js?v=3" defer></script>
+  <script src="/js/depth-gallery.js?v=4" defer></script>
   <script src="/js/project-boot.js?v=4" defer></script>
   <script src="/js/line-hover.js?v=3" defer></script>
   <script src="/js/hover-sfx.js?v=3" defer></script>
