@@ -299,7 +299,7 @@
     var(--nav-height)
     + var(--title-gap)
     + var(--viz-height)
-    + var(--about-gap)
+    + calc(var(--u) * 12)
   );
   /* Bottom-align with the audio toggle + scroll-to-explore baseline (28px) so
      [ PREVIOUS PROJECT ] sits on the same row. The audio toggle occupies the
@@ -336,7 +336,7 @@
 .project-info-label {
   display: block;
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -347,7 +347,7 @@
 
 .project-info-text {
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.55;
   letter-spacing: 0.02em;
@@ -386,22 +386,41 @@
 /* ------------------------------------------------------------
    "View Live Project" link — sits after timeline
    ------------------------------------------------------------ */
+/* White pill button with up-right arrow — sits at the bottom of the card. */
 .project-live-link {
   align-self: flex-start;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--u) * 8);
+  margin-block-start: calc(var(--u) * 16);
   font-family: var(--font-mono);
   font-size: calc(var(--u) * 10);
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--color-fg);
-  opacity: 0.6;
+  color: var(--color-bg);
+  background: #fff;
   text-decoration: none;
-  padding-block: calc(var(--u) * 4);
+  padding: calc(var(--u) * 10) calc(var(--u) * 20);
+  border-radius: calc(var(--u) * 100);
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
+.project-live-link::after {
+  content: '';
+  width: calc(var(--u) * 12);
+  height: calc(var(--u) * 12);
+  flex-shrink: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 17L17 7'/%3E%3Cpath d='M8 7h9v9'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
 .project-live-link:hover {
-  opacity: 1;
+  opacity: 0.85;
+}
+
+/* The pill is already a solid white block — suppress the line-hover
+   rectangular backdrop so it doesn't halo past the rounded corners. */
+.project-live-link .line-hover__bg {
+  display: none;
 }
 
 .project-next-link,
@@ -611,7 +630,7 @@
   .project-page .project-mobile-meta-label {
     display: block;
     font-family: var(--font-mono);
-    font-size: calc(var(--u) * 9);
+    font-size: calc(var(--u) * 10);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-muted);
@@ -620,7 +639,7 @@
   .project-page .project-mobile-meta-value {
     display: block;
     font-family: var(--font-display);
-    font-size: calc(var(--u) * 13);
+    font-size: calc(var(--u) * 14);
     line-height: 1.25;
     letter-spacing: 0.02em;
     color: var(--color-fg);
@@ -762,11 +781,11 @@
 
   .project-overview-modal-section .project-info-label {
     margin-block-end: calc(var(--u) * 10);
-    font-size: clamp(calc(var(--u) * 8), 1.2vw, calc(var(--u) * 10));
+    font-size: clamp(calc(var(--u) * 9), 1.2vw, calc(var(--u) * 11));
   }
 
   .project-overview-modal-section .project-info-text {
-    font-size: calc(var(--u) * 11);
+    font-size: calc(var(--u) * 12);
     line-height: 1.55;
   }
 

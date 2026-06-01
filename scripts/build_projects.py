@@ -319,7 +319,7 @@ def project_info_html(p: dict, next_p: dict, prev_p: dict) -> str:
         '            <span class="project-info-label">STRATEGY</span>\n'
         f'            <p class="project-info-text" data-project-strategy>{esc(strategy)}</p>\n'
         '          </section>\n'
-        '          <a class="project-live-link" href="#" target="_blank" rel="noopener noreferrer" data-live-project style="display:none;">View Live Project</a>\n'
+        '          <a class="project-live-link" href="#" target="_blank" rel="noopener noreferrer" data-live-project style="display:none;">Visit Website</a>\n'
         '        </div>\n'
         '        <div class="project-info-nav">\n'
         f'          <a class="project-next-link" href="/project/{esc(next_p["slug"])}/" data-next-project>[ NEXT PROJECT ]</a>\n'

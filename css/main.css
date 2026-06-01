@@ -126,9 +126,9 @@
   --viz-width:        calc(var(--u) * 255);
   --viz-height:       calc(var(--u) * 115);
   --about-gap:        calc(var(--u) * 30);   /* gap below visualizer to about text */
-  --about-height:     calc(var(--u) * 156);  /* 13 lines × 8px × 1.5lh = 156px */
+  --about-height:     calc(var(--u) * 141);  /* right-column Manifesto copy at 9u */
   --services-gap:     calc(var(--u) * 60);   /* gap below about text to services */
-  --services-height:  calc(var(--u) * 216);  /* 9 items × 10px × 2.4lh = 216px */
+  --services-height:  calc(var(--u) * 194);  /* 9 items × 9u × 2.4lh = 194px */
   --contact-gap:      calc(var(--u) * 60);   /* gap below services to contact */
 
   /* Section labels — small muted heading above each block.
@@ -687,7 +687,7 @@ a.menu-sub-link:focus-visible {
 
 .menu-footer-label {
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 8);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -703,7 +703,7 @@ a.menu-sub-link:focus-visible {
 
 .menu-footer-col li {
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 2.6;
   letter-spacing: 0.02em;
@@ -948,7 +948,7 @@ main {
 .project-detail {
   margin-block-start: calc(var(--u) * 6);
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.35;
   color: var(--color-fg);
@@ -1078,7 +1078,7 @@ main {
   overflow: hidden;
   z-index: 50;
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.02em;
@@ -1131,7 +1131,7 @@ main {
 
 .services-list li {
   font-family: var(--font-display);
-  font-size: calc(var(--u) * 10);
+  font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 2.4;
   letter-spacing: 0.02em;
@@ -1226,7 +1226,7 @@ body:not(.project-page) .about-text {
    ------------------------------------------------------------ */
 .section-label {
   font-family: var(--font-mono);
-  font-size: var(--section-label-height);
+  font-size: calc(var(--u) * 8);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -1907,7 +1907,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-pillar-title {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(var(--u) * 11);
+  font-size: calc(var(--u) * 10);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1919,7 +1919,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 .about-fig-sub {
   font-family: var(--font-display);
   font-weight: 300;
-  font-size: calc(var(--u) * 11);
+  font-size: calc(var(--u) * 10);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1938,7 +1938,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   gap: calc(var(--u) * 14);
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(var(--u) * 11);
+  font-size: calc(var(--u) * 10);
   line-height: 1.35;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1965,7 +1965,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   gap: calc(var(--u) * 14);
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(var(--u) * 11);
+  font-size: calc(var(--u) * 10);
   line-height: 1.35;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -1999,7 +1999,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 
 .about-fig-title {
   font-weight: 400;
-  font-size: calc(var(--u) * 11);
+  font-size: calc(var(--u) * 10);
   line-height: 1;
   letter-spacing: 0.02em;
   text-transform: lowercase;
@@ -2370,7 +2370,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     /* Letter-spacing held constant — no resize as cards scroll into focus. */
   }
   .project-detail  {
-    font-size: calc(var(--u) * 11);
+    font-size: calc(var(--u) * 12);
     max-width: none;
     margin-block-start: calc(var(--u) * 6);
     display: block;
@@ -2430,12 +2430,12 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .menu-footer-label {
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
     margin-block-end: calc(var(--u) * 14);
   }
 
   .menu-footer-col li {
-    font-size: calc(var(--u) * 9);
+    font-size: calc(var(--u) * 10);
     line-height: 2.4;
   }
 
@@ -2625,7 +2625,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .about-pillar-sub,
   .about-fig-title,
   .about-fig-sub {
-    font-size: calc(var(--u) * 9);
+    font-size: calc(var(--u) * 10);
   }
 
   /* Intro stack — right column, row 2 (alongside pillars) */
@@ -2635,7 +2635,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     grid-column: 3 / -1;
     grid-row: 2;
     width: auto;
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
     line-height: 1.4;
     gap: calc(var(--u) * 12);
   }
@@ -2647,7 +2647,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     width: auto;
     max-height: none;
     overflow: visible;
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
     line-height: 1.4;
     gap: calc(var(--u) * 12);
   }
@@ -2936,7 +2936,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     transform: translateX(-50%);
     text-align: center;
     align-items: center;
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
     gap: calc(var(--u) * 1);
   }
 
@@ -3122,7 +3122,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   padding: 0 var(--grid-margin);
   box-sizing: border-box;
   font-family: var(--font-mono, 'Space Mono', monospace);
-  font-size: calc(var(--u) * 11);
+  font-size: calc(var(--u) * 12);
   line-height: 1.55;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -3212,7 +3212,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     row-gap: calc(var(--u) * 30);
     width: calc(100% - var(--m) * 2);
     padding: 0 var(--m);
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
   }
 
   .about-s3-footer {
