@@ -166,36 +166,38 @@
 }
 
 /* ------------------------------------------------------------
-   Desktop homepage scale — readable type on short viewports
+   Desktop homepage scale — locked 1440x900, scale-to-width
    ------------------------------------------------------------
-   The homepage is a single no-scroll screen authored on a
-   1440×900 artboard. The base --u (above) = min(100vw/1440,
-   100vh/900) scales the WHOLE artboard — type and spacing
-   together — to fit both axes. So on a short-but-wide screen
-   (e.g. a 14" laptop at ~1512×760, aspect > 1.6) the height
-   term wins and every font shrinks to ~84% — unreadable.
+   The homepage is authored on a 1440x900 artboard and rendered at a
+   single UNIFORM scale, so the composition never distorts — it only
+   zooms as a whole. The scale + centring offset are set just below
+   (on <html>, so the :root layout tokens inherit them); the vertical
+   fit/scroll behaviour lives in the "fit-or-scroll" block further down.
 
-   Fix: split the single scale into two.
-     --u  → width-anchored (100vw/1440). Drives type and the
-            intrinsic height of text blocks, so fonts match the
-            1440 baseline and never shrink when the viewport is
-            shorter than 900.
-     --uy → height-aware (identical to the old --u). Drives the
-            vertical SPACERS and graphic heights only, so the gaps
-            compress just enough to keep the full-size-type layout
-            on one screen.
+     >=1440px wide  -> scale 1 = exact design size, centred horizontally
+     <1440px wide   -> the whole design scales DOWN to fit the width
+                       (so it never needs a horizontal scrollbar)
+     shorter than 900*scale -> the page scrolls vertically
 
-   Scoped to the desktop homepage (≥768px, the only body with no
-   page-class) so project / studio / index pages and the mobile
-   layout are untouched. On tall/portrait viewports --u and --uy
-   are equal, so this only changes behaviour on wide-short screens.
+   Scoped to the desktop homepage (>=768px, the only body with no
+   page-class) so project / studio / index pages and mobile are
+   untouched.
    ------------------------------------------------------------ */
 @media (min-width: 768px) {
-  body:not(.about-page):not(.project-page):not(.projects-index-page) {
-    --u:  calc(100vw / 1440);
-    --uy: min(100vw / 1440, 100vh / 900);
+  /* Locked uniform scale set on <html> (not just <body>) so the :root layout
+     tokens — --logo-width, --nav-btn-size, --viz-width, gutters — resolve it
+     too (a custom property resolves var() at its DECLARING element, so a :root
+     token would otherwise keep using the base height-aware --u). */
+  html:has(body:not(.about-page):not(.project-page):not(.projects-index-page)) {
+    --u:  min(1px, 100vw / 1440);   /* 1px = exact 1440x900 design at >=1440 wide; scales down only below 1440 */
+    --uy: var(--u);                 /* uniform — no separate height behaviour, so nothing compresses */
+    --canvas-margin: max(0px, calc((100vw - var(--u) * 1440) / 2));  /* centres the canvas (0 below 1440) */
+    --grid-margin:   calc(var(--u) * 20 + var(--canvas-margin));     /* fold centring into the shared edge margin */
+  }
 
-    /* Vertical spacers + graphic heights → compress with viewport height. */
+  body:not(.about-page):not(.project-page):not(.projects-index-page) {
+    /* Vertical spacers + graphic heights — uniform with --u now; the page
+       scrolls when 900*--u exceeds the viewport (see "fit-or-scroll" block). */
     --nav-height:        calc(var(--uy) * 64);
     --title-gap:         calc(var(--uy) * 25);
     --projects-gap:      calc(var(--uy) * 33);   /* title→Featured Projects gap = list→image gap below (even top/bottom) */
@@ -216,7 +218,7 @@
        Values are the real rendered heights (title 3 lines, Manifesto ~11
        lines, Services 9 rows, Contact 4 rows). */
     --title-height:         calc(var(--u) * 88);
-    --about-height:         calc(var(--u) * 157);
+    --about-height:         calc(var(--u) * 164);
     --services-height:      calc(var(--u) * 173);
     --section-label-height: calc(var(--u) * 9);
     --contact-height:       calc(var(--u) * 90);
@@ -233,6 +235,69 @@
     --about-gap:         var(--rail-gap);
     --services-gap:      var(--rail-gap);
     --contact-gap:       var(--rail-gap);
+  }
+}
+
+/* ------------------------------------------------------------
+   Desktop homepage — fit-or-scroll
+   ------------------------------------------------------------
+   The artboard is a fixed 900*--u tall (--u = the locked uniform scale set
+   in the block above). When that fits the viewport nothing scrolls; when the
+   viewport is shorter than 900*--u the page scrolls vertically while the
+   design keeps its exact size and position.
+
+   Mechanics: the homepage's viewport-locked (position:fixed) shell turns
+   into a normal scrolling document. <body> becomes the artboard-tall,
+   relatively-positioned scroll content; every fixed content block is
+   re-anchored to it with position:absolute (same offsets, now relative to
+   <body> instead of the viewport). html is unlocked to scroll, mirroring
+   the existing html:has(body.about-page) rule below. The nav and the
+   full-screen overlays (loader / menu / tesseract / bg) stay fixed.
+   Scoped to the desktop homepage — mobile + other pages are untouched.
+   ------------------------------------------------------------ */
+@media (min-width: 768px) {
+  html:has(body:not(.about-page):not(.project-page):not(.projects-index-page)) {
+    height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body:not(.about-page):not(.project-page):not(.projects-index-page) {
+    position: relative;
+    /* Artboard height = 900*--u (exact). When the viewport is shorter, <body>
+       is taller than it and the document scrolls; when taller, the design sits
+       at its fixed size and the area below fills via background propagation —
+       NO min-height:100vh, which would stretch <body> and drop the
+       bottom-anchored Contact/image away from the artboard floor. */
+    height: calc(var(--uy) * 900);
+    overflow: visible;
+  }
+
+  /* Re-anchor the viewport-locked content blocks to <body> so they move
+     with the scroll instead of staying pinned to the viewport. The nav and
+     overlays are intentionally absent — they stay position:fixed. */
+  body:not(.about-page):not(.project-page):not(.projects-index-page) :is(
+    .audio-visualizer,
+    .about-text,
+    .services-block,
+    .contact-block,
+    .section-label--audio,
+    .section-label--about,
+    .section-label--services,
+    .section-label--contact,
+    main,
+    .section-project-image
+  ) {
+    position: absolute;
+  }
+
+  /* main spanned the viewport below the nav; now it spans the artboard
+     below the nav, so its bottom-anchored image lands on the artboard
+     floor — level with the bottom-anchored Contact block. */
+  body:not(.about-page):not(.project-page):not(.projects-index-page) main {
+    inset-block-start: var(--nav-height);
+    inset-block-end: 0;
+    height: auto;
   }
 }
 
