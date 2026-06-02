@@ -89,14 +89,6 @@
      true size on every display instead of being bitmap-scaled. */
   --u: min(100vw / 1440, 100vh / 900);
 
-  /* Vertical companion unit. By default an alias for --u, so every page
-     and the mobile layout behave exactly as before. The desktop homepage
-     (see "Desktop homepage scale" block below §1) redefines --u to be
-     width-anchored while keeping --uy height-aware — so type stays at
-     full size on short viewports while vertical spacers compress to keep
-     the single no-scroll screen. */
-  --uy: var(--u);
-
   /* Palette */
   --color-bg:       #000000;
   --color-surface:  #0a0a0a;
@@ -165,141 +157,6 @@
   :root { --u: min(100vw / 393, 100dvh / 852); }
 }
 
-/* ------------------------------------------------------------
-   Desktop homepage scale — locked 1440x900, scale-to-width
-   ------------------------------------------------------------
-   The homepage is authored on a 1440x900 artboard and rendered at a
-   single UNIFORM scale, so the composition never distorts — it only
-   zooms as a whole. The scale + centring offset are set just below
-   (on <html>, so the :root layout tokens inherit them); the vertical
-   fit/scroll behaviour lives in the "fit-or-scroll" block further down.
-
-     >=1440px wide  -> scale 1 = exact design size, centred horizontally
-     <1440px wide   -> the whole design scales DOWN to fit the width
-                       (so it never needs a horizontal scrollbar)
-     shorter than 900*scale -> the page scrolls vertically
-
-   Scoped to the desktop homepage (>=768px, the only body with no
-   page-class) so project / studio / index pages and mobile are
-   untouched.
-   ------------------------------------------------------------ */
-@media (min-width: 768px) {
-  /* Locked uniform scale set on <html> (not just <body>) so the :root layout
-     tokens — --logo-width, --nav-btn-size, --viz-width, gutters — resolve it
-     too (a custom property resolves var() at its DECLARING element, so a :root
-     token would otherwise keep using the base height-aware --u). */
-  html:has(body:not(.about-page):not(.project-page):not(.projects-index-page)) {
-    --u:  min(1px, 100vw / 1440);   /* 1px = exact 1440x900 design at >=1440 wide; scales down only below 1440 */
-    --uy: var(--u);                 /* uniform — no separate height behaviour, so nothing compresses */
-    --canvas-margin: max(0px, calc((100vw - var(--u) * 1440) / 2));  /* centres the canvas (0 below 1440) */
-    --grid-margin:   calc(var(--u) * 20 + var(--canvas-margin));     /* fold centring into the shared edge margin */
-  }
-
-  body:not(.about-page):not(.project-page):not(.projects-index-page) {
-    /* Vertical spacers + graphic heights — uniform with --u now; the page
-       scrolls when 900*--u exceeds the viewport (see "fit-or-scroll" block). */
-    --nav-height:        calc(var(--uy) * 64);
-    --title-gap:         calc(var(--uy) * 25);
-    --projects-gap:      calc(var(--uy) * 33);   /* title→Featured Projects gap = list→image gap below (even top/bottom) */
-    --image-gap:         calc(var(--uy) * 48);
-    --image-height:      calc(var(--uy) * 175);
-    --bottom-padding:    calc(var(--uy) * 20);
-    --viz-height:        calc(var(--uy) * 115);
-    --section-label-gap: calc(var(--uy) * 6);
-    --side-label-gap:    calc(var(--uy) * 12);
-
-    /* Text-block heights — width-anchored AND declared HERE, not at :root.
-       A custom property resolves its var() at the DECLARING element and then
-       inherits the COMPUTED value, so a :root `calc(var(--u) * N)` bakes in
-       :root's --u (the compressed min()), under-reserving for the full-size
-       (1.05) text. That under-reservation is what let the Manifesto overflow
-       its box and the title eat the list→image gap. Declared here, --u = the
-       homepage width unit, so each reservation matches the text it holds.
-       Values are the real rendered heights (title 3 lines, Manifesto ~11
-       lines, Services 9 rows, Contact 4 rows). */
-    --title-height:         calc(var(--u) * 88);
-    --about-height:         calc(var(--u) * 164);
-    --services-height:      calc(var(--u) * 173);
-    --section-label-height: calc(var(--u) * 9);
-    --contact-height:       calc(var(--u) * 90);
-
-    /* Right rail (Manifesto / Services / Contact) shares one gap that splits
-       the leftover height into three equal parts, so the gaps stay even at
-       every viewport height instead of pooling slack below Contact. With
-       Contact bottom-anchored (§14), the Services→Contact gap matches the
-       others automatically. */
-    --rail-gap: calc((var(--uy) * 900
-                      - var(--nav-height) - var(--title-gap) - var(--viz-height)
-                      - var(--about-height) - var(--services-height)
-                      - var(--contact-height) - var(--bottom-padding)) / 3);
-    --about-gap:         var(--rail-gap);
-    --services-gap:      var(--rail-gap);
-    --contact-gap:       var(--rail-gap);
-  }
-}
-
-/* ------------------------------------------------------------
-   Desktop homepage — fit-or-scroll
-   ------------------------------------------------------------
-   The artboard is a fixed 900*--u tall (--u = the locked uniform scale set
-   in the block above). When that fits the viewport nothing scrolls; when the
-   viewport is shorter than 900*--u the page scrolls vertically while the
-   design keeps its exact size and position.
-
-   Mechanics: the homepage's viewport-locked (position:fixed) shell turns
-   into a normal scrolling document. <body> becomes the artboard-tall,
-   relatively-positioned scroll content; every fixed content block is
-   re-anchored to it with position:absolute (same offsets, now relative to
-   <body> instead of the viewport). html is unlocked to scroll, mirroring
-   the existing html:has(body.about-page) rule below. The nav and the
-   full-screen overlays (loader / menu / tesseract / bg) stay fixed.
-   Scoped to the desktop homepage — mobile + other pages are untouched.
-   ------------------------------------------------------------ */
-@media (min-width: 768px) {
-  html:has(body:not(.about-page):not(.project-page):not(.projects-index-page)) {
-    height: auto;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  body:not(.about-page):not(.project-page):not(.projects-index-page) {
-    position: relative;
-    /* Artboard height = 900*--u (exact). When the viewport is shorter, <body>
-       is taller than it and the document scrolls; when taller, the design sits
-       at its fixed size and the area below fills via background propagation —
-       NO min-height:100vh, which would stretch <body> and drop the
-       bottom-anchored Contact/image away from the artboard floor. */
-    height: calc(var(--uy) * 900);
-    overflow: visible;
-  }
-
-  /* Re-anchor the viewport-locked content blocks to <body> so they move
-     with the scroll instead of staying pinned to the viewport. The nav and
-     overlays are intentionally absent — they stay position:fixed. */
-  body:not(.about-page):not(.project-page):not(.projects-index-page) :is(
-    .audio-visualizer,
-    .about-text,
-    .services-block,
-    .contact-block,
-    .section-label--audio,
-    .section-label--about,
-    .section-label--services,
-    .section-label--contact,
-    main,
-    .section-project-image
-  ) {
-    position: absolute;
-  }
-
-  /* main spanned the viewport below the nav; now it spans the artboard
-     below the nav, so its bottom-anchored image lands on the artboard
-     floor — level with the bottom-anchored Contact block. */
-  body:not(.about-page):not(.project-page):not(.projects-index-page) main {
-    inset-block-start: var(--nav-height);
-    inset-block-end: 0;
-    height: auto;
-  }
-}
 
 /* ------------------------------------------------------------
    2. Reset & Base
@@ -975,7 +832,7 @@ main {
   display: flex;
   flex-direction: column;
   height: calc(
-    calc(var(--uy) * 900)
+    calc(var(--u) * 900)
     - var(--nav-height)
     - var(--title-gap)
     - var(--title-height)
@@ -1427,23 +1284,6 @@ body:not(.project-page) .about-text {
     + var(--contact-gap)
     - var(--section-label-height)
     - var(--section-label-gap)
-  );
-}
-
-/* Homepage — anchor Contact to the bottom so its baseline lines up with the
-   project image (both sit at --bottom-padding from the viewport floor). This
-   removes the dead space that used to float below Contact and opens up the
-   previously-cramped Services→Contact gap. The label rides just above the
-   block via --contact-height. Scoped to the desktop homepage; other pages and
-   the mobile layout keep the original top-down cumulative positioning. */
-body:not(.about-page):not(.project-page):not(.projects-index-page) .contact-block {
-  inset-block-start: auto;
-  inset-block-end: var(--bottom-padding);
-}
-body:not(.about-page):not(.project-page):not(.projects-index-page) .section-label--contact {
-  inset-block-start: auto;
-  inset-block-end: calc(
-    var(--bottom-padding) + var(--contact-height) + var(--section-label-gap)
   );
 }
 
