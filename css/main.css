@@ -144,7 +144,7 @@
   --about-gap:        calc(var(--u) * 30);   /* gap below visualizer to about text */
   --about-height:     calc(var(--u) * 141);  /* right-column Manifesto copy at 9u */
   --services-gap:     calc(var(--u) * 60);   /* gap below about text to services */
-  --services-height:  calc(var(--u) * 194);  /* 9 items × 9u × 2.4lh = 194px */
+  --services-height:  calc(var(--u) * 173);  /* 8 items × 9u × 2.4lh ≈ 173px */
   --contact-gap:      calc(var(--u) * 60);   /* gap below services to contact */
 
   /* Section labels — small muted heading above each block.
@@ -198,30 +198,41 @@
     /* Vertical spacers + graphic heights → compress with viewport height. */
     --nav-height:        calc(var(--uy) * 64);
     --title-gap:         calc(var(--uy) * 25);
-    --projects-gap:      calc(var(--uy) * 50);
-    /* Image shrunk and its gap widened by the same amount, so the project
-       list height calc (which subtracts both) is unchanged and the cards
-       stay safe — but the bottom-anchored image now moves DOWN as it
-       shrinks, opening a real gap above it instead of touching the list. */
-    --image-gap:         calc(var(--uy) * 85);
-    --image-height:      calc(var(--uy) * 155);
+    --projects-gap:      calc(var(--uy) * 33);   /* title→Featured Projects gap = list→image gap below (even top/bottom) */
+    --image-gap:         calc(var(--uy) * 48);
+    --image-height:      calc(var(--uy) * 175);
     --bottom-padding:    calc(var(--uy) * 20);
     --viz-height:        calc(var(--uy) * 115);
-    --about-gap:         calc(var(--uy) * 48);   /* widened so viz→Manifesto→Services→Contact gaps read evenly */
-    --services-gap:      calc(var(--uy) * 60);
-    --contact-gap:       calc(var(--uy) * 60);
     --section-label-gap: calc(var(--uy) * 6);
     --side-label-gap:    calc(var(--uy) * 12);
 
-    /* Height reserved for the bottom-anchored Contact block (4 rows), so its
-       label can ride just above it. Text-driven → width-anchored (--u). */
-    --contact-height:    calc(var(--u) * 88);
+    /* Text-block heights — width-anchored AND declared HERE, not at :root.
+       A custom property resolves its var() at the DECLARING element and then
+       inherits the COMPUTED value, so a :root `calc(var(--u) * N)` bakes in
+       :root's --u (the compressed min()), under-reserving for the full-size
+       (1.05) text. That under-reservation is what let the Manifesto overflow
+       its box and the title eat the list→image gap. Declared here, --u = the
+       homepage width unit, so each reservation matches the text it holds.
+       Values are the real rendered heights (title 3 lines, Manifesto ~11
+       lines, Services 9 rows, Contact 4 rows). */
+    --title-height:         calc(var(--u) * 88);
+    --about-height:         calc(var(--u) * 157);
+    --services-height:      calc(var(--u) * 173);
+    --section-label-height: calc(var(--u) * 9);
+    --contact-height:       calc(var(--u) * 90);
 
-    /* Text-block heights (--title-height, --about-height,
-       --services-height, --section-label-height) intentionally keep
-       their :root definitions: they resolve var(--u) here = the
-       width-anchored unit, so each block reserves exactly the room its
-       full-size text needs and the block below never overlaps it. */
+    /* Right rail (Manifesto / Services / Contact) shares one gap that splits
+       the leftover height into three equal parts, so the gaps stay even at
+       every viewport height instead of pooling slack below Contact. With
+       Contact bottom-anchored (§14), the Services→Contact gap matches the
+       others automatically. */
+    --rail-gap: calc((var(--uy) * 900
+                      - var(--nav-height) - var(--title-gap) - var(--viz-height)
+                      - var(--about-height) - var(--services-height)
+                      - var(--contact-height) - var(--bottom-padding)) / 3);
+    --about-gap:         var(--rail-gap);
+    --services-gap:      var(--rail-gap);
+    --contact-gap:       var(--rail-gap);
   }
 }
 
@@ -1264,9 +1275,9 @@ body:not(.project-page) .contact-block::before {
   pointer-events: none;
 }
 
-/* Labels — frosted card sized to text, not full content width.
-   Position shifts left/up to compensate for padding so the text
-   baseline stays exactly where it was. */
+/* Labels — plain text, no frosted pill. The padding + left/up position
+   shift are kept only to hold the text exactly where it was, aligned with
+   the block beneath it. */
 body:not(.project-page) .section-label--about,
 body:not(.project-page) .section-label--services,
 body:not(.project-page) .section-label--contact {
@@ -1275,10 +1286,6 @@ body:not(.project-page) .section-label--contact {
   inset-inline-start: calc(100vw - var(--grid-margin) - var(--viz-width) - var(--u) * 12);
   margin-block-start: calc(var(--u) * -4);
   padding: calc(var(--u) * 4) calc(var(--u) * 12);
-  background: var(--card-bg);
-  -webkit-backdrop-filter: var(--card-filter);
-          backdrop-filter: var(--card-filter);
-  border-radius: calc(var(--u) * 8);
 }
 
 /* .about-text clamps its copy with overflow:hidden; let the panel
@@ -1381,10 +1388,6 @@ body:not(.about-page):not(.project-page):not(.projects-index-page) .section-labe
   margin-block-end: calc(var(--u) * 4);
   width: fit-content;
   padding: calc(var(--u) * 4) calc(var(--u) * 12);
-  background: var(--card-bg);
-  -webkit-backdrop-filter: var(--card-filter);
-          backdrop-filter: var(--card-filter);
-  border-radius: calc(var(--u) * 6);
 }
 
 /* ------------------------------------------------------------
