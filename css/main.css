@@ -2432,148 +2432,235 @@ body.about-page {
   position: relative;
   inset: auto;
   width: 100%;
-  height: auto;          /* override global `main { height: calc(100vh - nav) }` */
+  height: auto;
   min-height: 100vh;
   overflow: visible;
   box-sizing: border-box;
   padding:
-    calc(var(--nav-height) + calc(var(--u) * 90))
+    calc(var(--nav-height) + calc(var(--u) * 24))
     var(--grid-margin)
-    calc(var(--u) * 120);
+    calc(var(--u) * 40);
   display: flex;
   flex-direction: column;
-  gap: calc(var(--u) * 96);
+  gap: calc(var(--u) * 80);
   z-index: 10;
 }
 
-/* -- Lead statement -------------------------------------------------- */
+/* ============ Hero (above the fold) ============ */
+.studio-hero {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  row-gap: calc(var(--u) * 28);
+}
+
 .studio-lead {
+  grid-column: 1 / -1;
   margin: 0;
-  max-width: calc(var(--u) * 1240);
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(var(--u) * 72);
-  line-height: 1;
+  font-size: calc(var(--u) * 64);
+  line-height: 1.05;
   letter-spacing: -0.015em;
   color: var(--color-fg);
+  text-indent: calc(var(--u) * 143);
 }
 
-/* greyed "co:lab" mark opening the sentence */
-.studio-lead-mark {
-  color: var(--color-grey);
-}
-
-/* second sentence drops to its own line in a lighter weight */
-.studio-lead-soft {
-  display: block;
-  font-weight: 400;
-  letter-spacing: -0.005em;
-}
-
-/* -- Collage + copy row ---------------------------------------------- */
-.studio-body {
-  display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-  gap: calc(var(--u) * 64);
-  align-items: end;
-}
-
-.studio-collage {
-  position: relative;
+.studio-intro {
+  grid-column: 1 / span 4;
   margin: 0;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  background: #000;
-}
-
-.studio-collage img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: left top;
-}
-
-/* Translucent panels layered over the collage (per the comp). */
-.studio-collage-panel {
-  position: absolute;
-  pointer-events: none;
-}
-
-.studio-collage-panel--light {
-  inset-block-start: 0;
-  inset-inline-end: 0;
-  width: 40%;
-  height: 33%;
-  background: rgba(232, 232, 232, 0.85);
-}
-
-.studio-collage-panel--mid {
-  inset-block-start: 26%;
-  inset-inline-end: 0;
-  width: 52%;
-  height: 17%;
-  background: rgba(150, 150, 150, 0.4);
-}
-
-.studio-collage-panel--dark {
-  inset-block-start: 22%;
-  inset-inline-start: 18%;
-  width: 30%;
-  height: 30%;
-  background: rgba(8, 8, 8, 0.42);
-}
-
-.studio-copy {
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: calc(var(--u) * 14);
-  line-height: 1.5;
+  font-size: calc(var(--u) * 11);
+  line-height: 1.45;
   letter-spacing: 0.004em;
   color: var(--color-fg);
   text-align: justify;
 }
 
-.studio-copy p {
-  margin: 0 0 1.4em;
+.studio-hero-images {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  margin-block-start: calc(var(--u) * 24);
 }
 
-.studio-copy p:last-child {
-  margin-bottom: 0;
+.studio-hero-image {
+  margin: 0;
+  background: var(--color-fg-soft, #d7d7d7);
+  aspect-ratio: 2 / 3.4;
 }
 
-/* -- Mobile ---------------------------------------------------------- */
+.studio-hero-pair {
+  grid-column: 1 / span 4;
+  display: flex;
+  gap: calc(var(--u) * 4);
+}
+
+.studio-hero-pair .studio-hero-image {
+  flex: 1;
+}
+
+.studio-hero-image--3 {
+  grid-column: 9 / span 2;
+  aspect-ratio: 2 / 2.4;
+  align-self: start;
+}
+
+/* ============ Middle copy block ============ */
+.studio-middle {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  row-gap: calc(var(--u) * 60);
+  margin-block-start: calc(var(--u) * 40);
+}
+
+.studio-middle-lead {
+  grid-column: 1 / span 4;
+  grid-row: 1;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(var(--u) * 28);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-fg);
+}
+
+.studio-middle-copy {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: calc(var(--u) * 10);
+  line-height: 1.5;
+  letter-spacing: 0.004em;
+  color: var(--color-fg);
+  text-align: justify;
+  white-space: pre-line;
+}
+
+.studio-middle-copy--a {
+  grid-column: 4 / span 3;
+  grid-row: 2;
+  align-self: start;
+}
+
+.studio-middle-copy--b {
+  grid-column: 4 / span 3;
+  grid-row: 3;
+  margin-block-start: calc(var(--u) * 4);
+}
+
+.studio-middle-copy--c {
+  grid-column: 9 / span 2;
+  grid-row: 2;
+  align-self: start;
+  max-width: calc(var(--u) * 220);
+  justify-self: end;
+}
+
+/* ============ Small image grid ============ */
+.studio-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  align-items: end;
+  margin-block-start: calc(var(--u) * 12);
+}
+
+.studio-grid-tall-row {
+  grid-column: 3 / span 4;
+  align-self: end;
+  display: flex;
+  gap: calc(var(--u) * 4);
+}
+
+.studio-grid-cell-tall {
+  flex: 1;
+  margin: 0;
+  background: var(--color-fg-soft, #d7d7d7);
+  aspect-ratio: 1 / 1.4;
+}
+
+/* ============ Wide hero image ============ */
+.studio-wide-row {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), 1fr);
+  column-gap: var(--grid-gutter);
+  margin-block-start: calc(var(--u) * 36);
+}
+
+.studio-wide {
+  grid-column: 2 / span 8;
+  margin: 0;
+  background: var(--color-fg-soft, #d7d7d7);
+  aspect-ratio: 3 / 2;
+}
+
+/* ============ Big footer text block ============ */
+.studio-lockup {
+  margin-block-start: calc(var(--u) * 40);
+  display: flex;
+  justify-content: center;
+}
+
+.studio-lockup-img {
+  display: block;
+  width: 100%;
+  max-width: calc(var(--u) * 1380);
+  height: auto;
+}
+
+/* ============ Mobile (placeholder fallback — to be redesigned) ============ */
 @media (max-width: 767px) {
   .studio {
     padding:
-      calc(var(--nav-height) + calc(var(--u) * 56))
+      calc(var(--nav-height) + calc(var(--u) * 40))
       var(--m)
-      calc(var(--u) * 80);
-    gap: calc(var(--u) * 44);
+      calc(var(--u) * 60);
+    gap: calc(var(--u) * 40);
   }
+
+  .studio-hero,
+  .studio-middle,
+  .studio-grid,
+  .studio-hero-images,
+  .studio-wide-row {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-wide { grid-column: 1 / -1; }
 
   .studio-lead {
+    grid-column: 1 / -1;
+    text-indent: 0;
     font-size: calc(var(--u) * 40);
     line-height: 1.04;
-    max-width: none;
   }
 
-  .studio-body {
-    grid-template-columns: 1fr;
-    gap: calc(var(--u) * 40);
-    align-items: stretch;
+  .studio-intro,
+  .studio-middle-lead,
+  .studio-middle-copy {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    font-size: calc(var(--u) * 14);
   }
 
-  .studio-collage {
-    width: 86%;
-    aspect-ratio: 3 / 4;
+  .studio-hero-image,
+  .studio-hero-pair,
+  .studio-grid-tall-row,
+  .studio-grid-cell-tall {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    aspect-ratio: 4 / 3;
   }
 
-  .studio-copy {
-    font-size: calc(var(--u) * 15);
-    align-self: flex-end;
-    max-width: 92%;
-    margin-inline-start: auto;
-  }
+  .studio-hero-pair,
+  .studio-grid-tall-row { display: flex; flex-direction: column; aspect-ratio: auto; }
+
+  .studio-middle-copy--c { max-width: none; justify-self: stretch; }
+
+  .studio-lockup-img { max-width: 100%; }
 }
