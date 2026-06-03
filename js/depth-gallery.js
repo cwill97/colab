@@ -208,21 +208,53 @@
   /* ----------------------------------------------------------
      LOAD IMAGES + BUILD PLANES
      ---------------------------------------------------------- */
+  var VIDEO_EXTS = /\.(mp4|webm|mov|m4v)(\?|$)/i;
+
+  function isVideoSrc(src) { return VIDEO_EXTS.test(src); }
+
+  function loadVideoTexture(src, onReady, onError) {
+    var video = document.createElement('video');
+    video.src = src;
+    video.crossOrigin = 'anonymous';
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
+    video.addEventListener('loadeddata', function () {
+      video.play();
+      var tex = new THREE.VideoTexture(video);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.format = THREE.RGBAFormat;
+      onReady(tex, video.videoWidth, video.videoHeight);
+    }, { once: true });
+    video.addEventListener('error', function () { onError(); }, { once: true });
+    video.load();
+    return video;
+  }
+
   DepthGallery.prototype._loadAndBuildPlanes = function (images, firstLoad) {
     var self      = this;
     var loader    = new THREE.TextureLoader();
     var total     = images.length;
     var loaded    = 0;
     var textures  = new Array(total).fill(null);
+    var dimensions = new Array(total);
 
     if (!total) return;
 
-    /* Clear existing planes */
+    /* Clear existing planes + video elements */
     this.planes.forEach(function (p) {
       self.scene.remove(p);
       p.geometry.dispose();
       if (p.material.uniforms && p.material.uniforms.uTexture && p.material.uniforms.uTexture.value) {
         p.material.uniforms.uTexture.value.dispose();
+      }
+      if (p.userData._video) {
+        p.userData._video.pause();
+        p.userData._video.src = '';
+        p.userData._video = null;
       }
       p.material.dispose();
     });
@@ -233,7 +265,9 @@
     function onAllLoaded() {
       textures.forEach(function (tex, i) {
         var aspect = 1;
-        if (tex && tex.image && tex.image.width > 0) {
+        if (dimensions[i]) {
+          aspect = dimensions[i].w / dimensions[i].h;
+        } else if (tex && tex.image && tex.image.width > 0) {
           aspect = tex.image.width / tex.image.height;
         }
 
@@ -254,6 +288,9 @@
         mesh.scale.set(aspect, 1, 1);
         mesh.userData.aspect    = aspect;
         mesh.userData.basePos   = { x: (PLANE_X_OFFSETS[i % PLANE_X_OFFSETS.length]) || 0, y: 0 };
+        if (dimensions[i] && dimensions[i].video) {
+          mesh.userData._video = dimensions[i].video;
+        }
         self.scene.add(mesh);
         self.planes.push(mesh);
       });
@@ -263,18 +300,32 @@
     }
 
     images.forEach(function (src, i) {
-      loader.load(src,
-        function (tex) {
-          tex.colorSpace = THREE.SRGBColorSpace;
-          textures[i] = tex;
-          if (++loaded === total) onAllLoaded();
-        },
-        undefined,
-        function () {
-          textures[i] = null;
-          if (++loaded === total) onAllLoaded();
-        }
-      );
+      if (isVideoSrc(src)) {
+        loadVideoTexture(src,
+          function (tex, w, h) {
+            textures[i] = tex;
+            dimensions[i] = { w: w, h: h, video: tex.image };
+            if (++loaded === total) onAllLoaded();
+          },
+          function () {
+            textures[i] = null;
+            if (++loaded === total) onAllLoaded();
+          }
+        );
+      } else {
+        loader.load(src,
+          function (tex) {
+            tex.colorSpace = THREE.SRGBColorSpace;
+            textures[i] = tex;
+            if (++loaded === total) onAllLoaded();
+          },
+          undefined,
+          function () {
+            textures[i] = null;
+            if (++loaded === total) onAllLoaded();
+          }
+        );
+      }
     });
   };
 
@@ -565,6 +616,11 @@
       p.geometry.dispose();
       if (p.material.uniforms && p.material.uniforms.uTexture && p.material.uniforms.uTexture.value) {
         p.material.uniforms.uTexture.value.dispose();
+      }
+      if (p.userData._video) {
+        p.userData._video.pause();
+        p.userData._video.src = '';
+        p.userData._video = null;
       }
       p.material.dispose();
     });
