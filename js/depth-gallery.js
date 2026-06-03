@@ -67,8 +67,8 @@
     /* Hold-to-auto-scroll */
     this._holdTimer      = null;
     this._autoScrolling  = false;
-    this._autoScrollSpeed = 5.6;    /* px-equivalent per frame */
-    this._holdDelay      = 120;     /* ms before auto-scroll kicks in */
+    this._autoScrollSpeed = 6.0;    /* px-equivalent per frame */
+    this._holdDelay      = 80;     /* ms before auto-scroll kicks in */
     this._touchStartX    = 0;
     this._touchStartY    = 0;
     this._touchMoved     = false;
@@ -77,7 +77,7 @@
        Desktop moves 30% slower than mobile so the gallery reads more
        deliberately at larger viewports. 0.8 × 0.7 = 0.56. */
     var _isMobile = window.matchMedia && window.matchMedia('(max-width: 767px)').matches;
-    this._idleSpeed       = _isMobile ? 0.8 : 0.56; /* px per frame — positive = forward */
+    this._idleSpeed       = _isMobile ? 0.9 : 0.56; /* px per frame — positive = forward */
     this._idlePaused      = false;  /* external pause (e.g. overview modal open) */
 
     /* End-of-gallery overscroll detection — two-stage flow.
