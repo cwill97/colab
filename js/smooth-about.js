@@ -28,7 +28,7 @@
       smoothTouch: false,
       wheelMultiplier: 0.45,
       touchMultiplier: 2.0,
-      lerp: 0.018
+      lerp: 0.030
     });
 
     rafId = requestAnimationFrame(loop);
