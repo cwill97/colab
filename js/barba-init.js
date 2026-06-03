@@ -142,6 +142,16 @@
 
       /* Re-bind nav toggle for the new container context */
       if (window.colabMainBoot) window.colabMainBoot();
+
+      /* Mount the Studio's smooth scroll (Lenis). The initial page
+         load auto-inits via DOMContentLoaded, but Barba navigations
+         swap in a fresh container that needs its own instance.
+         Defer one frame so layout has settled before Lenis measures. */
+      if (window.colabLocoAbout) {
+        requestAnimationFrame(function () {
+          window.colabLocoAbout.init();
+        });
+      }
     }
 
     function leaveProject() {
@@ -150,7 +160,10 @@
     }
 
     function leaveAbout() {
-      /* Studio page holds no depth gallery / RAF loop to tear down. */
+      /* Tear down the Studio's smooth scroll so a future re-entry
+         can mount a fresh instance on the new container without
+         the old one still hijacking wheel events. */
+      if (window.colabLocoAbout) window.colabLocoAbout.destroy();
     }
 
     /* ── Barba init ── */

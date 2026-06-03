@@ -2408,23 +2408,24 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 }
 
 /* ============================================================
-   Studio / About — Locomotive Scroll handles the scrolling.
-   html/body stay overflow-locked (no native scroll) so the
-   smooth-scroll transform on [data-scroll-container] is the
-   sole driver of vertical motion. Without this lock, native
-   browser scroll runs in parallel with Loco's transform,
-   producing a doubled scroll distance and trailing whitespace
-   past the data-scroll-container limit.
+   Studio / About — native browser scroll, smoothed by Lenis.
+   Lenis hooks the native scroll and animates window.scrollTo
+   via rAF, so html/body must remain natively scrollable. The
+   site-wide rules lock both to overflow:hidden, so we unlock
+   them only while the .about-page class is active (Barba
+   toggles that class on navigation; :has() keys html off it).
    ============================================================ */
 html:has(body.about-page) {
-  overflow: hidden;
-  height: 100%;
+  overflow-y: auto;
+  height: auto;
 }
 
 body.about-page {
   position: static;
-  height: 100%;
-  overflow: hidden;
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .studio {
