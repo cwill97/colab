@@ -22,9 +22,9 @@
       images: [
         '/assets/Project_Img_01.webp',
         '/assets/Project_Img_Viking_02.webp',
-        '/assets/Project_Img_Viking_03.mov',
+        '/assets/Project_Img_Viking_03.mp4',
         '/assets/Project_Img_Viking_04.webp',
-        '/assets/Project_Img_Viking_05.mov',
+        '/assets/Project_Img_Viking_05.mp4',
         '/assets/Project_Img_Viking_06.webp',
         '/assets/Project_Img_Viking_07.webp',
         '/assets/Project_Img_Viking_08.webp',
