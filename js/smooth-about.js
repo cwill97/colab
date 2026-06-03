@@ -22,13 +22,13 @@
     if (typeof Lenis === 'undefined') return;
 
     lenis = new Lenis({
-      duration: 1.6,
+      duration: 2.0,
       easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
       smoothWheel: true,
       smoothTouch: false,
-      wheelMultiplier: 0.7,
+      wheelMultiplier: 0.45,
       touchMultiplier: 2.0,
-      lerp: 0.04
+      lerp: 0.018
     });
 
     rafId = requestAnimationFrame(loop);
