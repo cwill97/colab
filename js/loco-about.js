@@ -12,8 +12,8 @@
     scroll = new LocomotiveScroll({
       el: el,
       smooth: true,
-      lerp: 0.03,
-      multiplier: 0.60,
+      lerp: 0.1,
+      multiplier: 1.0,
       class: 'is-inview',
       smartphone: { smooth: true },
       tablet: { smooth: true, breakpoint: 768 }

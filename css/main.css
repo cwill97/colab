@@ -2408,24 +2408,23 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
 }
 
 /* ============================================================
-   Studio / About — editorial, normal-scroll layout.
-   Used by /about.html and /about/. Replaces the previous
-   depth-gallery poster: the page now scrolls with the default
-   browser scrollbar. html/body are globally overflow-locked, so
-   they're unlocked here while the .about-page class is active
-   (Barba toggles that class on navigation; :has() keys html off it).
+   Studio / About — Locomotive Scroll handles the scrolling.
+   html/body stay overflow-locked (no native scroll) so the
+   smooth-scroll transform on [data-scroll-container] is the
+   sole driver of vertical motion. Without this lock, native
+   browser scroll runs in parallel with Loco's transform,
+   producing a doubled scroll distance and trailing whitespace
+   past the data-scroll-container limit.
    ============================================================ */
 html:has(body.about-page) {
-  overflow-y: auto;
-  height: auto;
+  overflow: hidden;
+  height: 100%;
 }
 
 body.about-page {
   position: static;
-  height: auto;
-  min-height: 100%;
-  overflow-x: hidden;
-  overflow-y: visible;
+  height: 100%;
+  overflow: hidden;
 }
 
 .studio {
@@ -2438,7 +2437,7 @@ body.about-page {
   padding:
     calc(var(--nav-height) + calc(var(--u) * 24))
     var(--grid-margin)
-    0;
+    calc(var(--u) * 80);
   display: flex;
   flex-direction: column;
   gap: calc(var(--u) * 80);
@@ -2625,7 +2624,7 @@ body.about-page {
     padding:
       calc(var(--nav-height) + calc(var(--u) * 40))
       var(--m)
-      0;
+      calc(var(--u) * 40);
     gap: calc(var(--u) * 40);
   }
 
