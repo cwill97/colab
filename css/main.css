@@ -2491,6 +2491,27 @@ body.about-page {
   aspect-ratio: 2 / 3.4;
 }
 
+.studio-hero-image--1 img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.studio-hero-image--2 img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.studio-hero-image--3 img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .studio-hero-pair {
   grid-column: 1 / span 4;
   display: flex;
@@ -2604,6 +2625,13 @@ body.about-page {
   margin: 0;
   background: var(--color-fg-soft, #d7d7d7);
   aspect-ratio: 3 / 2;
+}
+
+.studio-wide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* ============ Big footer text block ============ */
