@@ -150,6 +150,11 @@
       if (window.colabLocoAbout) {
         requestAnimationFrame(function () {
           window.colabLocoAbout.init();
+          if (window.colabScrollAbout) {
+            requestAnimationFrame(function () {
+              window.colabScrollAbout.init();
+            });
+          }
         });
       }
     }
@@ -160,9 +165,7 @@
     }
 
     function leaveAbout() {
-      /* Tear down the Studio's smooth scroll so a future re-entry
-         can mount a fresh instance on the new container without
-         the old one still hijacking wheel events. */
+      if (window.colabScrollAbout) window.colabScrollAbout.destroy();
       if (window.colabLocoAbout) window.colabLocoAbout.destroy();
     }
 

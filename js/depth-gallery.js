@@ -68,7 +68,7 @@
     this._holdTimer      = null;
     this._autoScrolling  = false;
     this._autoScrollSpeed = 6.0;    /* px-equivalent per frame */
-    this._holdDelay      = 80;     /* ms before auto-scroll kicks in */
+    this._holdDelay      = 120;     /* ms before auto-scroll kicks in */
     this._touchStartX    = 0;
     this._touchStartY    = 0;
     this._touchMoved     = false;

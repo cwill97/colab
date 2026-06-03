@@ -2428,6 +2428,18 @@ body.about-page {
   overflow-y: visible;
 }
 
+/* ── Scroll-animation primitives ─────────────────────────── */
+.word {
+  display: inline-block;
+}
+
+.studio-hero-image,
+.studio-grid-cell-tall,
+.studio-wide {
+  overflow: hidden;
+  will-change: clip-path;
+}
+
 .studio {
   position: relative;
   inset: auto;
