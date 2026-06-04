@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/sanity/:path*",
+      "destination": "https://cdn.sanity.io/:path*"
+    }
+  ]
+}

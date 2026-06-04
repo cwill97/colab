@@ -212,6 +212,7 @@
     var self      = this;
     var loader    = new THREE.TextureLoader();
     loader.crossOrigin = 'anonymous';
+    images = images.filter(function (src) { return !/\.mp4$/i.test(src); });
     var total     = images.length;
     var loaded    = 0;
     var textures  = new Array(total).fill(null);

@@ -184,7 +184,7 @@ html {
 
 body {
   background-color: var(--color-bg);
-  background-image: url('https://cdn.sanity.io/images/7to0u5h2/production/4dccedc8b5cec70436a0f3d73cc08f7e0d294523-3840x2160.webp');
+  background-image: url('/sanity/images/7to0u5h2/production/4dccedc8b5cec70436a0f3d73cc08f7e0d294523-3840x2160.webp');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -202,7 +202,7 @@ body {
 .bg-hover-layer {
   position: fixed;
   inset: 0;
-  background-image: url('https://cdn.sanity.io/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp');
+  background-image: url('/sanity/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -233,7 +233,7 @@ body.cursor-active .bg-hover-layer {
 .bg-ambient-spot {
   position: fixed;
   inset: 0;
-  background-image: url('https://cdn.sanity.io/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp');
+  background-image: url('/sanity/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -449,7 +449,7 @@ button {
   inset: 0;
   z-index: 90;
   background-color: var(--color-bg);
-  background-image: url('https://cdn.sanity.io/images/7to0u5h2/production/4dccedc8b5cec70436a0f3d73cc08f7e0d294523-3840x2160.webp');
+  background-image: url('/sanity/images/7to0u5h2/production/4dccedc8b5cec70436a0f3d73cc08f7e0d294523-3840x2160.webp');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
