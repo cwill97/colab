@@ -790,7 +790,7 @@
     background: var(--card-bg);
     -webkit-backdrop-filter: var(--card-filter);
             backdrop-filter: var(--card-filter);
-    border-radius: calc(var(--u) * 8);
+    border-radius: calc(var(--u) * 2);
   }
 
   .project-overview-modal-section .project-info-label {
