@@ -373,7 +373,7 @@
   background: var(--card-bg);
   -webkit-backdrop-filter: var(--card-filter);
           backdrop-filter: var(--card-filter);
-  border-radius: calc(var(--u) * 8);
+  border-radius: calc(var(--u) * 2);
 }
 
 /* Thin divider between consecutive sections — centred in the gap. */
