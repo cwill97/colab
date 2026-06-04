@@ -2640,10 +2640,10 @@ body.about-page {
 }
 
 .studio-wide {
-  grid-column: 2 / span 8;
+  grid-column: 3 / span 6;
   margin: 0;
   background: var(--color-fg-soft, #d7d7d7);
-  aspect-ratio: 3 / 2;
+  aspect-ratio: 16 / 9;
 }
 
 .studio-wide img {
