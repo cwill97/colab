@@ -2665,6 +2665,7 @@ body.about-page {
 .studio-lockup {
   display: flex;
   justify-content: center;
+  margin-block-start: calc(var(--u) * 270);
 }
 
 .studio-lockup-img {
