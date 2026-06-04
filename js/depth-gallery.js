@@ -234,13 +234,10 @@
   }
 
   DepthGallery.prototype._loadAndBuildPlanes = function (images, firstLoad) {
-    var self      = this;
-    var loader    = new THREE.TextureLoader();
+    var self   = this;
+    var loader = new THREE.TextureLoader();
     loader.crossOrigin = undefined;
-    var total     = images.length;
-    var loaded    = 0;
-    var textures  = new Array(total).fill(null);
-    var dimensions = new Array(total);
+    var total  = images.length;
 
     if (!total) return;
 
@@ -262,68 +259,77 @@
 
     var planeGeo = new THREE.PlaneGeometry(2.25, 2.25);
 
-    function onAllLoaded() {
-      textures.forEach(function (tex, i) {
-        var aspect = 1;
-        if (dimensions[i]) {
-          aspect = dimensions[i].w / dimensions[i].h;
-        } else if (tex && tex.image && tex.image.width > 0) {
-          aspect = tex.image.width / tex.image.height;
-        }
-
-        var mat = new THREE.ShaderMaterial({
-          vertexShader:   _revealVert,
-          fragmentShader: _revealFrag,
-          uniforms: {
-            uTexture:  { value: tex },
-            uProgress: { value: i === 0 ? 1.0 : 0.0 },
-            uTime:     { value: 0.0 }
-          },
-          transparent: true,
-          depthWrite:  false,
-          side:        THREE.DoubleSide
-        });
-
-        var mesh = new THREE.Mesh(planeGeo, mat);
-        mesh.scale.set(aspect, 1, 1);
-        mesh.userData.aspect    = aspect;
-        mesh.userData.basePos   = { x: (PLANE_X_OFFSETS[i % PLANE_X_OFFSETS.length]) || 0, y: 0 };
-        if (dimensions[i] && dimensions[i].video) {
-          mesh.userData._video = dimensions[i].video;
-        }
-        self.scene.add(mesh);
-        self.planes.push(mesh);
-      });
-
-      self._layoutPlanes();
-      self._initScrollBounds(firstLoad);
+    /* Sanity image URLs encode dimensions in the filename e.g. HASH-1576x1210.webp
+       Parse them immediately so planes have the right aspect before textures land. */
+    function aspectFromUrl(src) {
+      var m = src.match(/-(\d+)x(\d+)\./);
+      return m ? parseInt(m[1], 10) / parseInt(m[2], 10) : 1;
     }
 
+    /* Request a capped width so Sanity transcodes to a lighter file on the fly. */
+    function sizedSrc(src) {
+      if (!isVideoSrc(src) && src.indexOf('?') === -1) {
+        return src + '?w=1400&auto=format&q=85';
+      }
+      return src;
+    }
+
+    /* Pre-build every plane immediately with the correct aspect ratio and a null
+       texture. The gallery is interactive from the first frame; textures pop in
+       as each download completes rather than all-or-nothing. */
     images.forEach(function (src, i) {
+      var aspect = aspectFromUrl(src);
+      var mat = new THREE.ShaderMaterial({
+        vertexShader:   _revealVert,
+        fragmentShader: _revealFrag,
+        uniforms: {
+          uTexture:  { value: null },
+          uProgress: { value: i === 0 ? 1.0 : 0.0 },
+          uTime:     { value: 0.0 }
+        },
+        transparent: true,
+        depthWrite:  false,
+        side:        THREE.DoubleSide
+      });
+      var mesh = new THREE.Mesh(planeGeo, mat);
+      mesh.scale.set(aspect, 1, 1);
+      mesh.userData.aspect  = aspect;
+      mesh.userData.basePos = { x: (PLANE_X_OFFSETS[i % PLANE_X_OFFSETS.length]) || 0, y: 0 };
+      self.scene.add(mesh);
+      self.planes.push(mesh);
+    });
+
+    self._layoutPlanes();
+    self._initScrollBounds(firstLoad);
+
+    /* Load textures in parallel — update each plane the moment its texture arrives. */
+    images.forEach(function (src, i) {
+      var mesh = self.planes[i];
+      if (!mesh) return;
+
       if (isVideoSrc(src)) {
         loadVideoTexture(src,
           function (tex, w, h) {
-            textures[i] = tex;
-            dimensions[i] = { w: w, h: h, video: tex.image };
-            if (++loaded === total) onAllLoaded();
+            if (!mesh.parent) return;
+            mesh.material.uniforms.uTexture.value = tex;
+            var aspect = w / h;
+            mesh.userData.aspect = aspect;
+            mesh.userData._video = tex.image;
           },
-          function () {
-            textures[i] = null;
-            if (++loaded === total) onAllLoaded();
-          }
+          function () {}
         );
       } else {
-        loader.load(src,
+        loader.load(sizedSrc(src),
           function (tex) {
+            if (!mesh.parent) return;
             tex.colorSpace = THREE.SRGBColorSpace;
-            textures[i] = tex;
-            if (++loaded === total) onAllLoaded();
+            mesh.material.uniforms.uTexture.value = tex;
+            if (tex.image && tex.image.width > 0) {
+              mesh.userData.aspect = tex.image.width / tex.image.height;
+            }
           },
           undefined,
-          function () {
-            textures[i] = null;
-            if (++loaded === total) onAllLoaded();
-          }
+          function () {}
         );
       }
     });
