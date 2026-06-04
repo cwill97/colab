@@ -2542,7 +2542,7 @@ body.about-page {
 }
 
 .studio-hero-image--3 {
-  grid-column: 9 / span 1;
+  grid-column: 9 / -1;
   aspect-ratio: 1 / 1.4;
   align-self: start;
 }
