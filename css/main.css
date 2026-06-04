@@ -1217,10 +1217,11 @@ body:not(.project-page) .section-label--contact {
 }
 
 /* .about-text clamps its copy with overflow:hidden; let the panel
-   extend past the text box on the homepage. The 156px box scales with
-   --u alongside the font, so the copy always fits — visible is safe. */
+   size and overflow freely on the homepage so the frosted card
+   wraps the actual text height rather than the --about-height box. */
 body:not(.project-page) .about-text {
   overflow: visible;
+  height: fit-content;
 }
 
 /* ------------------------------------------------------------
