@@ -1218,10 +1218,17 @@ body:not(.project-page) .section-label--contact {
 
 /* .about-text clamps its copy with overflow:hidden; let the panel
    size and overflow freely on the homepage so the frosted card
-   wraps the actual text height rather than the --about-height box. */
+   wraps the actual text height rather than the --about-height box.
+   Reduce inset-block to -3px to compensate for the line-height
+   half-leading (~3px each side), matching the 6px visual padding
+   on services/contact cards. */
 body:not(.project-page) .about-text {
   overflow: visible;
   height: fit-content;
+}
+
+body:not(.project-page) .about-text::before {
+  inset-block: calc(var(--u) * -3);
 }
 
 /* ------------------------------------------------------------
