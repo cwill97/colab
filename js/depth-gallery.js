@@ -215,7 +215,6 @@
   function loadVideoTexture(src, onReady, onError) {
     var video = document.createElement('video');
     video.src = src;
-    video.crossOrigin = '';
     video.loop = true;
     video.muted = true;
     video.playsInline = true;
@@ -237,7 +236,7 @@
   DepthGallery.prototype._loadAndBuildPlanes = function (images, firstLoad) {
     var self      = this;
     var loader    = new THREE.TextureLoader();
-    loader.crossOrigin = '';
+    loader.crossOrigin = undefined;
     var total     = images.length;
     var loaded    = 0;
     var textures  = new Array(total).fill(null);
