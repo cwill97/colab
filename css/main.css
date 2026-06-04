@@ -2644,7 +2644,7 @@ body.about-page {
   display: grid;
   grid-template-columns: repeat(var(--grid-columns), 1fr);
   column-gap: var(--grid-gutter);
-  margin-block-start: calc(var(--u) * 36);
+  margin-block-start: calc(var(--u) * 108);
 }
 
 .studio-wide {
