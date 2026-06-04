@@ -294,6 +294,12 @@
     var VIZ_FRAME_INTERVAL = 1000 / 40;
     var vizLastDraw        = 0;
 
+    /* prefers-reduced-motion: drop the autonomous decorative motion (the
+       slow auto-spin and the idle "breathing" wobble). Audio-reactive
+       movement is kept — that only happens after the user opts into sound. */
+    var vizReduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     function animate() {
       requestAnimationFrame(animate);
 
@@ -334,7 +340,9 @@
         for (var r3 = 0; r3 < NUM_RINGS; r3++) {
           var ratio2  = r3 / (NUM_RINGS - 1);
           var baseline = (1 - ratio2) * 0.28;
-          var wobble   = Math.sin(ratio2 * 3.2 + t * 0.7) * 0.06 * (1 - ratio2);
+          /* Static mound under reduced-motion (no time-driven wobble) */
+          var wobble   = vizReduced ? 0
+                       : Math.sin(ratio2 * 3.2 + t * 0.7) * 0.06 * (1 - ratio2);
           ringTargets[r3] = baseline + wobble;
         }
       }
@@ -354,8 +362,9 @@
       }
       geom.attributes.position.needsUpdate = true;
 
-      /* Slow auto-spin around Y — ~52s per full rotation */
-      points.rotation.y = t * 0.12;
+      /* Slow auto-spin around Y — ~52s per full rotation (frozen under
+         reduced-motion so the dome holds a still pose) */
+      points.rotation.y = vizReduced ? 0 : t * 0.12;
 
       renderer.render(scene, camera);
     }

@@ -80,6 +80,12 @@
     this._idleSpeed       = _isMobile ? 0.9 : 0.56; /* px per frame — positive = forward */
     this._idlePaused      = false;  /* external pause (e.g. overview modal open) */
 
+    /* prefers-reduced-motion: disable the autonomous idle auto-scroll so the
+       gallery only advances on explicit user input (wheel / swipe / hold). */
+    var _reducedMotion = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (_reducedMotion) this._idleSpeed = 0;
+
     /* End-of-gallery overscroll detection — two-stage flow.
        onEndLabelReveal fires at _overscrollThreshold (cue appears),
        onReachEnd defers until _overscrollCommitThreshold AFTER a
