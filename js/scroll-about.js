@@ -99,6 +99,33 @@
     var lockup       = document.querySelector('.studio-lockup');
 
     /* ═══════════════════════════════════════════════════════════
+       DESKTOP STICKY — studio-hero-image--3 pins until
+       studio-middle-copy--c is reached (cross-section, so
+       CSS sticky can't do this; GSAP pin handles it).
+       ═══════════════════════════════════════════════════════════ */
+    var img3     = document.querySelector('.studio-hero-image--3');
+    var gridRow  = document.querySelector('.studio-grid-tall-row');
+
+    if (img3 && gridRow && window.matchMedia('(min-width: 768px)').matches) {
+      var navEl     = document.querySelector('.site-nav');
+      var navH      = navEl ? navEl.offsetHeight : 0;
+      /* img3 pins at top:navH, so its bottom sits at navH + img3.offsetHeight.
+         Release when gridRow's bottom reaches that same viewport Y so img3's
+         bottom and the 4 grid cells' bottoms land in line. */
+      var endOffset = navH + img3.offsetHeight;
+
+      var stickyPin = ScrollTrigger.create({
+        trigger:    img3,
+        endTrigger: gridRow,
+        start:      'top top+=' + navH,
+        end:        'bottom top+=' + endOffset,
+        pin:        true,
+        pinSpacing: false
+      });
+      triggers.push(stickyPin);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
        BELOW-FOLD TEXT — variant 4 blur-scroll applied immediately
        (hidden by scroll position, so no flash)
        ═══════════════════════════════════════════════════════════ */
