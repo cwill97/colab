@@ -211,6 +211,7 @@
   DepthGallery.prototype._loadAndBuildPlanes = function (images, firstLoad) {
     var self      = this;
     var loader    = new THREE.TextureLoader();
+    loader.crossOrigin = 'anonymous';
     var total     = images.length;
     var loaded    = 0;
     var textures  = new Array(total).fill(null);
