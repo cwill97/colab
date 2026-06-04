@@ -95,8 +95,6 @@
   var RADIUS_MIN     = 90;      // px — smallest ambient spot
   var RADIUS_MAX     = 300;     // px — largest ambient spot
   var MARGIN         = 0.08;    // keep spots 8% away from edges
-  var DRIFT_MIN      = 15;      // px — minimum drift distance
-  var DRIFT_MAX      = 40;      // px — maximum drift distance
 
   var pool = [];
   var ambientTimer = null;
@@ -153,13 +151,6 @@
     return min + Math.random() * (max - min);
   }
 
-  /** Random drift in *pixels* — applied via a GPU-composited transform. */
-  function randomDrift() {
-    var angle = Math.random() * Math.PI * 2;
-    var dist  = randomBetween(DRIFT_MIN, DRIFT_MAX);
-    return { dx: Math.cos(angle) * dist, dy: Math.sin(angle) * dist };
-  }
-
   var LIFE = FADE_IN + HOLD + FADE_OUT;
 
   /** Build the mask gradient string for a given center position */
@@ -169,24 +160,16 @@
       core + '%, transparent 100%)';
   }
 
-  /** Set the static mask once, fade opacity in, and start the drift as a
-      GPU-composited transform. The mask is NEVER rebuilt after this — the
-      aperture moves because the whole (already-rasterized) layer is
-      translated by the compositor, so there is no per-frame CPU re-raster
-      of a full-screen image. This is the single biggest CPU/paint win. */
-  function showSpot(el, grad, driftDx, driftDy) {
+  /** Set the static mask once and fade opacity in. */
+  function showSpot(el, grad) {
     if (!el) return;
     el.style.transition = 'none';
     el.style.transform  = 'translate3d(0,0,0)';
     el.style.webkitMaskImage = grad;
     el.style.maskImage       = grad;
-    void el.offsetWidth;                /* commit the reset before animating */
-    el.style.transition =
-      'opacity '   + FADE_IN + 'ms cubic-bezier(0.16, 1, 0.3, 1), ' +
-      'transform ' + LIFE    + 'ms cubic-bezier(0.16, 1, 0.3, 1)';
+    void el.offsetWidth;
+    el.style.transition = 'opacity ' + FADE_IN + 'ms cubic-bezier(0.16, 1, 0.3, 1)';
     el.classList.add('is-visible');
-    el.style.transform = 'translate3d(' + driftDx.toFixed(1) + 'px,' +
-                                          driftDy.toFixed(1) + 'px,0)';
   }
 
   /** Fade out element (transform holds at its drifted position) */
@@ -208,14 +191,9 @@
     var radius = Math.round(randomBetween(RADIUS_MIN, RADIUS_MAX));
     var core   = Math.round(randomBetween(20, 35));
 
-    /* Drift, in px, applied as a composited transform (no per-frame raster) */
-    var drift = randomDrift();
-
-    /* Bake the mask once, then fade + drift purely via CSS transitions —
-       no requestAnimationFrame, no per-frame mask rebuild. */
     var grad = buildGrad(radius, core, startX, startY);
-    showSpot(spot.el,   grad, drift.dx, drift.dy);
-    showSpot(spot.twin, grad, drift.dx, drift.dy);
+    showSpot(spot.el,   grad);
+    showSpot(spot.twin, grad);
 
     /* Hold, then fade out */
     setTimeout(function () {
