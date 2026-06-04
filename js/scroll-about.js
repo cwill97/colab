@@ -191,6 +191,13 @@
       // Play image reveal
       heroTL.play();
 
+      // Ensure any video elements inside hero figures start playing
+      // (browsers may suspend autoplay on elements with clip-path hidden)
+      heroImages.forEach(function (fig) {
+        var vid = fig.querySelector('video');
+        if (vid) vid.play().catch(function () {});
+      });
+
       ScrollTrigger.refresh();
     }
 
