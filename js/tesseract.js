@@ -156,9 +156,9 @@ document.addEventListener('visibilitychange', function () {
      overridden at runtime via window.colabTesseract.setTier().
      ============================================================ */
   var TIER_CONFIG = {
-    high:   { fractalIters: 6, raymarchSteps: 32, dprCap: 2.0 },
-    medium: { fractalIters: 6, raymarchSteps: 28, dprCap: 2.0 },
-    low:    { fractalIters: 5, raymarchSteps: 22, dprCap: 1.5 }
+    high:   { fractalIters: 6, raymarchSteps: 32, dprCap: 1.5 },
+    medium: { fractalIters: 6, raymarchSteps: 28, dprCap: 1.5 },
+    low:    { fractalIters: 5, raymarchSteps: 22, dprCap: 1.25 }
   };
   var currentTier = 'medium';  // safe default until detection runs
 
@@ -520,12 +520,33 @@ document.addEventListener('visibilitychange', function () {
 
   /* ============================================================
      RENDER LOOP
+     ------------------------------------------------------------
+     The tesseract is a slow ambient orbit — it does NOT need to
+     redraw at the panel's native refresh. We cap the fullscreen
+     raymarch to ~40fps (≈30fps on 60Hz panels, ~40 on 120Hz
+     ProMotion), which roughly halves GPU load with no perceptible
+     change to the idle motion. The rAF keeps ticking at full rate
+     so the pause/menu checks stay responsive; only the expensive
+     draw is throttled.
      ============================================================ */
+  var FRAME_INTERVAL = 1000 / 40;
+  var lastDraw       = 0;
+
   function frame() {
     if (!running) return;
+    rafId = requestAnimationFrame(frame);
+
+    /* Nothing of the tesseract is visible while the nav menu overlay
+       covers the screen — skip the fullscreen raymarch entirely. */
+    if (document.body.hasAttribute('data-menu-open')) return;
+
+    var now = performance.now();
+    if (now - lastDraw < FRAME_INTERVAL - 1) return;
+    lastDraw = now;
+
     resize();
 
-    var t = (performance.now() - t0) * 0.001;
+    var t = (now - t0) * 0.001;
 
     // Update interaction physics
     updateInteraction();
@@ -538,8 +559,6 @@ document.addEventListener('visibilitychange', function () {
     gl.uniform1f(uHeat, heatVal);
     gl.uniform1f(uProximity, proximityVal);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-    rafId = requestAnimationFrame(frame);
   }
 
   /* ============================================================

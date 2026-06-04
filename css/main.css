@@ -202,7 +202,9 @@ body {
 .bg-hover-layer {
   position: fixed;
   inset: 0;
-  background-image: url('/sanity/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp');
+  /* Cursor spotlight is a soft masked reveal — downscaled source keeps the
+     per-move re-raster of this full-screen layer much cheaper. */
+  background-image: url('/sanity/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp?w=1600&q=80');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -233,14 +235,18 @@ body.cursor-active .bg-hover-layer {
 .bg-ambient-spot {
   position: fixed;
   inset: 0;
-  background-image: url('/sanity/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp');
+  /* Reveal texture is masked to soft circles ≤300px — a downscaled source
+     is indistinguishable here and slashes decode + raster cost. */
+  background-image: url('/sanity/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp?w=1600&q=80');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
   pointer-events: none;
   z-index: 0;
   opacity: 0;
-  will-change: opacity, mask-image, -webkit-mask-image;
+  /* Drift is a composited transform now (see bg-reveal.js) — never animate
+     mask-image, which would force a full-screen CPU re-raster every frame. */
+  will-change: transform, opacity;
 }
 
 .bg-ambient-spot.is-visible {

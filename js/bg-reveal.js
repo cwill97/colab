@@ -153,20 +153,14 @@
     return min + Math.random() * (max - min);
   }
 
-  /** Random drift in viewport-% units */
+  /** Random drift in *pixels* — applied via a GPU-composited transform. */
   function randomDrift() {
     var angle = Math.random() * Math.PI * 2;
     var dist  = randomBetween(DRIFT_MIN, DRIFT_MAX);
-    /* Convert px drift to % of viewport so mask position stays in % */
-    var dx = (Math.cos(angle) * dist) / window.innerWidth  * 100;
-    var dy = (Math.sin(angle) * dist) / window.innerHeight * 100;
-    return { dx: dx, dy: dy };
+    return { dx: Math.cos(angle) * dist, dy: Math.sin(angle) * dist };
   }
 
   var LIFE = FADE_IN + HOLD + FADE_OUT;
-
-  /* Smooth ease-out curve for drift */
-  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
   /** Build the mask gradient string for a given center position */
   function buildGrad(radius, core, cx, cy) {
@@ -175,30 +169,31 @@
       core + '%, transparent 100%)';
   }
 
-  /** Set initial mask and start opacity fade-in (no transform at all) */
-  function showSpot(el, grad) {
+  /** Set the static mask once, fade opacity in, and start the drift as a
+      GPU-composited transform. The mask is NEVER rebuilt after this — the
+      aperture moves because the whole (already-rasterized) layer is
+      translated by the compositor, so there is no per-frame CPU re-raster
+      of a full-screen image. This is the single biggest CPU/paint win. */
+  function showSpot(el, grad, driftDx, driftDy) {
     if (!el) return;
     el.style.transition = 'none';
-    el.style.transform  = '';         /* ensure no leftover transform */
+    el.style.transform  = 'translate3d(0,0,0)';
     el.style.webkitMaskImage = grad;
     el.style.maskImage       = grad;
-    void el.offsetWidth;
-    el.style.transition = 'opacity ' + FADE_IN + 'ms cubic-bezier(0.16, 1, 0.3, 1)';
+    void el.offsetWidth;                /* commit the reset before animating */
+    el.style.transition =
+      'opacity '   + FADE_IN + 'ms cubic-bezier(0.16, 1, 0.3, 1), ' +
+      'transform ' + LIFE    + 'ms cubic-bezier(0.16, 1, 0.3, 1)';
     el.classList.add('is-visible');
+    el.style.transform = 'translate3d(' + driftDx.toFixed(1) + 'px,' +
+                                          driftDy.toFixed(1) + 'px,0)';
   }
 
-  /** Fade out element */
+  /** Fade out element (transform holds at its drifted position) */
   function hideSpot(el) {
     if (!el) return;
     el.style.transition = 'opacity ' + FADE_OUT + 'ms cubic-bezier(0.33, 0, 0.67, 1)';
     el.classList.remove('is-visible');
-  }
-
-  /** Update mask position on an element (no transform) */
-  function setMask(el, grad) {
-    if (!el) return;
-    el.style.webkitMaskImage = grad;
-    el.style.maskImage       = grad;
   }
 
   function fireSpot() {
@@ -213,35 +208,14 @@
     var radius = Math.round(randomBetween(RADIUS_MIN, RADIUS_MAX));
     var core   = Math.round(randomBetween(20, 35));
 
-    /* Drift target in viewport % */
+    /* Drift, in px, applied as a composited transform (no per-frame raster) */
     var drift = randomDrift();
-    var endX  = startX + drift.dx;
-    var endY  = startY + drift.dy;
 
-    /* Show at starting position */
-    var initGrad = buildGrad(radius, core, startX, startY);
-    showSpot(spot.el, initGrad);
-    showSpot(spot.twin, initGrad);
-
-    /* Animate mask position via rAF over the full lifetime */
-    var t0  = performance.now();
-    var raf = 0;
-
-    function driftTick(now) {
-      var elapsed = now - t0;
-      var t = Math.min(elapsed / LIFE, 1);
-      var e = easeOutCubic(t);
-
-      var cx = startX + (endX - startX) * e;
-      var cy = startY + (endY - startY) * e;
-      var grad = buildGrad(radius, core, cx, cy);
-      setMask(spot.el, grad);
-      setMask(spot.twin, grad);
-
-      if (t < 1) raf = requestAnimationFrame(driftTick);
-    }
-
-    raf = requestAnimationFrame(driftTick);
+    /* Bake the mask once, then fade + drift purely via CSS transitions —
+       no requestAnimationFrame, no per-frame mask rebuild. */
+    var grad = buildGrad(radius, core, startX, startY);
+    showSpot(spot.el,   grad, drift.dx, drift.dy);
+    showSpot(spot.twin, grad, drift.dx, drift.dy);
 
     /* Hold, then fade out */
     setTimeout(function () {
@@ -250,7 +224,6 @@
 
       /* Mark free after fade-out completes */
       setTimeout(function () {
-        cancelAnimationFrame(raf);
         spot.busy = false;
       }, FADE_OUT + 50);
     }, FADE_IN + HOLD);
@@ -264,7 +237,13 @@
     }, delay);
   }
 
+  /* The ambient spots are autonomous, never-ending motion with no user
+     trigger — exactly what prefers-reduced-motion asks us to drop. */
+  var prefersReducedMotion = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   function startAmbient() {
+    if (prefersReducedMotion) return;
     if (ambientTimer) return;     // already running
     if (!pool.length) initPool();
     /* Fire one shortly after load for instant life */
@@ -281,6 +260,12 @@
       s.busy = false;
     });
   }
+
+  /* Don't spawn ambient work for a backgrounded tab; resume on return. */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) stopAmbient();
+    else startAmbient();
+  });
 
   /* Kick off once DOM is ready */
   if (document.readyState === 'loading') {

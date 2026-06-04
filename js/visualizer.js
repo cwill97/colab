@@ -208,10 +208,11 @@
     /* antialias: false — we want crisp square points, not AA'd soft circles */
     var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, alpha: true });
 
-    /* Pixel-ratio for the canvas backing store, capped at 4 to bound
-       memory use on very high-DPR displays. */
+    /* Pixel-ratio for the canvas backing store. Capped at 2 — this is a
+       small (~255×115) canvas of crisp square points, so anything above
+       2× is wasted backing-store memory and fill with no visible gain. */
     function getPixelRatio() {
-      return Math.min(window.devicePixelRatio || 1, 4);
+      return Math.min(window.devicePixelRatio || 1, 2);
     }
     var pr = getPixelRatio();
     renderer.setPixelRatio(pr);
@@ -281,8 +282,33 @@
 
     var clock = new THREE.Clock();
 
+    /* Visibility + frame gating. The visualizer dome kept rendering at
+       full refresh forever — even muted (idle breathing), even while the
+       container is display:none on the project/about pages, even on the
+       mobile layout that hides it. Gate the heavy work so it only runs
+       when the dome is actually on screen, and cap it to ~40fps. */
+    var vizVisible = !document.hidden;
+    document.addEventListener('visibilitychange', function () {
+      vizVisible = !document.hidden;
+    });
+    var VIZ_FRAME_INTERVAL = 1000 / 40;
+    var vizLastDraw        = 0;
+
     function animate() {
       requestAnimationFrame(animate);
+
+      /* Skip all FFT / buffer-upload / render work when off screen.
+         offsetWidth/Height collapse to 0 whenever the container is
+         display:none (project & about pages set it inline; mobile CSS
+         hides it too) — and, unlike offsetParent, they stay correct for
+         this position:fixed element. The rAF stays alive so the dome
+         resumes instantly when it's shown again. */
+      if (!vizVisible || container.offsetWidth === 0 || container.offsetHeight === 0) return;
+
+      var now = performance.now();
+      if (now - vizLastDraw < VIZ_FRAME_INTERVAL - 1) return;
+      vizLastDraw = now;
+
       var t = clock.getElapsedTime();
       var audioActive = analyser && started && !muted && dataArray;
 
