@@ -1228,7 +1228,7 @@ body:not(.project-page) .about-text {
 }
 
 body:not(.project-page) .about-text::before {
-  inset-block: calc(var(--u) * -3);
+  inset-block: calc(var(--u) * -10);
 }
 
 /* ------------------------------------------------------------
