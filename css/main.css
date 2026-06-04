@@ -938,7 +938,7 @@ main {
   background: var(--card-bg);
   -webkit-backdrop-filter: var(--card-filter);
           backdrop-filter: var(--card-filter);
-  border-radius: calc(var(--u) * 8);
+  border-radius: calc(var(--u) * 2);
 }
 
 /* Project title */
@@ -1199,7 +1199,7 @@ body:not(.project-page) .contact-block::before {
   background: var(--card-bg);
   -webkit-backdrop-filter: var(--card-filter);
           backdrop-filter: var(--card-filter);
-  border-radius: calc(var(--u) * 8);
+  border-radius: calc(var(--u) * 2);
   pointer-events: none;
 }
 
