@@ -2,7 +2,7 @@
    Scroll-driven editorial animations for the Studio (about) page.
    Text: Codrops ScrollBlurTypography variant 4 — word-by-word
          blur + skew + opacity, scrubbed to scroll position.
-   Images: clip-path reveal + parallax.
+   Images: clip-path reveal (top-left → bottom-right) + parallax.
    Uses GSAP ScrollTrigger + Lenis integration.
    ============================================================ */
 (function () {
@@ -146,9 +146,9 @@
     if (heroLead)  gsap.set(heroLead, { opacity: 0 });
     if (heroIntro) gsap.set(heroIntro, { opacity: 0 });
 
-    // Hide hero images until reveal
+    // Hide hero images until reveal — clipped from right+bottom (top-left origin)
     heroImages.forEach(function (fig) {
-      gsap.set(fig, { clipPath: 'inset(100% 0 0 0)' });
+      gsap.set(fig, { clipPath: 'inset(0% 100% 100% 0%)' });
       var img = fig.querySelector('img');
       if (img) gsap.set(img, { scale: 1.2 });
     });
@@ -157,7 +157,7 @@
 
     heroImages.forEach(function (fig) {
       heroTL.to(fig, {
-        clipPath: 'inset(0% 0 0 0)',
+        clipPath: 'inset(0% 0% 0% 0%)',
         duration: 1.0,
         ease: 'power3.inOut'
       }, 0);
@@ -211,52 +211,44 @@
        BELOW-FOLD IMAGES — ScrollTrigger reveals
        ═══════════════════════════════════════════════════════════ */
 
-    // Grid cells — clip reveal with cascade
+    // Grid cells — scroll-scrubbed clip reveal, top-left origin, per cell
     if (gridCells.length) {
       gridCells.forEach(function (cell) {
-        gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
+        gsap.set(cell, { clipPath: 'inset(0% 100% 100% 0%)' });
         var img = cell.querySelector('img');
         if (img) gsap.set(img, { scale: 1.15 });
-      });
 
-      triggers.push(ScrollTrigger.create({
-        trigger: '.studio-grid',
-        start: 'top 85%',
-        onEnter: function () {
-          gsap.to(gridCells, {
-            clipPath: 'inset(0% 0 0 0)',
-            duration: 1.0,
-            ease: 'power3.inOut',
-            stagger: 0.1
-          });
-          gridCells.forEach(function (cell) {
-            var img = cell.querySelector('img');
-            if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
-          });
-        },
-        once: true
-      }));
+        var tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: cell,
+            start: 'top 85%',
+            end: 'center 40%',
+            scrub: 0.8
+          }
+        });
+        tl.to(cell, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power2.inOut' });
+        if (img) tl.to(img, { scale: 1, ease: 'power2.out' }, 0);
+        if (tl.scrollTrigger) triggers.push(tl.scrollTrigger);
+      });
     }
 
-    // Wide image — clip reveal + parallax scrub
+    // Wide image — scroll-scrubbed clip reveal + parallax scrub
     if (wideImage) {
-      gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)' });
+      gsap.set(wideImage, { clipPath: 'inset(0% 100% 100% 0%)' });
       var wideImg = wideImage.querySelector('img');
       if (wideImg) gsap.set(wideImg, { scale: 1.12 });
 
-      triggers.push(ScrollTrigger.create({
-        trigger: wideImage,
-        start: 'top 85%',
-        onEnter: function () {
-          gsap.to(wideImage, {
-            clipPath: 'inset(0% 0 0 0)',
-            duration: 1.2,
-            ease: 'power3.inOut'
-          });
-          if (wideImg) gsap.to(wideImg, { scale: 1.05, duration: 1.4, ease: 'power2.out' });
-        },
-        once: true
-      }));
+      var revealTL = gsap.timeline({
+        scrollTrigger: {
+          trigger: wideImage,
+          start: 'top 80%',
+          end: 'center 40%',
+          scrub: 0.8
+        }
+      });
+      revealTL.to(wideImage, { clipPath: 'inset(0% 0% 0% 0%)', ease: 'power2.inOut' });
+      if (wideImg) revealTL.to(wideImg, { scale: 1.05, ease: 'power2.out' }, 0);
+      if (revealTL.scrollTrigger) triggers.push(revealTL.scrollTrigger);
 
       if (wideImg) {
         var scrub = gsap.fromTo(wideImg,
