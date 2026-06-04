@@ -30,9 +30,9 @@ for (const file of files) {
   let changed = false
 
   for (const [filename, cdnUrl] of Object.entries(urlMap)) {
-    // Match both  assets/filename  and  ../assets/filename  and  ../../assets/filename
+    // Match both  assets/filename  and  /assets/filename  and  ../assets/filename
     const pattern = new RegExp(
-      `(\\.\\.\\/)*assets\\/${filename.replace('.', '\\.')}`,
+      `\\/?(\\.\\.\\/)*assets\\/${filename.replace('.', '\\.')}`,
       'g'
     )
     const before = content

@@ -18,11 +18,11 @@
 
     var menuTransitioning = false;
 
-    var MENU_TRACK = '/https://cdn.sanity.io/files/7to0u5h2/production/072305d82863efb239981114090cedbc68659a90.mp3';
+    var MENU_TRACK = 'https://cdn.sanity.io/files/7to0u5h2/production/072305d82863efb239981114090cedbc68659a90.mp3';
     function pageTrack() {
       return document.body.classList.contains('about-page')
-        ? '/https://cdn.sanity.io/files/7to0u5h2/production/170e7c6ab04584728757f5ccb7c69e579e4acc4d.mp3'
-        : '/https://cdn.sanity.io/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
+        ? 'https://cdn.sanity.io/files/7to0u5h2/production/170e7c6ab04584728757f5ccb7c69e579e4acc4d.mp3'
+        : 'https://cdn.sanity.io/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
     }
 
     function showMenu() {
