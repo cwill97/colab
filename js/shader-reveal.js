@@ -188,7 +188,7 @@
 
     gsap.to(uniforms.uProgress, {
       value: 1.0,
-      duration: 1.8,
+      duration: 0.8,
       ease: 'power2.inOut',
       onComplete: function () {
         destroyLayer();
@@ -213,7 +213,7 @@
 
     gsap.to(uniforms.uProgress, {
       value: 0.0,
-      duration: 1.0,
+      duration: 0.45,
       ease: 'power2.inOut',
       onComplete: function () {
         /* Layer stays fully black — navigation happens now.
@@ -260,7 +260,7 @@
 
       setTimeout(function () {
         revealIn(0.0);
-      }, 150);
+      }, 50);
 
     } else if (loaderEl) {
       /* ── First visit with loader ── */
@@ -268,7 +268,7 @@
         document.removeEventListener('colab:revealed', onRevealed);
         createLayer();
         uniforms.uProgress.value = 0.0;
-        setTimeout(function () { revealIn(0.0); }, 100);
+        setTimeout(function () { revealIn(0.0); }, 50);
       });
 
     } else if (isProjectPage) {
@@ -278,7 +278,7 @@
       setTimeout(function () {
         document.body.classList.add('is-ready');
         revealIn(0.0);
-      }, 80);
+      }, 40);
 
     } else {
       /* ── Index page, session revisit (skipLoader path) ── */
@@ -286,7 +286,7 @@
         document.removeEventListener('colab:revealed', onRevealed);
         createLayer();
         uniforms.uProgress.value = 0.0;
-        setTimeout(function () { revealIn(0.0); }, 50);
+        setTimeout(function () { revealIn(0.0); }, 30);
       });
 
       /* Safety net — if colab:revealed never fires */
@@ -297,7 +297,7 @@
             uniforms.uProgress.value = 0.0;
             revealIn(0.0);
           }
-        }, 700);
+        }, 400);
       }
     }
   }
@@ -313,8 +313,8 @@
     },
     revealIn: function (startVal) {
       revealIn(startVal);
-      /* Reset lock after reveal completes (1.8s duration + buffer) */
-      setTimeout(function () { transitioning = false; }, 2000);
+      /* Reset lock after reveal completes (0.8s duration + buffer) */
+      setTimeout(function () { transitioning = false; }, 950);
     },
     resetLock: function () { transitioning = false; }
   };

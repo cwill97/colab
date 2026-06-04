@@ -262,13 +262,13 @@
               if (window.colabAudio) {
                 window.colabAudio.surface(0.6);
               }
-            }, 300);
+            }, 150);
 
             /* Signal complete after reveal finishes */
             setTimeout(function () {
               done();
-            }, 1800);
-          }, 150);
+            }, 800);
+          }, 50);
         }
       }]
     });
