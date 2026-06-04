@@ -4,7 +4,7 @@
   'use strict';
 
   // ── Config ─────────────────────────────────────────────────────────
-  var SFX_SRC       = '/assets/hover.mp3';
+  var SFX_SRC       = '/https://cdn.sanity.io/files/7to0u5h2/production/331f365e328f2a0bd8c0eed13fec01b344a09d38.mp3';
   var SFX_VOLUME    = 0.55;   // background UI tick — sits under the ambient bed
   var MIN_INTERVAL  = 35;     // ms between plays — kills fast-drag stacking
 

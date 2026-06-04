@@ -1,0 +1,7 @@
+node_modules/
+.DS_Store
+assets/.DS_Store
+js/.DS_Store
+.idea/
+.claude/
+scripts/asset-url-map.json
