@@ -854,7 +854,6 @@ main {
      detail line-clamp) are tuned so the content height equals the
      container height at the 1440×900 design baseline. */
   overflow: hidden;
-  padding-right: calc(var(--u) * 16);
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
