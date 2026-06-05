@@ -2715,6 +2715,10 @@ body.about-page {
 }
 
 /* ============ Mobile about page ============ */
+
+/* [ SCROLL MORE ] hidden on desktop */
+.studio-scroll-more { display: none; }
+
 @media (max-width: 767px) {
 
   /* ── Page container ── */
@@ -2726,6 +2730,7 @@ body.about-page {
 
   /* ── Hero: full-viewport flex column ── */
   .studio-hero {
+    position: relative;        /* anchor for abs-positioned intro */
     display: flex;
     flex-direction: column;
     height: 100dvh;
@@ -2736,20 +2741,16 @@ body.about-page {
     grid-template-columns: none;
   }
 
-  /* DOM order: lead → intro → hero-images → scroll-more
-     Visual order: lead → hero-images → scroll-more → intro (below fold) */
   .studio-lead {
-    order: 1;
     flex-shrink: 0;
     grid-column: unset;
     text-indent: 0;
-    font-size: calc(var(--u) * 36);
+    font-size: calc(var(--u) * 32);
     line-height: 1.05;
-    padding-block: calc(var(--u) * 20) calc(var(--u) * 16);
+    padding-block: calc(var(--u) * 16) calc(var(--u) * 12);
   }
 
   .studio-hero-images {
-    order: 2;
     flex: 1;
     min-height: 0;
     display: flex;
@@ -2758,11 +2759,10 @@ body.about-page {
     grid-template-columns: none;
   }
 
-  /* [ SCROLL MORE ] sits at the bottom of the viewport */
+  /* [ SCROLL MORE ] at the bottom of the viewport */
   .studio-scroll-more {
-    order: 3;
-    flex-shrink: 0;
     display: block;
+    flex-shrink: 0;
     background: none;
     border: none;
     color: var(--color-fg);
@@ -2772,32 +2772,34 @@ body.about-page {
     text-transform: uppercase;
     opacity: 0.75;
     cursor: pointer;
-    padding: calc(var(--u) * 16) calc(var(--u) * 24);
+    padding: calc(var(--u) * 14) calc(var(--u) * 24);
     margin-inline: auto;
     transition: opacity 0.2s ease;
   }
   .studio-scroll-more:active { opacity: 1; }
 
-  /* studio-intro flows below the 100dvh fold */
+  /* Intro: pulled out of flex flow entirely so it doesn't
+     steal space from the video. Positioned just below the fold. */
   .studio-intro {
-    order: 4;
-    flex-shrink: 0;
-    grid-column: unset;
+    position: absolute;
+    inset-block-start: 100dvh;
+    inset-inline: 0;
+    padding-inline: var(--m);
+    padding-block: calc(var(--u) * 52) calc(var(--u) * 40);
     font-size: calc(var(--u) * 13);
-    line-height: 1.6;
-    padding-block-start: calc(var(--u) * 60);
-    padding-block-end: calc(var(--u) * 40);
+    line-height: 1.65;
+    grid-column: unset;
   }
 
   /* Hide hero pair (images 1 & 2) — only video shows */
   .studio-hero-pair { display: none !important; }
 
-  /* Video fills the hero images area */
+  /* Video fills all remaining flex space between h1 and scroll-more */
   .studio-hero-image--3 {
     flex: 1;
     min-height: 0;
     width: 68%;
-    aspect-ratio: auto;
+    aspect-ratio: auto !important;
     align-self: center;
   }
 
@@ -2812,9 +2814,10 @@ body.about-page {
   .studio-middle { display: none; }
 
   /* ── 4-image horizontal pinned carousel ── */
+  /* Top margin accounts for the absolutely-positioned intro below the fold */
   .studio-grid {
     overflow: hidden;
-    margin-block-start: 0;
+    margin-block-start: calc(var(--u) * 260);
   }
 
   .studio-grid-tall-row {
@@ -2841,10 +2844,14 @@ body.about-page {
   }
 
   /* ── Wide image ── */
-  .studio-wide-row { grid-template-columns: 1fr; }
+  .studio-wide-row {
+    display: block;
+    margin-block-start: calc(var(--u) * 60);
+  }
   .studio-wide {
-    grid-column: 1 / -1;
+    grid-column: unset;
     aspect-ratio: 4 / 3;
+    width: 100%;
   }
 
   /* ── Lockup ── */
