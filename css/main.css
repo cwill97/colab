@@ -2201,7 +2201,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .menu-nav-list {
-    font-size: clamp(calc(var(--u) * 16), 6vw, calc(var(--u) * 44));
+    font-size: clamp(calc(var(--u) * 26), 8.5vw, calc(var(--u) * 54));
     line-height: 1;
     letter-spacing: -0.005em;
   }
