@@ -12,7 +12,7 @@
       slug:     'viking-gear',
       index:    '001',
       title:    'Viking Gear',
-      services: 'Brand Development · Web Design · E-Commerce · 3D · Animation',
+      services: 'Visual Language · Development · 3D',
       logoSrc:  '/sanity/images/7to0u5h2/production/34ec338564d3155d21a209f745cc7645fa73ecd6-259x87.svg',
       liveUrl:  'https://viking-gear.store/',
       timeline: 'October 2025 — May 2026',
