@@ -240,16 +240,17 @@
 
     // Wide image — clip reveal + parallax scrub
     if (wideImage) {
-      gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)' });
+      gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)', scale: 1.04, transformOrigin: 'center bottom' });
       var wideImg = wideImage.querySelector('img');
       if (wideImg) gsap.set(wideImg, { scale: 1.12 });
 
       triggers.push(ScrollTrigger.create({
         trigger: wideImage,
-        start: 'top 85%',
+        start: 'top 95%',
         onEnter: function () {
           gsap.to(wideImage, {
             clipPath: 'inset(0% 0 0 0)',
+            scale: 1,
             duration: 1.2,
             ease: 'power3.inOut'
           });
