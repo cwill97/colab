@@ -2692,7 +2692,7 @@ body.about-page {
   display: flex;
   justify-content: center;
   margin-block-start: calc(var(--u) * 270);
-  margin-block-end: 20vh;
+  margin-block-end: 18vh;
 }
 
 .studio-lockup-img {
