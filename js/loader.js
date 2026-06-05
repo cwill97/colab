@@ -127,7 +127,7 @@
   ];
 
   var TICK_MS           = 600 / 35;
-  var RESOLVES_PER_TICK = 9;
+  var RESOLVES_PER_TICK = 3;
 
   function randomGlyph() {
     return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -183,7 +183,7 @@
           el: span,
           final: entry.text[c],
           resolved: isSpace,
-          threshold: (row * 1.2) + (c * 0.08) + (Math.random() * 10),
+          threshold: (LINE_START + row * LINE_STAGGER) / TICK_MS + (c * 0.3) + (Math.random() * 8),
           okSpan: okSpan,
           lineIndex: i
         });
@@ -227,7 +227,7 @@
           el: fspan,
           final: line[fc],
           resolved: fIsSpace,
-          threshold: (fRow * 1.2) + (fc * 0.08) + (Math.random() * 10)
+          threshold: (LINE_START + fRow * LINE_STAGGER) / TICK_MS + (fc * 0.3) + (Math.random() * 8)
         });
         if (!fIsSpace) totalChars++;
         else resolvedCount++;
