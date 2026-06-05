@@ -1535,7 +1535,7 @@ body.is-dragging-tesseract {
   inset-inline-start: var(--grid-margin);
   width: calc(2 * var(--col-width) + var(--grid-gutter));
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 11);
   line-height: 1.8;
   color: var(--color-fg);
   letter-spacing: 0.04em;
