@@ -2169,7 +2169,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     text-transform: uppercase;
   }
   .project-detail  {
-    font-size: calc(var(--u) * 13);
+    font-size: calc(var(--u) * 11);
     max-width: none;
     color: var(--color-grey);
     font-family: var(--font-mono);
