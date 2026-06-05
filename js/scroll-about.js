@@ -246,15 +246,15 @@
 
       triggers.push(ScrollTrigger.create({
         trigger: wideImage,
-        start: 'top 95%',
+        start: 'top bottom+=80',
         onEnter: function () {
           gsap.to(wideImage, {
             clipPath: 'inset(0% 0 0 0)',
             scale: 1,
-            duration: 1.2,
+            duration: 1.8,
             ease: 'power3.inOut'
           });
-          if (wideImg) gsap.to(wideImg, { scale: 1.05, duration: 1.4, ease: 'power2.out' });
+          if (wideImg) gsap.to(wideImg, { scale: 1.05, duration: 2.0, ease: 'power2.out' });
         },
         once: true
       }));
