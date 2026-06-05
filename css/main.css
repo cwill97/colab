@@ -2714,54 +2714,143 @@ body.about-page {
   height: auto;
 }
 
-/* ============ Mobile (placeholder fallback — to be redesigned) ============ */
+/* ============ Mobile about page ============ */
 @media (max-width: 767px) {
+
+  /* ── Page container ── */
   .studio {
-    padding:
-      calc(var(--nav-height) + calc(var(--u) * 40))
-      var(--m)
-      calc(var(--u) * 40);
-    gap: calc(var(--u) * 40);
+    display: block;
+    padding: 0;
+    gap: 0;
   }
 
-  .studio-hero,
-  .studio-middle,
-  .studio-grid,
-  .studio-hero-images,
-  .studio-wide-row {
-    grid-template-columns: 1fr;
+  /* ── Hero: full-viewport flex column ── */
+  .studio-hero {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: visible;
+    padding-block-start: var(--nav-height);
+    padding-inline: var(--m);
+    gap: 0;
+    grid-template-columns: none;
   }
 
-  .studio-wide { grid-column: 1 / -1; }
-
+  /* DOM order: lead → intro → hero-images → scroll-more
+     Visual order: lead → hero-images → scroll-more → intro (below fold) */
   .studio-lead {
-    grid-column: 1 / -1;
+    order: 1;
+    flex-shrink: 0;
+    grid-column: unset;
     text-indent: 0;
-    font-size: calc(var(--u) * 40);
-    line-height: 1.04;
+    font-size: calc(var(--u) * 36);
+    line-height: 1.05;
+    padding-block: calc(var(--u) * 20) calc(var(--u) * 16);
   }
 
-  .studio-intro,
-  .studio-middle-lead,
-  .studio-middle-copy {
-    grid-column: 1 / -1;
-    grid-row: auto;
-    font-size: calc(var(--u) * 14);
+  .studio-hero-images {
+    order: 2;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    grid-template-columns: none;
   }
 
-  .studio-hero-image,
-  .studio-hero-pair,
-  .studio-grid-tall-row,
+  /* [ SCROLL MORE ] sits at the bottom of the viewport */
+  .studio-scroll-more {
+    order: 3;
+    flex-shrink: 0;
+    display: block;
+    background: none;
+    border: none;
+    color: var(--color-fg);
+    font-family: var(--font-mono);
+    font-size: calc(var(--u) * 12);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    cursor: pointer;
+    padding: calc(var(--u) * 16) calc(var(--u) * 24);
+    margin-inline: auto;
+    transition: opacity 0.2s ease;
+  }
+  .studio-scroll-more:active { opacity: 1; }
+
+  /* studio-intro flows below the 100dvh fold */
+  .studio-intro {
+    order: 4;
+    flex-shrink: 0;
+    grid-column: unset;
+    font-size: calc(var(--u) * 13);
+    line-height: 1.6;
+    padding-block-start: calc(var(--u) * 60);
+    padding-block-end: calc(var(--u) * 40);
+  }
+
+  /* Hide hero pair (images 1 & 2) — only video shows */
+  .studio-hero-pair { display: none !important; }
+
+  /* Video fills the hero images area */
+  .studio-hero-image--3 {
+    flex: 1;
+    min-height: 0;
+    width: 68%;
+    aspect-ratio: auto;
+    align-self: center;
+  }
+
+  .studio-hero-image--3 video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Hide desktop-only middle copy block */
+  .studio-middle { display: none; }
+
+  /* ── 4-image horizontal pinned carousel ── */
+  .studio-grid {
+    overflow: hidden;
+    margin-block-start: 0;
+  }
+
+  .studio-grid-tall-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: calc(var(--u) * 12);
+    padding-inline: var(--m);
+    will-change: transform;
+  }
+
   .studio-grid-cell-tall {
-    grid-column: 1 / -1 !important;
-    grid-row: auto !important;
+    flex-shrink: 0;
+    width: 76vw;
+    aspect-ratio: 2 / 3;
+    overflow: hidden;
+  }
+
+  .studio-grid-cell-tall img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── Wide image ── */
+  .studio-wide-row { grid-template-columns: 1fr; }
+  .studio-wide {
+    grid-column: 1 / -1;
     aspect-ratio: 4 / 3;
   }
 
-  .studio-hero-pair,
-  .studio-grid-tall-row { display: flex; flex-direction: column; aspect-ratio: auto; }
-
-  .studio-middle-copy--c { max-width: none; justify-self: stretch; }
-
+  /* ── Lockup ── */
+  .studio-lockup {
+    margin-block-start: calc(var(--u) * 80);
+    margin-block-end: 12vh;
+  }
   .studio-lockup-img { max-width: 100%; }
 }

@@ -83,6 +83,39 @@
     });
   }
 
+  /* ── Mobile pinned horizontal carousel ─────────────────────── */
+  function initMobileCarousel() {
+    var grid  = document.querySelector('.studio-grid');
+    var track = document.querySelector('.studio-grid-tall-row');
+    if (!grid || !track) return;
+
+    var cards  = track.querySelectorAll('.studio-grid-cell-tall');
+    var vw     = window.innerWidth;
+    var cardW  = vw * 0.76;
+    var gapPx  = vw * 0.03;  /* ~12u at 393px */
+    var totalW = (cardW + gapPx) * cards.length - gapPx;
+    var moveX  = -(totalW - vw);
+
+    /* Cards start just off-screen right so they pan in */
+    gsap.set(track, { x: vw * 0.08 });
+
+    var tween = gsap.to(track, {
+      x: moveX,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: grid,
+        pin: true,
+        scrub: 1,
+        start: 'top top',
+        end: function () {
+          return '+=' + (Math.abs(moveX) + vw * 0.08);
+        }
+      }
+    });
+
+    if (tween.scrollTrigger) triggers.push(tween.scrollTrigger);
+  }
+
   /* ── Init ──────────────────────────────────────────────────── */
   function init() {
     if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
@@ -211,31 +244,35 @@
        BELOW-FOLD IMAGES — ScrollTrigger reveals
        ═══════════════════════════════════════════════════════════ */
 
-    // Grid cells — clip reveal with cascade
+    // Grid cells — desktop: clip reveal cascade / mobile: pinned horizontal carousel
     if (gridCells.length) {
-      gridCells.forEach(function (cell) {
-        gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
-        var img = cell.querySelector('img');
-        if (img) gsap.set(img, { scale: 1.15 });
-      });
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        gridCells.forEach(function (cell) {
+          gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
+          var img = cell.querySelector('img');
+          if (img) gsap.set(img, { scale: 1.15 });
+        });
 
-      triggers.push(ScrollTrigger.create({
-        trigger: '.studio-grid',
-        start: 'top 85%',
-        onEnter: function () {
-          gsap.to(gridCells, {
-            clipPath: 'inset(0% 0 0 0)',
-            duration: 1.0,
-            ease: 'power3.inOut',
-            stagger: 0.1
-          });
-          gridCells.forEach(function (cell) {
-            var img = cell.querySelector('img');
-            if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
-          });
-        },
-        once: true
-      }));
+        triggers.push(ScrollTrigger.create({
+          trigger: '.studio-grid',
+          start: 'top 85%',
+          onEnter: function () {
+            gsap.to(gridCells, {
+              clipPath: 'inset(0% 0 0 0)',
+              duration: 1.0,
+              ease: 'power3.inOut',
+              stagger: 0.1
+            });
+            gridCells.forEach(function (cell) {
+              var img = cell.querySelector('img');
+              if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
+            });
+          },
+          once: true
+        }));
+      } else {
+        initMobileCarousel();
+      }
     }
 
     // Wide image — clip reveal + parallax scrub
