@@ -638,7 +638,7 @@
 
   .project-page .project-mobile-logo-img {
     display: block;
-    height: calc(var(--u) * 28);
+    height: calc(var(--u) * 42);
     width: auto;
     object-fit: contain;
   }
