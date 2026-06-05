@@ -2163,7 +2163,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   }
 
   .project-title {
-    font-size: calc(var(--u) * 14);
+    font-size: calc(var(--u) * 12);
     overflow-wrap: break-word;
     word-break: normal;
     text-transform: uppercase;
