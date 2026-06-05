@@ -1544,7 +1544,7 @@ body.is-dragging-tesseract {
 
 .loader-terminal-intro {
   margin-block-end: calc(var(--u) * 16);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 11);
   opacity: 0.9;
 }
 
