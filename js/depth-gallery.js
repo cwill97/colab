@@ -736,18 +736,9 @@
     this._touchStartY = touch.clientY;
     this._touchMoved  = false;
 
-    /* Stop any existing hold-auto-scroll */
-    this._autoScrolling = false;
+    /* Pause idle auto-scroll while finger is down */
+    this._idlePaused = true;
     clearTimeout(this._holdTimer);
-
-    /* Start hold timer — if finger doesn't move significantly,
-       begin auto-scrolling through images */
-    var self = this;
-    this._holdTimer = setTimeout(function () {
-      if (!self._touchMoved) {
-        self._autoScrolling = true;
-      }
-    }, this._holdDelay);
   };
 
   DepthGallery.prototype._onTouchMove = function (e) {
@@ -762,9 +753,7 @@
     var dy = Math.abs(touch.clientY - this._touchStartY);
     if (dx > 10 || dy > 10) {
       this._touchMoved = true;
-      /* Cancel hold timer — this is a swipe, not a hold */
       clearTimeout(this._holdTimer);
-      /* Stop auto-scroll if it already started */
       this._autoScrolling = false;
     }
 
@@ -780,7 +769,8 @@
   };
 
   DepthGallery.prototype._onTouchEnd = function () {
-    /* Stop auto-scroll */
+    /* Resume idle auto-scroll when finger lifts */
+    this._idlePaused = false;
     this._autoScrolling = false;
     clearTimeout(this._holdTimer);
     this._touchMoved = false;
