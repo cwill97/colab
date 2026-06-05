@@ -240,7 +240,7 @@
 
     // Wide image — clip reveal + parallax scrub
     if (wideImage) {
-      gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)', scale: 0.96, transformOrigin: 'center bottom' });
+      gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)', scale: 0.60, transformOrigin: 'center bottom' });
       var wideImg = wideImage.querySelector('img');
       if (wideImg) gsap.set(wideImg, { scale: 1.12 });
 
