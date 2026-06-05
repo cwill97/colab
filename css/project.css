@@ -299,7 +299,7 @@
     var(--nav-height)
     + var(--title-gap)
     + var(--viz-height)
-    - calc(var(--u) * 20)
+    - calc(var(--u) * 32)
   );
   /* Bottom-align with the audio toggle + scroll-to-explore baseline (28px) so
      [ PREVIOUS PROJECT ] sits on the same row. The audio toggle occupies the
