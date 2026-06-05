@@ -265,13 +265,13 @@
     var CLOSED = 'inset(0 100% 0 0)';
     var EASE   = 'clip-path 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
 
-    /* Set initial states — imgA fully visible, imgB fully hidden */
+    /* Set initial states — imgA hidden (video shows through), imgB hidden */
     imgA.style.transition = 'none';
-    imgA.style.clipPath   = OPEN;
+    imgA.style.clipPath   = CLOSED;
     imgB.style.transition = 'none';
     imgB.style.clipPath   = CLOSED;
     var hovered    = null;
-    var currentSrc = imgA.src; /* track what imgA is actually showing */
+    var currentSrc = ''; /* nothing showing yet — video is default */
 
     /* Hard-set clip with no animation — two rAF frames to guarantee
        the browser paints the no-transition state before re-enabling */
@@ -293,30 +293,32 @@
       var isNew = (item !== hovered);
       hovered   = item;
 
+      /* Cancel any in-progress imgA retract — snap it open so imgB
+         can wipe in over the last project image (not over the video) */
+      imgA.style.transition = 'none';
+      imgA.style.clipPath   = OPEN;
+
       /* Resolve to absolute URL the same way the browser does,
-         so we can compare against imgA.src (which is always absolute) */
+         so we can compare against currentSrc */
       var tmpA = document.createElement('a');
       tmpA.href = src;
       var absSrc = tmpA.href;
 
       if (isNew) {
-        /* If imgA is already showing this image, silently swap imgA
-           so imgB can animate over it from scratch */
+        /* If imgA is already showing this image, hide it so
+           imgB can animate over the video from scratch */
         if (absSrc === currentSrc) {
-          /* Give imgA a transparent placeholder so imgB's reveal is visible */
-          imgA.style.transition = 'none';
-          imgA.style.clipPath   = CLOSED;
+          imgA.style.clipPath = CLOSED;
         }
 
         imgB.src = src;
-        /* Snap to closed, then animate open once transition is restored */
         snapClip(imgB, CLOSED, function () {
           if (hovered === item) {
             imgB.style.clipPath = OPEN;
           }
         });
       } else {
-        /* Same item re-entered mid-retract — just open it */
+        /* Same item re-entered mid-retract — just open imgB */
         imgB.style.transition = EASE;
         imgB.style.clipPath   = OPEN;
       }
@@ -325,11 +327,11 @@
     function onLeave(item) {
       if (item !== hovered) return;
       hovered = null;
-      /* Restore imgA visibility in case it was hidden for same-src reveal */
-      imgA.style.transition = 'none';
-      imgA.style.clipPath   = OPEN;
+      /* Retract imgB, then retract imgA to reveal the idle video */
       imgB.style.transition = EASE;
       imgB.style.clipPath   = CLOSED;
+      imgA.style.transition = EASE;
+      imgA.style.clipPath   = CLOSED;
     }
 
     /* Promote imgB → imgA when fully open */

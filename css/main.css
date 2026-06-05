@@ -1023,6 +1023,18 @@ main {
   position: relative;
 }
 
+/* Default idle video — sits below both images */
+.project-image-default-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  z-index: 0;
+}
+
 /* Both images fill the container */
 .project-image-wrap img {
   position: absolute;
