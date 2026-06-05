@@ -271,7 +271,7 @@
 .project-logo-img {
   display: block;
   width: 75%;
-  height: 75%;
+  height: 45%;
   object-fit: contain;
 }
 
@@ -346,17 +346,19 @@
 }
 
 .project-info-text {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.55;
   letter-spacing: 0.02em;
   color: var(--color-fg);
+  text-transform: uppercase;
 }
 
 .project-info-section--timeline .project-info-text {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 /* ------------------------------------------------------------
@@ -653,7 +655,7 @@
   }
   .project-page .project-mobile-meta-value {
     display: block;
-    font-family: var(--font-display);
+    font-family: var(--font-mono);
     font-size: calc(var(--u) * 14);
     line-height: 1.25;
     letter-spacing: 0.02em;
@@ -662,6 +664,7 @@
        (e.g. "Brand Development · Web Design" / "E-Commerce · 3D · Animation")
        rather than orphaning the last word. */
     text-wrap: balance;
+    text-transform: uppercase;
   }
 
   /* --------------------------------------------------------

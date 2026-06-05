@@ -134,17 +134,17 @@
   --viz-width:        calc(var(--u) * 255);
   --viz-height:       calc(var(--u) * 115);
   --about-gap:        calc(var(--u) * 30);   /* gap below visualizer to about text */
-  --about-height:     calc(var(--u) * 141);  /* right-column Manifesto copy at 9u */
+  --about-height:     calc(var(--u) * 180);  /* right-column Manifesto copy at 9u */
   --services-gap:     calc(var(--u) * 60);   /* gap below about text to services */
-  --services-height:  calc(var(--u) * 173);  /* 8 items × 9u × 2.4lh ≈ 173px */
+  --services-height:  calc(var(--u) * 190);  /* 8 items × 9u × 2.4lh ≈ 173px */
   --contact-gap:      calc(var(--u) * 60);   /* gap below services to contact */
 
   /* Section labels — small muted heading above each block.
      Label sits inside the gap above its section; total label-block
      (height + gap-to-content) is carved out of the existing gap. */
-  --section-label-height: calc(var(--u) * 9);
+  --section-label-height: calc(var(--u) * 12);
   --section-label-gap:    calc(var(--u) * 6);    /* gap below [Featured Projects] label */
-  --side-label-gap:       calc(var(--u) * 12);   /* gap below right-column labels: [Manifesto], [Our Services], [Contact Us] */
+  --side-label-gap:       calc(var(--u) * 15);   /* gap below right-column labels: [Manifesto], [Our Services], [Contact Us] */
 
   /* Motion */
   --ease-out:       cubic-bezier(0.16, 1, 0.3, 1);
@@ -500,7 +500,8 @@ button {
   font-weight: 400;
   font-size: clamp(calc(var(--u) * 48), 5.8vw, calc(var(--u) * 90));
   line-height: 0.95;
-  letter-spacing: -0.01em;
+  letter-spacing: 0em;
+  text-transform: uppercase;
 }
 
 .menu-nav-item {
@@ -708,6 +709,7 @@ a.menu-sub-link:focus-visible {
   letter-spacing: 0.02em;
   color: var(--color-muted);
   margin-block-end: calc(var(--u) * 18);
+  text-transform: uppercase;
 }
 
 .menu-footer-col ul {
@@ -717,13 +719,14 @@ a.menu-sub-link:focus-visible {
 }
 
 .menu-footer-col li {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 2.6;
   letter-spacing: 0.02em;
   color: var(--color-fg);
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 /* Old menu list — no longer used, keep selectors for safety */
@@ -948,6 +951,7 @@ main {
   line-height: 1;
   color: var(--color-fg);
   letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 /* Project detail — full text on desktop (no line-clamp). The
@@ -955,12 +959,13 @@ main {
    render in full without any "…" truncation. */
 .project-detail {
   margin-block-start: calc(var(--u) * 6);
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.35;
   color: var(--color-grey);
   max-width: 42ch;
+  text-transform: uppercase;
 }
 
 /* CTA link — base style is kept for the /projects/ index page,
@@ -1086,13 +1091,14 @@ main {
   height: var(--about-height);
   overflow: hidden;
   z-index: 50;
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 1.5;
   letter-spacing: 0.02em;
   text-align: left;
   color: var(--color-fg);
+  text-transform: uppercase;
 }
 
 /* ------------------------------------------------------------
@@ -1139,7 +1145,7 @@ main {
 }
 
 .services-list li {
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-size: calc(var(--u) * 9);
   font-weight: 400;
   line-height: 2.4;
@@ -1147,6 +1153,7 @@ main {
   text-align: left;
   color: var(--color-fg);
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 /* ------------------------------------------------------------
@@ -2041,7 +2048,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     -webkit-backdrop-filter: none;
             backdrop-filter: none;
     border-radius: 0;
-    font-family: var(--font-display);
+    font-family: var(--font-mono);
     font-size: calc(var(--u) * 11);
     font-weight: 400;
     line-height: 1;
@@ -2049,6 +2056,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     text-transform: none;
     color: var(--color-muted);
     margin-block-end: calc(var(--u) * 14);
+    text-transform: uppercase;
   }
 
   .project-list-wrap {
@@ -2158,11 +2166,13 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     font-size: calc(var(--u) * 14);
     overflow-wrap: break-word;
     word-break: normal;
+    text-transform: uppercase;
   }
   .project-detail  {
     font-size: calc(var(--u) * 13);
     max-width: none;
     color: var(--color-grey);
+    font-family: var(--font-mono);
     margin-block-start: calc(var(--u) * 6);
     display: block;
     line-height: 1.4;
@@ -2171,6 +2181,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     overflow-wrap: break-word;
     word-break: normal;
     hyphens: none;
+    text-transform: uppercase;
   }
 
   /* --------------------------------------------------------
@@ -2488,18 +2499,20 @@ body.about-page {
   letter-spacing: -0.015em;
   color: var(--color-fg);
   text-indent: calc(var(--u) * 143);
+  text-transform: uppercase;
 }
 
 .studio-intro {
   grid-column: 1 / span 4;
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-weight: 400;
   font-size: calc(var(--u) * 11);
   line-height: 1.45;
   letter-spacing: 0.004em;
   color: var(--color-fg);
   text-align: justify;
+  text-transform: uppercase;
 }
 
 .studio-hero-images {
@@ -2573,11 +2586,12 @@ body.about-page {
   line-height: 1.15;
   letter-spacing: -0.01em;
   color: var(--color-fg);
+  text-transform: uppercase;
 }
 
 .studio-middle-copy {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-mono);
   font-weight: 400;
   font-size: calc(var(--u) * 10);
   line-height: 1.5;
@@ -2585,6 +2599,7 @@ body.about-page {
   color: var(--color-fg);
   text-align: justify;
   white-space: pre-line;
+  text-transform: uppercase;
 }
 
 .studio-middle-copy--a {
