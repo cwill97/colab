@@ -245,8 +245,8 @@
       if (wideImg) gsap.set(wideImg, { scale: 1.12 });
 
       triggers.push(ScrollTrigger.create({
-        trigger: wideImage,
-        start: 'top bottom+=80',
+        trigger: '.studio-grid',
+        start: 'bottom center',
         onEnter: function () {
           gsap.to(wideImage, {
             clipPath: 'inset(0% 0 0 0)',
