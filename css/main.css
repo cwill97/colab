@@ -2091,7 +2091,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   .project-item {
     display: flex !important;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     gap: calc(var(--u) * 12);
     overflow: visible;
     flex-shrink: 0;
@@ -2170,7 +2170,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     text-transform: uppercase;
   }
   .project-detail  {
-    font-size: calc(var(--u) * 9);
+    font-size: calc(var(--u) * 10);
     max-width: none;
     color: var(--color-grey);
     font-family: var(--font-mono);
