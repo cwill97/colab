@@ -628,14 +628,19 @@
   }
 
   .project-page .project-mobile-title {
+    display: none;
+  }
+
+  .project-page .project-mobile-logo {
+    display: flex;
+    align-items: center;
+  }
+
+  .project-page .project-mobile-logo-img {
     display: block;
-    font-family: var(--font-display);
-    font-size: calc(var(--u) * 21);
-    font-weight: 400;
-    letter-spacing: 0.05em;
-    color: var(--color-fg);
-    line-height: 1;
-    margin: 0;
+    height: calc(var(--u) * 28);
+    width: auto;
+    object-fit: contain;
   }
 
   /* Role / Year — muted mono label above a display-type value. */

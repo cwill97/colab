@@ -163,6 +163,7 @@
   var overviewTrigger  = document.querySelector('[data-mobile-overview-trigger]');
   var mobileServices   = document.querySelector('[data-mobile-services]');
   var mobileYear       = document.querySelector('[data-mobile-year]');
+  var mobileLogo       = document.querySelector('[data-mobile-logo]');
   var overviewClose    = document.querySelector('[data-overview-close]');
   var liveProjectLink  = document.querySelector('[data-live-project]');
 
@@ -175,6 +176,7 @@
     if (project.logoSrc) {
       var img = document.createElement('img');
       if (target === projectLogo) img.className = 'project-logo-img';
+      else if (target === mobileLogo) img.className = 'project-mobile-logo-img';
       img.src = project.logoSrc;
       img.alt = project.title;
       target.appendChild(img);
@@ -208,6 +210,7 @@
     if (projectTimeline)  projectTimeline.textContent  = project.timeline || '';
     if (projectCredits)   projectCredits.textContent   = project.credits || '';
     setLogo(projectLogo, project);
+    setLogo(mobileLogo, project);
 
     /* View live project link */
     if (liveProjectLink) {
@@ -615,6 +618,7 @@
       overviewTimeline = scope.querySelector('[data-overview-timeline]');
       overviewLive     = scope.querySelector('[data-overview-live-project]');
       overviewTrigger  = scope.querySelector('[data-mobile-overview-trigger]');
+      mobileLogo       = scope.querySelector('[data-mobile-logo]');
       overviewClose    = scope.querySelector('[data-overview-close]');
       liveProjectLink  = scope.querySelector('[data-live-project]');
       if (!canvas || !canvasWrap) return;
