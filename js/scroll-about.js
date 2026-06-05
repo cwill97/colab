@@ -78,8 +78,8 @@
       opacity: 1,
       skewX: 0,
       filter: 'blur(0px)',
-      stagger: 0.03,
-      duration: 0.8
+      stagger: 0.015,
+      duration: 0.4
     });
   }
 
