@@ -1540,6 +1540,7 @@ body.is-dragging-tesseract {
   color: var(--color-fg);
   letter-spacing: 0.04em;
   opacity: 0.9;
+  text-transform: uppercase;
 }
 
 .loader-terminal-intro {
