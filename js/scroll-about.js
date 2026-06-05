@@ -211,14 +211,16 @@
       heroPlayed = true;
       if (shaderFallback) { clearTimeout(shaderFallback); shaderFallback = null; }
 
-      // Reveal hero text with timed blur entrance
+      // Reveal hero text with timed blur entrance (desktop only —
+      // mobile keeps static text so <br class="mobile-br"> survives)
+      var isMobile = window.matchMedia('(max-width: 767px)').matches;
       if (heroLead) {
         gsap.set(heroLead, { opacity: 1 });
-        blurEntranceEffect(heroLead);
+        if (!isMobile) blurEntranceEffect(heroLead);
       }
       if (heroIntro) {
         gsap.set(heroIntro, { opacity: 1 });
-        blurEntranceEffect(heroIntro);
+        if (!isMobile) blurEntranceEffect(heroIntro);
       }
 
       // Play image reveal
