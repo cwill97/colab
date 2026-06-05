@@ -2265,18 +2265,18 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     inset-inline-start: var(--m);
     inset-inline-end: unset;
     width: calc(3 * var(--cw) + 2 * var(--g));
-    font-size: calc(var(--u) * 7);
+    font-size: calc(var(--u) * 11);
     line-height: 1.8;
     letter-spacing: 0.03em;
   }
 
   .loader-terminal-intro {
-    font-size: calc(var(--u) * 7);
+    font-size: calc(var(--u) * 11);
     margin-block-end: calc(var(--u) * 10);
   }
 
   .loader-terminal-footer {
-    font-size: calc(var(--u) * 7);
+    font-size: calc(var(--u) * 11);
     line-height: 1.8;
     margin-block-start: calc(var(--u) * 10);
   }
