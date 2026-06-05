@@ -647,8 +647,8 @@
   .project-page .project-mobile-meta-label {
     display: block;
     font-family: var(--font-mono);
-    font-size: calc(var(--u) * 10);
-    letter-spacing: 0.1em;
+    font-size: calc(var(--u) * 11);
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--color-muted);
     margin-block-end: calc(var(--u) * 3);
@@ -656,7 +656,7 @@
   .project-page .project-mobile-meta-value {
     display: block;
     font-family: var(--font-mono);
-    font-size: calc(var(--u) * 14);
+    font-size: calc(var(--u) * 11);
     line-height: 1.25;
     letter-spacing: 0.02em;
     color: var(--color-fg);
@@ -798,11 +798,11 @@
 
   .project-overview-modal-section .project-info-label {
     margin-block-end: calc(var(--u) * 10);
-    font-size: calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
   }
 
   .project-overview-modal-section .project-info-text {
-    font-size: calc(var(--u) * 14);
+    font-size: calc(var(--u) * 11);
     line-height: 1.55;
   }
 
