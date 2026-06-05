@@ -702,8 +702,8 @@ a.menu-sub-link:focus-visible {
 }
 
 .menu-footer-label {
-  font-family: var(--font-display);
-  font-size: calc(var(--u) * 8);
+  font-family: var(--font-mono);
+  font-size: calc(var(--u) * 11);
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -720,7 +720,7 @@ a.menu-sub-link:focus-visible {
 
 .menu-footer-col li {
   font-family: var(--font-mono);
-  font-size: calc(var(--u) * 9);
+  font-size: calc(var(--u) * 11);
   font-weight: 400;
   line-height: 2.6;
   letter-spacing: 0.02em;
