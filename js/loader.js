@@ -31,6 +31,12 @@
   ];
 
   /* ----------------------------------------------------------
+     Stagger timing
+  ---------------------------------------------------------- */
+  var LINE_STAGGER = 110;  /* ms between each line fading in */
+  var LINE_START   = 400;  /* delay before first log line (after intro fades) */
+
+  /* ----------------------------------------------------------
      DOM refs
   ---------------------------------------------------------- */
   var loader     = document.getElementById('loader');
@@ -112,19 +118,16 @@
 
   /* ----------------------------------------------------------
      Type Shuffle — rain-style global decode
-     All lines appear scrambled at once. Characters resolve
-     randomly with a top-to-bottom bias, like rain trickling
-     down the terminal.
+     Characters resolve randomly with a top-to-bottom bias.
   ---------------------------------------------------------- */
   var GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWX1234567890!@#$%^&*()_+{}[]?/><';
   var COLORS = [
- 
-    'rgba(255,255,255)',   /* white   */
-    'rgba(255,255,255,0.50)',   /* white   */
+    'rgba(255,255,255)',
+    'rgba(255,255,255,0.50)',
   ];
 
-  var TICK_MS         = 600 / 35;   /* shuffle tick rate */
-  var RESOLVES_PER_TICK = 9;         /* chars resolved each tick */
+  var TICK_MS           = 600 / 35;
+  var RESOLVES_PER_TICK = 9;
 
   function randomGlyph() {
     return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
@@ -134,56 +137,33 @@
   }
 
   /* ----------------------------------------------------------
-     Build ALL lines into the DOM at once — fully scrambled
+     Character pool
   ---------------------------------------------------------- */
-  var allChars  = [];   /* flat array of every character object */
-  var totalChars = 0;
+  var allChars      = [];
+  var totalChars    = 0;
   var resolvedCount = 0;
 
-  function stampLine(parentEl, tag, text, extraClass) {
-    var el = document.createElement(tag);
-    if (extraClass) el.className = extraClass;
-    parentEl.appendChild(el);
-
-    var row = allChars.length;  /* use current length as row index */
-
-    for (var i = 0; i < text.length; i++) {
-      var span = document.createElement('span');
-      var isSpace = text[i] === ' ';
-      span.textContent = isSpace ? '\u00A0' : randomGlyph();
-      if (!isSpace) span.style.color = randomColor();
-      el.appendChild(span);
-
-      var charObj = {
-        el: span,
-        final: text[i],
-        resolved: isSpace,
-        /* Resolve threshold: lower = resolves sooner.
-           Top-to-bottom bias + per-char randomness = rain effect */
-        threshold: (row * 0.6) + (i * 0.15) + (Math.random() * 8)
-      };
-      allChars.push(charObj);
-      if (!isSpace) totalChars++;
-      else resolvedCount++;
+  /* ----------------------------------------------------------
+     Build terminal — lines appear one by one via staggered
+     opacity fade-in; scramble decode runs across all lines.
+  ---------------------------------------------------------- */
+  function buildTerminal() {
+    /* Intro line — fades in first */
+    var introEl = loader.querySelector('.loader-terminal-intro');
+    if (introEl) {
+      setTimeout(function () { introEl.classList.add('is-visible'); }, 100);
     }
 
-    /* Make visible immediately */
-    requestAnimationFrame(function () { el.classList.add('is-visible'); });
-    return el;
-  }
-
-  function buildTerminal() {
-    /* Log lines */
+    /* Log lines — each fades in LINE_STAGGER ms after the previous */
     for (var i = 0; i < LINES.length; i++) {
       var entry = LINES[i];
       var li = document.createElement('li');
       logEl.appendChild(li);
 
-      /* Text span */
       var textSpan = document.createElement('span');
       li.appendChild(textSpan);
 
-      /* OK tag — will be revealed when line fully resolves */
+      /* [READY] tag — revealed when line fully decodes */
       var okSpan = document.createElement('span');
       okSpan.className = 'log-ok';
       okSpan.style.opacity = '0';
@@ -195,7 +175,7 @@
       for (var c = 0; c < entry.text.length; c++) {
         var span = document.createElement('span');
         var isSpace = entry.text[c] === ' ';
-        span.textContent = isSpace ? '\u00A0' : randomGlyph();
+        span.textContent = isSpace ? ' ' : randomGlyph();
         if (!isSpace) span.style.color = randomColor();
         textSpan.appendChild(span);
 
@@ -204,25 +184,31 @@
           final: entry.text[c],
           resolved: isSpace,
           threshold: (row * 1.2) + (c * 0.08) + (Math.random() * 10),
-          okSpan: okSpan,          /* ref to the line's [OK] tag */
+          okSpan: okSpan,
           lineIndex: i
         });
         if (!isSpace) totalChars++;
         else resolvedCount++;
       }
 
-      requestAnimationFrame((function (el) {
-        return function () { el.classList.add('is-visible'); };
-      })(li));
+      /* Staggered fade-in */
+      (function (el, idx) {
+        setTimeout(function () { el.classList.add('is-visible'); }, LINE_START + idx * LINE_STAGGER);
+      })(li, i);
     }
 
-    /* Footer lines */
+    /* Footer lines — continue stagger after last log line */
     for (var f = 0; f < FOOTER_LINES.length; f++) {
       var line = FOOTER_LINES[f];
+      var fDelay = LINE_START + (LINES.length + f) * LINE_STAGGER;
+
       if (!line) {
         var blank = document.createElement('p');
-        blank.textContent = '\u00A0';
+        blank.textContent = ' ';
         footerEl.appendChild(blank);
+        (function (el, d) {
+          setTimeout(function () { el.classList.add('is-visible'); }, d);
+        })(blank, fDelay);
         continue;
       }
 
@@ -233,7 +219,7 @@
       for (var fc = 0; fc < line.length; fc++) {
         var fspan = document.createElement('span');
         var fIsSpace = line[fc] === ' ';
-        fspan.textContent = fIsSpace ? '\u00A0' : randomGlyph();
+        fspan.textContent = fIsSpace ? ' ' : randomGlyph();
         if (!fIsSpace) fspan.style.color = randomColor();
         p.appendChild(fspan);
 
@@ -246,14 +232,18 @@
         if (!fIsSpace) totalChars++;
         else resolvedCount++;
       }
+
+      (function (el, d) {
+        setTimeout(function () { el.classList.add('is-visible'); }, d);
+      })(p, fDelay);
     }
   }
 
   /* ----------------------------------------------------------
      Global tick — shuffles + resolves across all lines at once
   ---------------------------------------------------------- */
-  var tickCount = 0;
-  var lineResolved = {};  /* track per-line completion for [OK] tags */
+  var tickCount    = 0;
+  var lineResolved = {};
 
   function startGlobalShuffle() {
     var intervalId = setInterval(function () {
@@ -275,7 +265,7 @@
         var ch2 = allChars[j];
         if (ch2.resolved) continue;
         if (tickCount >= ch2.threshold) {
-          ch2.el.textContent = ch2.final === ' ' ? '\u00A0' : ch2.final;
+          ch2.el.textContent = ch2.final === ' ' ? ' ' : ch2.final;
           ch2.el.style.color = '';
           ch2.resolved = true;
           resolvedCount++;
@@ -328,15 +318,9 @@
     ctaEl.disabled = false;
     ctaEl.setAttribute('aria-label', 'Enter site with audio enabled');
 
-    /* Allow any key press to trigger */
     document.addEventListener('keydown', handleKeyEnter);
-
-    /* Allow tapping anywhere on the loader to enter (mobile) */
     loader.addEventListener('touchend', handleTouchEnter);
 
-    /* Auto-enter after 5s if the user hasn't dismissed the loader.
-       Audio is muted on auto-enter to respect browsers that block
-       unsolicited playback without a user gesture. */
     autoEnterTimer = setTimeout(function () {
       if (!dismissed) dismissLoader(false);
     }, 2400);
@@ -348,9 +332,8 @@
   }
 
   function handleTouchEnter(e) {
-    /* Only respond if CTA is enabled */
     if (ctaEl.disabled) return;
-    e.preventDefault(); /* prevent ghost click */
+    e.preventDefault();
     loader.removeEventListener('touchend', handleTouchEnter);
     dismissLoader(true);
   }
@@ -358,39 +341,32 @@
   /* ----------------------------------------------------------
      Dismiss loader and reveal homepage
   ---------------------------------------------------------- */
-  var dismissed = false; /* guard against double-fire from touch+click */
+  var dismissed = false;
 
   function dismissLoader(withAudio) {
     if (dismissed) return;
     dismissed = true;
 
-    /* Remove all entry listeners */
     document.removeEventListener('keydown', handleKeyEnter);
     loader.removeEventListener('touchend', handleTouchEnter);
     if (autoEnterTimer) { clearTimeout(autoEnterTimer); autoEnterTimer = null; }
 
-    /* Mark session as visited so subsequent page loads skip the loader */
     try { sessionStorage.setItem(SESSION_KEY, '1'); } catch (e) {}
 
     loader.classList.add('is-hidden');
     document.body.classList.remove('loader-active');
 
-    /* Fire reveal event — triggers shader reveal */
     document.dispatchEvent(new CustomEvent('colab:revealed'));
 
-    /* Remove from DOM after transition */
     loader.addEventListener('transitionend', function onEnd() {
       loader.removeEventListener('transitionend', onEnd);
       loader.remove();
     });
 
-    /* Safety fallback — if transitionend never fires (common on
-       some mobile browsers), remove the loader after a timeout */
     setTimeout(function () {
       if (loader.parentNode) loader.remove();
     }, 2000);
 
-    /* Trigger audio if requested — hooks into visualizer */
     if (withAudio) {
       var viz = document.querySelector('[data-visualizer]');
       if (viz) {
@@ -410,12 +386,12 @@
 
   ctaEl.addEventListener('touchend', function (e) {
     if (ctaEl.disabled) return;
-    e.preventDefault(); /* prevent 300ms delay ghost click */
+    e.preventDefault();
     dismissLoader(true);
   });
 
   /* ----------------------------------------------------------
-     Kick off sequence — stamp everything, then start the rain
+     Kick off sequence
   ---------------------------------------------------------- */
   setTimeout(function () {
     buildTerminal();
