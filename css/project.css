@@ -299,7 +299,7 @@
     var(--nav-height)
     + var(--title-gap)
     + var(--viz-height)
-    - calc(var(--u) * 12)
+    - calc(var(--u) * 20)
   );
   /* Bottom-align with the audio toggle + scroll-to-explore baseline (28px) so
      [ PREVIOUS PROJECT ] sits on the same row. The audio toggle occupies the
@@ -648,7 +648,7 @@
     display: block;
     font-family: var(--font-mono);
     font-size: calc(var(--u) * 11);
-    letter-spacing: 0.2em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--color-muted);
     margin-block-end: calc(var(--u) * 3);
