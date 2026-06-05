@@ -498,7 +498,7 @@ button {
   padding: 0;
   font-family: var(--font-display);
   font-weight: 400;
-  font-size: clamp(calc(var(--u) * 32), 5.8vw, calc(var(--u) * 60));
+  font-size: calc(var(--u) * 64);
   line-height: 0.95;
   letter-spacing: 0em;
   text-transform: uppercase;
