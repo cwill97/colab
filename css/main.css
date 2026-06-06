@@ -198,60 +198,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Cursor-reveal hover background ───────────────────────── */
-.bg-hover-layer {
-  position: fixed;
-  inset: 0;
-  /* Cursor spotlight is a soft masked reveal — downscaled source keeps the
-     per-move re-raster of this full-screen layer much cheaper. */
-  background-image: url('/sanity/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp?w=1600&q=80');
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0;
-  -webkit-mask-image: radial-gradient(
-    circle calc(var(--u) * 78) at var(--cx, 50%) var(--cy, 50%),
-    black 0%,
-    black 25%,
-    transparent 100%
-  );
-  mask-image: radial-gradient(
-    circle calc(var(--u) * 104) at var(--cx, 50%) var(--cy, 50%),
-    black 0%,
-    black 25%,
-    transparent 100%
-  );
-  transition: opacity 2.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-body.cursor-active .bg-hover-layer {
-  opacity: 1;
-  transition: opacity 2.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* ── Ambient auto-reveal spots ───────────────────────────── */
-.bg-ambient-spot {
-  position: fixed;
-  inset: 0;
-  /* Reveal texture is masked to soft circles ≤300px — a downscaled source
-     is indistinguishable here and slashes decode + raster cost. */
-  background-image: url('/sanity/images/7to0u5h2/production/3d2ef66df8a29e8040cdf3ca04bc7f9107dbb486-3840x2160.webp?w=1600&q=80');
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0;
-  /* Drift is a composited transform now (see bg-reveal.js) — never animate
-     mask-image, which would force a full-screen CPU re-raster every frame. */
-  will-change: transform, opacity;
-}
-
-.bg-ambient-spot.is-visible {
-  opacity: 1;
-}
 
 img, svg {
   display: block;
@@ -327,8 +273,8 @@ button {
 .nav-toggle {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: var(--nav-btn-size);
+  gap: calc(var(--u) * 8);
+  width: auto;
   height: var(--nav-btn-size);
   flex-shrink: 0;
   position: relative;
@@ -336,6 +282,17 @@ button {
   /* Accessibility: visible focus ring */
   border-radius: calc(var(--u) * 2);
   transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.nav-toggle-label {
+  font-family: var(--font-display);
+  font-size: calc(var(--u) * 10);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  color: var(--color-fg);
+  pointer-events: none;
 }
 
 .nav-toggle:hover {
@@ -1932,11 +1889,19 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
     height: var(--logo-height);
   }
 
-  .nav-toggle,
+  .nav-toggle {
+    width: auto;
+    height: var(--nav-btn-size);
+    margin-left: auto;
+  }
+
   .nav-toggle-icon {
     width: var(--nav-btn-size);
     height: var(--nav-btn-size);
-    margin-left: auto;
+  }
+
+  .nav-toggle-label {
+    display: none;
   }
 
   /* Audio toggle — move into header top-left on mobile (all pages).
