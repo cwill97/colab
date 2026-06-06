@@ -21,6 +21,15 @@
     destroy();
     if (typeof Lenis === 'undefined') return;
 
+    /* On mobile, native touch scroll + ScrollTrigger work best without
+       Lenis in the loop — Lenis RAF conflicts with pinned ScrollTriggers
+       and causes jumpy/glitchy behaviour on touch devices. Set a sentinel
+       so waitForDeps in scroll-about.js still proceeds. */
+    if (window.innerWidth < 768) {
+      window.colabLenis = { on: function () {} };
+      return;
+    }
+
     lenis = new Lenis({
       duration: 2.0,
       easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },

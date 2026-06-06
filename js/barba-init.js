@@ -13,10 +13,9 @@
        view falls back to the site-wide ambient bed. setTrack() handles
        both pre- and post-activation states. */
     var DEFAULT_TRACK = '/sanity/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
-    var ABOUT_TRACK   = '/sanity/files/7to0u5h2/production/170e7c6ab04584728757f5ccb7c69e579e4acc4d.mp3';
-    function routeAudio(namespace) {
+    function routeAudio() {
       if (!window.colabAudio || !window.colabAudio.setTrack) return;
-      window.colabAudio.setTrack(namespace === 'about' ? ABOUT_TRACK : DEFAULT_TRACK);
+      window.colabAudio.setTrack(DEFAULT_TRACK);
     }
 
     /* Lazy-mount the tesseract on return to home. Non-home HTML files

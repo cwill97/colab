@@ -18,12 +18,8 @@
 
     var menuTransitioning = false;
 
-    var MENU_TRACK = '/sanity/files/7to0u5h2/production/072305d82863efb239981114090cedbc68659a90.mp3';
-    function pageTrack() {
-      return document.body.classList.contains('about-page')
-        ? '/sanity/files/7to0u5h2/production/170e7c6ab04584728757f5ccb7c69e579e4acc4d.mp3'
-        : '/sanity/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
-    }
+    var AMBIENT_TRACK = '/sanity/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
+    function pageTrack() { return AMBIENT_TRACK; }
 
     function showMenu() {
       /* Re-resolve the active page right before the menu paints, so the
@@ -33,9 +29,8 @@
       toggle.setAttribute('aria-expanded', 'true');
       menu.setAttribute('aria-hidden', 'false');
       document.body.setAttribute('data-menu-open', '');
-      /* Swap to the menu-only track, then submerge for the underwater muffle */
       if (window.colabAudio) {
-        if (window.colabAudio.setTrack) window.colabAudio.setTrack(MENU_TRACK);
+        if (window.colabAudio.setTrack) window.colabAudio.setTrack(AMBIENT_TRACK);
         window.colabAudio.submerge();
       }
     }

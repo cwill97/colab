@@ -68,7 +68,7 @@
   function blurEntranceEffect(el) {
     var words = splitWords(el);
 
-    gsap.fromTo(words, {
+    return gsap.fromTo(words, {
       opacity: 0,
       skewX: 0,
       willChange: 'filter, transform',
@@ -83,33 +83,33 @@
     });
   }
 
-  /* ── Mobile pinned horizontal carousel ─────────────────────── */
-  function initMobileCarousel() {
-    var grid  = document.querySelector('.studio-grid');
-    var track = document.querySelector('.studio-grid-tall-row');
-    if (!grid || !track) return;
+  /* ── Mobile horizontal carousel (no pin, scrub-driven) ────── */
+  function initMobileCarousel(grid) {
+    var track = grid.querySelector('.studio-grid-tall-row');
+    if (!track) return;
 
     var cards  = track.querySelectorAll('.studio-grid-cell-tall');
     var vw     = window.innerWidth;
-    var cardW  = vw * 0.76;
-    var gapPx  = vw * 0.03;  /* ~12u at 393px */
+    var cardW  = vw * 0.33;
+    var gapPx  = vw * 0.03;
     var totalW = (cardW + gapPx) * cards.length - gapPx;
-    var moveX  = -(totalW - vw);
+    var emptyR = vw * 0.22;
 
-    /* Cards start just off-screen right so they pan in */
-    gsap.set(track, { x: vw * 0.08 });
+    /* Left-offset design frame: sliver of card 1 on left, empty space right */
+    var startX = -(totalW - vw + emptyR);
+    var endX   = 0;
+    var movePx = Math.round(vw * 2.0);
+
+    gsap.set(track, { x: startX });
 
     var tween = gsap.to(track, {
-      x: moveX,
+      x: endX,
       ease: 'none',
       scrollTrigger: {
         trigger: grid,
-        pin: true,
-        scrub: 1,
-        start: 'top top',
-        end: function () {
-          return '+=' + (Math.abs(moveX) + vw * 0.08);
-        }
+        start: 'top 90%',
+        end:   '+=' + movePx,
+        scrub: 1
       }
     });
 
@@ -130,6 +130,13 @@
     var gridCells    = document.querySelectorAll('.studio-grid-cell-tall');
     var wideImage    = document.querySelector('.studio-wide');
     var lockup       = document.querySelector('.studio-lockup');
+    var scrollMore   = document.querySelector('.studio-scroll-more');
+    var isMobileView = window.matchMedia('(max-width: 767px)').matches;
+
+    /* Hide scroll-more on mobile until intro text finishes revealing */
+    if (scrollMore && isMobileView) {
+      gsap.set(scrollMore, { opacity: 0 });
+    }
 
     /* ═══════════════════════════════════════════════════════════
        DESKTOP STICKY — studio-hero-image--3 pins until
@@ -168,6 +175,12 @@
     belowFoldText.forEach(function (el) {
       blurScrollEffect(el);
     });
+
+    /* Mobile h1 between carousels — scroll-scrubbed blur reveal */
+    var studioLeadMobile = document.querySelector('.studio-lead-mobile');
+    if (studioLeadMobile && window.matchMedia('(max-width: 767px)').matches) {
+      blurScrollEffect(studioLeadMobile);
+    }
 
     /* ═══════════════════════════════════════════════════════════
        HERO — text + images hidden until shader reveal completes
@@ -220,7 +233,13 @@
       }
       if (heroIntro) {
         gsap.set(heroIntro, { opacity: 1 });
-        if (!isMobile) blurEntranceEffect(heroIntro);
+        var introTween = blurEntranceEffect(heroIntro);
+        /* Reveal [ Scroll Down ] only after intro words finish */
+        if (isMobileView && scrollMore && introTween) {
+          introTween.eventCallback('onComplete', function () {
+            gsap.to(scrollMore, { opacity: 0.3, duration: 0.5, ease: 'power2.out' });
+          });
+        }
       }
 
       // Play image reveal
@@ -256,7 +275,7 @@
         });
 
         triggers.push(ScrollTrigger.create({
-          trigger: '.studio-grid',
+          trigger: '.studio-grid--a',
           start: 'top 85%',
           onEnter: function () {
             gsap.to(gridCells, {
@@ -273,27 +292,73 @@
           once: true
         }));
       } else {
-        initMobileCarousel();
+        /* Mobile: wipe reveal + horizontal carousel */
+        document.querySelectorAll('.studio-grid').forEach(function (g) {
+          var cells = g.querySelectorAll('.studio-grid-cell-tall');
+
+          /* Same clip-path wipe as desktop — start hidden */
+          cells.forEach(function (cell) {
+            gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
+            var img = cell.querySelector('img');
+            if (img) gsap.set(img, { scale: 1.15 });
+          });
+
+          /* Reveal cards when carousel scrolls into view */
+          triggers.push(ScrollTrigger.create({
+            trigger: g,
+            start: 'top 85%',
+            onEnter: function () {
+              gsap.to(cells, {
+                clipPath: 'inset(0% 0 0 0)',
+                duration: 1.0,
+                ease: 'power3.inOut',
+                stagger: 0.1
+              });
+              cells.forEach(function (cell) {
+                var img = cell.querySelector('img');
+                if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
+              });
+            },
+            once: true
+          }));
+
+          /* Horizontal pan — runs independently on the track */
+          initMobileCarousel(g);
+        });
       }
     }
 
     // Wide image — clip reveal + parallax scrub
+    var isMobileWide = window.matchMedia('(max-width: 767px)').matches;
     if (wideImage) {
-      gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)', scale: 0.60, transformOrigin: 'center bottom' });
+      /* Mobile: skip scale (causes glitch when pin releases); desktop: scale 0.60→1 */
+      if (isMobileWide) {
+        gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)' });
+      } else {
+        gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)', scale: 0.60, transformOrigin: 'center bottom' });
+      }
       var wideImg = wideImage.querySelector('img');
-      if (wideImg) gsap.set(wideImg, { scale: 1.12 });
+      if (wideImg && !isMobileWide) gsap.set(wideImg, { scale: 1.12 });
 
       triggers.push(ScrollTrigger.create({
-        trigger: '.studio-grid',
-        start: 'bottom center',
+        trigger: '.studio-wide-row',
+        start: 'top 85%',
         onEnter: function () {
-          gsap.to(wideImage, {
-            clipPath: 'inset(0% 0 0 0)',
-            scale: 1,
-            duration: 1.8,
-            ease: 'power3.inOut'
-          });
-          if (wideImg) gsap.to(wideImg, { scale: 1.05, duration: 2.0, ease: 'power2.out' });
+          if (isMobileWide) {
+            gsap.to(wideImage, {
+              clipPath: 'inset(0% 0 0 0)',
+              duration: 1.4,
+              ease: 'power3.inOut'
+            });
+          } else {
+            gsap.to(wideImage, {
+              clipPath: 'inset(0% 0 0 0)',
+              scale: 1,
+              duration: 1.8,
+              ease: 'power3.inOut'
+            });
+            if (wideImg) gsap.to(wideImg, { scale: 1.05, duration: 2.0, ease: 'power2.out' });
+          }
         },
         once: true
       }));

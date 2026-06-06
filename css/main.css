@@ -154,7 +154,7 @@
 
 /* Mobile artboard — 393×852 (iPhone 14 Pro) — scales from its own baseline. */
 @media (max-width: 767px) {
-  :root { --u: min(100vw / 393, 100dvh / 852); }
+  :root { --u: min(100vw / 393, 100svh / 852); }
 }
 
 
@@ -2719,8 +2719,9 @@ body.about-page {
 /* [ SCROLL MORE ] hidden on desktop */
 .studio-scroll-more { display: none; }
 
-/* Mobile-only forced line breaks in h1 — hidden on desktop */
+/* Mobile-only elements — hidden on desktop */
 .mobile-br { display: none; }
+.studio-lead-mobile { display: none; }
 
 @media (max-width: 767px) {
 
@@ -2733,10 +2734,10 @@ body.about-page {
 
   /* ── Hero: full-viewport flex column ── */
   .studio-hero {
-    position: relative;        /* anchor for abs-positioned intro */
+    position: relative;
     display: flex;
     flex-direction: column;
-    height: 100dvh;
+    height: 100svh;
     overflow: visible;
     padding-block-start: var(--nav-height);
     padding-inline: var(--m);
@@ -2744,31 +2745,33 @@ body.about-page {
     grid-template-columns: none;
   }
 
-  /* Show the mobile-only line breaks */
-  .mobile-br { display: inline; }
-
+  /* Hide desktop h1 in hero on mobile — it appears between carousels instead */
   .studio-lead {
-    flex-shrink: 0;
-    grid-column: unset;
-    text-indent: 0;
-    font-size: calc(var(--u) * 30);
-    line-height: 1.08;
-    padding-block: calc(var(--u) * 12) calc(var(--u) * 16);
+    display: none;
   }
 
+  /* Hide mobile-br (not needed since h1 is hidden in hero) */
+  .mobile-br { display: none; }
+
+  /* Video: grows to fill the hero flex space */
   .studio-hero-images {
+    order: 1;
     flex: 1;
     min-height: 0;
+    max-height: 50svh;
     display: flex;
     flex-direction: column;
     align-items: center;
     grid-template-columns: none;
+    padding-block-end: 0;
   }
 
-  /* [ SCROLL MORE ] at the bottom of the viewport */
+  /* [ SCROLL DOWN ] centred between video and intro */
   .studio-scroll-more {
+    order: 2;
     display: block;
     flex-shrink: 0;
+    margin-block: auto;
     background: none;
     border: none;
     color: var(--color-fg);
@@ -2776,7 +2779,7 @@ body.about-page {
     font-size: calc(var(--u) * 12);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    opacity: 0.75;
+    opacity: 0.3;
     cursor: pointer;
     padding: calc(var(--u) * 14) calc(var(--u) * 24);
     margin-inline: auto;
@@ -2784,23 +2787,24 @@ body.about-page {
   }
   .studio-scroll-more:active { opacity: 1; }
 
-  /* Intro: pulled out of flex flow entirely so it doesn't
-     steal space from the video. Positioned just below the fold. */
+  /* Intro: pinned to the bottom of the fold */
   .studio-intro {
-    position: absolute;
-    inset-block-start: 100dvh;
-    inset-inline: 0;
-    padding-inline: var(--m);
-    padding-block: calc(var(--u) * 52) calc(var(--u) * 40);
-    font-size: calc(var(--u) * 13);
-    line-height: 1.65;
+    order: 3;
+    position: static;
+    inset-block-start: auto;
+    inset-inline: auto;
+    flex-shrink: 0;
+    padding-inline: 0;
+    padding-block: calc(var(--u) * 14) calc(var(--u) * 10);
+    font-size: calc(var(--u) * 11);
+    line-height: 1.6;
     grid-column: unset;
   }
 
   /* Hide hero pair (images 1 & 2) — only video shows */
   .studio-hero-pair { display: none !important; }
 
-  /* Video fills all remaining flex space between h1 and scroll-more */
+  /* Video fills all remaining flex space between intro and scroll-more */
   .studio-hero-image--3 {
     flex: 1;
     min-height: 0;
@@ -2819,25 +2823,39 @@ body.about-page {
   /* Hide desktop-only middle copy block */
   .studio-middle { display: none; }
 
-  /* ── 4-image horizontal pinned carousel ── */
-  /* Top margin accounts for the absolutely-positioned intro below the fold */
+  /* ── Mobile h1 between carousels ── */
+  .studio-lead-mobile {
+    display: block;
+    font-size: calc(var(--u) * 28);
+    line-height: 1.08;
+    font-weight: 300;
+    font-family: var(--font-sans);
+    text-indent: 0;
+    padding-inline: var(--m);
+    padding-block: calc(var(--u) * 48) calc(var(--u) * 40);
+    margin: 0;
+  }
+
+  /* ── 4-image horizontal carousel ── */
   .studio-grid {
+    display: block;
     overflow: hidden;
-    margin-block-start: calc(var(--u) * 260);
+    margin-block-start: calc(var(--u) * 60);
   }
 
   .studio-grid-tall-row {
+    grid-column: auto;
     display: flex;
     flex-direction: row;
     flex-wrap: nowrap;
     gap: calc(var(--u) * 12);
-    padding-inline: var(--m);
+    padding-inline: 0;
     will-change: transform;
   }
 
   .studio-grid-cell-tall {
-    flex-shrink: 0;
-    width: 76vw;
+    flex: none;
+    width: 33vw;
     aspect-ratio: 2 / 3;
     overflow: hidden;
   }

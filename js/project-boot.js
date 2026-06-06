@@ -515,6 +515,71 @@
   }
 
   /* ============================================================
+     MOBILE TEXT REVEAL
+     Word-by-word blur entrance matching the studio-intro effect.
+     ============================================================ */
+  function _splitWords(el) {
+    var text = el.textContent.trim();
+    var words = text.split(/\s+/);
+    el.innerHTML = words.map(function (w) {
+      return '<span class="word">' + w + '</span>';
+    }).join(' ');
+    el.style.textIndent = '0';
+    return el.querySelectorAll('.word');
+  }
+
+  function _blurEntrance(el, delay) {
+    if (!el || typeof gsap === 'undefined') return;
+    var words = _splitWords(el);
+    gsap.fromTo(words, {
+      opacity: 0,
+      filter: 'blur(8px)'
+    }, {
+      ease: 'sine.out',
+      opacity: 1,
+      filter: 'blur(0px)',
+      stagger: 0.02,
+      duration: 0.4,
+      delay: delay || 0
+    });
+  }
+
+  function _triggerMobileReveal() {
+    if (!isMobile || typeof gsap === 'undefined') return;
+
+    var infoBlock  = document.querySelector('.project-mobile-info');
+    var logoEl     = document.querySelector('.project-mobile-logo');
+    var metaValues = document.querySelectorAll('.project-mobile-meta-value');
+    var triggerBtn = document.querySelector('[data-mobile-overview-trigger]');
+
+    if (!infoBlock) return;
+
+    /* Override CSS opacity-on-is-ready — GSAP controls all child reveals */
+    gsap.set(infoBlock, { opacity: 1 });
+
+    /* Logo — fade up */
+    if (logoEl) {
+      gsap.fromTo(logoEl,
+        { opacity: 0, y: 6 },
+        { opacity: 1, y: 0, duration: 0.6, delay: 0.1, ease: 'power2.out' }
+      );
+    }
+
+    /* Services / Year values — blur word entrance */
+    metaValues.forEach(function (el, i) {
+      _blurEntrance(el, 0.25 + i * 0.2);
+    });
+
+    /* "Read overview" button — wipe in from left */
+    if (triggerBtn) {
+      gsap.fromTo(triggerBtn,
+        { clipPath: 'inset(0 100% 0 0)' },
+        { clipPath: 'inset(0 0% 0 0)', duration: 0.6, delay: 0.9, ease: 'power3.inOut' }
+      );
+    }
+  }
+
+  /* ============================================================
      INIT — GALLERY (waits for THREE + DepthGallery)
      ============================================================ */
   function initGallery() {
@@ -553,9 +618,10 @@
 
     gallery.start();
 
-    /* Signal page ready */
+    /* Signal page ready + trigger mobile text reveal */
     requestAnimationFrame(function () {
       document.body.classList.add('is-ready');
+      _triggerMobileReveal();
     });
   }
 
