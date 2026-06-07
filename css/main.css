@@ -2704,7 +2704,7 @@ body.about-page {
     flex-direction: column;
     height: 100svh;
     overflow: visible;
-    padding-block-start: var(--nav-height);
+    padding-block-start: calc(var(--nav-height) + calc(var(--u) * 50));
     padding-inline: var(--m);
     gap: 0;
     grid-template-columns: none;
