@@ -61,13 +61,13 @@
   var heroEl = null;
   var heroTexture = null;
   var heroReady = false;
-  var heroRect = [0, 0, 1, 1];
   var snapshotTimer = null;
   var resnapTimer = null;
+  var hiddenHeroNodes = [];
 
-  /* Canvas opacity — fades in on pointer activity, out when idle */
-  var canvasAlpha = 0;
-  var lastMoveTime = 0;
+  /* Full-page texture scroll tracking */
+  var pageHeightPx = 0;    /* captured page height in CSS px (scale 1) */
+  var viewportFrac = 1.0;  /* innerHeight / pageHeightPx */
 
   /* ── Pointer prototype ───────────────────────────────────── */
   function Pointer() {
@@ -293,10 +293,9 @@
     '  gl_FragColor = vec4(c, a);' +
     '}';
 
-  /* Warp composite: displaces the rasterized hero (text + image) by the
-     fluid velocity field, then lays the white smoke over it. Outside the
-     hero rect the canvas is transparent (live DOM shows through) save for
-     a soft smoke haze. */
+  /* Warp composite: displaces the full-page rasterized texture by the fluid
+     velocity field. uScrollFrac + uViewportFrac map viewport UV to the correct
+     vertical slice of the tall page texture so the effect tracks scroll exactly. */
   var warpShaderSource =
     'precision highp float;' +
     'precision highp sampler2D;' +
@@ -304,28 +303,22 @@
     'uniform sampler2D uDye;' +
     'uniform sampler2D uVelocity;' +
     'uniform sampler2D uHero;' +
-    'uniform vec4 uHeroRect;' +    /* x0, y0, x1, y1 in vUv (bottom-origin) */
+    'uniform float uScrollFrac;' +   /* scrollY / pageHeightPx          */
+    'uniform float uViewportFrac;' + /* innerHeight / pageHeightPx       */
     'uniform float uScale;' +
     'uniform float uGain;' +
     'uniform float uSmokeAlpha;' +
     'void main () {' +
     '  vec2 vel = texture2D(uVelocity, vUv).xy;' +
-    '  vec2 disp = vUv + vel * uScale;' +
-    '  vec4 hero = vec4(0.0);' +
-    '  if (disp.x >= uHeroRect.x && disp.x <= uHeroRect.z &&' +
-    '      disp.y >= uHeroRect.y && disp.y <= uHeroRect.w) {' +
-    '    vec2 huv = vec2((disp.x - uHeroRect.x) / (uHeroRect.z - uHeroRect.x),' +
-    '                    (disp.y - uHeroRect.y) / (uHeroRect.w - uHeroRect.y));' +
-    '    hero = texture2D(uHero, huv);' +
-    '  }' +
-    /* hero is premultiplied — recover true colour, then boost coverage so
-       thin rasterized text reads at full brightness. */
+    '  vec2 disp = clamp(vUv + vel * uScale, 0.0, 1.0);' +
+    /* Map viewport vUv.y (0=bottom,1=top) to page texture v. */
+    '  float texV = disp.y * uViewportFrac + (1.0 - uScrollFrac - uViewportFrac);' +
+    '  texV = clamp(texV, 0.0, 1.0);' +
+    '  vec4 hero = texture2D(uHero, vec2(disp.x, texV));' +
     '  vec3 hrgb = hero.a > 0.003 ? hero.rgb / hero.a : hero.rgb;' +
     '  float ha = clamp(hero.a * uGain, 0.0, 1.0);' +
     '  vec3 smoke = texture2D(uDye, vUv).rgb;' +
     '  float smokeA = clamp(max(smoke.r, max(smoke.g, smoke.b)), 0.0, 1.0);' +
-    /* Premultiplied composite: hero over page, smoke filling the gaps and
-       screen-blended over the hero pixels. */
     '  vec3 col = hrgb * ha + smoke * (1.0 - ha);' +
     '  float a = clamp(ha + smokeA * uSmokeAlpha * (1.0 - ha), 0.0, 1.0);' +
     '  gl_FragColor = vec4(col, a);' +
@@ -655,14 +648,14 @@
     gl.disable(gl.BLEND);
 
     if (CONFIG.WARP && heroReady && heroTexture) {
-      updateHeroRect();
       warpMaterial.bind();
       gl.uniform1i(warpMaterial.uniforms.uDye, dye.read.attach(0));
       gl.uniform1i(warpMaterial.uniforms.uVelocity, velocity.read.attach(1));
       gl.activeTexture(gl.TEXTURE2);
       gl.bindTexture(gl.TEXTURE_2D, heroTexture);
       gl.uniform1i(warpMaterial.uniforms.uHero, 2);
-      gl.uniform4f(warpMaterial.uniforms.uHeroRect, heroRect[0], heroRect[1], heroRect[2], heroRect[3]);
+      gl.uniform1f(warpMaterial.uniforms.uScrollFrac, pageHeightPx > 0 ? window.scrollY / pageHeightPx : 0.0);
+      gl.uniform1f(warpMaterial.uniforms.uViewportFrac, viewportFrac);
       gl.uniform1f(warpMaterial.uniforms.uScale, CONFIG.WARP_SCALE);
       gl.uniform1f(warpMaterial.uniforms.uGain, CONFIG.HERO_GAIN);
       gl.uniform1f(warpMaterial.uniforms.uSmokeAlpha, CONFIG.SMOKE_ALPHA);
@@ -679,12 +672,6 @@
   }
 
   /* ── Hero rasterization + warp plumbing ──────────────────── */
-
-  /* Snapshot covers the full viewport — rect is always the entire canvas. */
-  function updateHeroRect() {
-    heroRect[0] = 0; heroRect[1] = 0;
-    heroRect[2] = 1; heroRect[3] = 1;
-  }
 
   function loadHtml2Canvas() {
     return new Promise(function (resolve, reject) {
@@ -721,30 +708,66 @@
   }
 
   function snapshotHero() {
-    if (!window.html2canvas) return;
-    var scrollY = window.scrollY || 0;
+    if (!window.html2canvas || !gl) return;
+    /* Capture the full scrollable page height so the texture covers every
+       section — the shader slices the right portion via uScrollFrac each frame.
+       Scale 1.0 keeps CSS px 1:1; cap at GL max texture size for safety. */
+    var glMax = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    var pageH = Math.min(document.body.scrollHeight, glMax);
     window.html2canvas(document.body, {
       x: 0,
-      y: scrollY,
+      y: 0,
       width: window.innerWidth,
-      height: window.innerHeight,
+      height: pageH,
       windowWidth: window.innerWidth,
-      windowHeight: window.innerHeight,
+      windowHeight: pageH,
       backgroundColor: null,
-      scale: Math.min(window.devicePixelRatio || 1, 2),
+      scale: 1.0,
       logging: false,
       useCORS: true,
       removeContainer: true,
       onclone: function (doc) {
-        /* Exclude the fluid canvas itself from the capture. */
+        /* Hide the fluid overlay from its own capture. */
         var oc = doc.querySelector('.fluid-overlay');
         if (oc) oc.style.display = 'none';
+        /* Force all page content to its final visible state so below-fold
+           elements (still invisible in GSAP entrance) render correctly. */
+        var content = doc.querySelector(CONFIG.WARP_SELECTOR);
+        if (!content) return;
+        var all = content.querySelectorAll('*');
+        for (var i = 0; i < all.length; i++) {
+          var s = all[i].style;
+          s.opacity = '1';
+          s.visibility = 'visible';
+          s.filter = 'none';
+          s.webkitFilter = 'none';
+          s.clipPath = 'none';
+          s.webkitClipPath = 'none';
+          s.transform = 'none';
+          s.willChange = 'auto';
+        }
       }
     }).then(function (snap) {
       if (!gl) return;
+      pageHeightPx = snap.height;
+      viewportFrac = window.innerHeight / pageHeightPx;
       uploadHeroTexture(snap);
+      hideHeroDom();
+      if (canvas) canvas.style.opacity = '1';
       heroReady = true;
-    }).catch(function () { /* canvas stays transparent */ });
+    }).catch(function () { /* canvas stays transparent on failure */ });
+  }
+
+  function hideHeroDom() {
+    restoreHeroDom();
+    if (!heroEl) return;
+    hiddenHeroNodes.push([heroEl, heroEl.style.visibility]);
+    heroEl.style.visibility = 'hidden';
+  }
+
+  function restoreHeroDom() {
+    hiddenHeroNodes.forEach(function (pair) { pair[0].style.visibility = pair[1] || ''; });
+    hiddenHeroNodes = [];
   }
 
   function scheduleSnapshot() {
@@ -764,14 +787,15 @@
     }).catch(function () { /* plain smoke fallback */ });
   }
 
-  /* Re-rasterize on resize (layout shifts invalidate the snapshot). */
+  /* Re-rasterize on resize. */
   function scheduleResnapshot() {
     if (!CONFIG.WARP) return;
     if (resnapTimer) clearTimeout(resnapTimer);
     resnapTimer = setTimeout(function () {
+      restoreHeroDom();
       heroReady = false;
       snapshotHero();
-    }, 250);
+    }, 400);
   }
 
   /* ── Splats ──────────────────────────────────────────────── */
@@ -828,7 +852,6 @@
   }
 
   function onPointerMove(e) {
-    lastMoveTime = Date.now();
     var pointer = pointers[0];
     updatePointerMoveData(pointer, e.clientX, e.clientY);
     if (pointer.moved) {
@@ -859,12 +882,6 @@
     if (resizeCanvas()) initFramebuffers();
     step(dt);
     render();
-    /* Fade canvas in when pointer is active + snapshot ready; fade out when idle.
-       This means scrolling always shows the live DOM (canvas transparent). */
-    var targetAlpha = (heroReady && (now - lastMoveTime) < 1500) ? 1.0 : 0.0;
-    canvasAlpha += (targetAlpha - canvasAlpha) * Math.min(1, dt * 6);
-    if (Math.abs(canvasAlpha - targetAlpha) < 0.002) canvasAlpha = targetAlpha;
-    canvas.style.opacity = canvasAlpha.toFixed(3);
     rafId = requestAnimationFrame(frame);
   }
 
@@ -927,18 +944,8 @@
       if (resizeCanvas()) initFramebuffers();
       scheduleResnapshot();
     };
-    boundHandlers.scroll = function () {
-      /* Queue a re-snapshot after scrolling stops — canvas is already transparent
-         (no mouse movement) so the stale texture is never visible during scroll. */
-      if (boundHandlers.scrollTimer) clearTimeout(boundHandlers.scrollTimer);
-      boundHandlers.scrollTimer = setTimeout(function () {
-        heroReady = false;
-        snapshotHero();
-      }, 400);
-    };
     window.addEventListener('mousemove', boundHandlers.move);
     window.addEventListener('resize', boundHandlers.resize);
-    window.addEventListener('scroll', boundHandlers.scroll, { passive: true });
 
     running = true;
     lastUpdateTime = Date.now();
@@ -955,11 +962,10 @@
     if (resnapTimer) { clearTimeout(resnapTimer); resnapTimer = null; }
     if (boundHandlers.move) window.removeEventListener('mousemove', boundHandlers.move);
     if (boundHandlers.resize) window.removeEventListener('resize', boundHandlers.resize);
-    if (boundHandlers.scroll) window.removeEventListener('scroll', boundHandlers.scroll);
-    if (boundHandlers.scrollTimer) clearTimeout(boundHandlers.scrollTimer);
     boundHandlers = {};
-    canvasAlpha = 0;
-    lastMoveTime = 0;
+    restoreHeroDom();
+    pageHeightPx = 0;
+    viewportFrac = 1.0;
     if (gl) {
       if (heroTexture) { gl.deleteTexture(heroTexture); heroTexture = null; }
       var loseCtx = gl.getExtension('WEBGL_lose_context');
