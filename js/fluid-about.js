@@ -19,23 +19,23 @@
   var CONFIG = {
     SIM_RESOLUTION:      128,
     DYE_RESOLUTION:      1024,
-    DENSITY_DISSIPATION: 1.6,   /* how fast the smoke fades   */
-    VELOCITY_DISSIPATION: 0.2,  /* how fast motion settles    */
-    PRESSURE:            0.8,
+    DENSITY_DISSIPATION: 5.0,   /* how fast the smoke fades   */
+    VELOCITY_DISSIPATION: 6.0,  /* how fast motion settles    */
+    PRESSURE:            0.4,
     PRESSURE_ITERATIONS: 20,
-    CURL:                28,     /* swirliness                 */
-    SPLAT_RADIUS:        0.22,
-    SPLAT_FORCE:         6000,
+    CURL:                8,      /* swirliness                 */
+    SPLAT_RADIUS:        0.12,
+    SPLAT_FORCE:         1500,
     SHADING:             true,
     Z_INDEX:             60,     /* above content (<=50), below nav (100) */
-    INTENSITY:           0.9,    /* white smoke brightness     */
+    INTENSITY:           0.4,    /* white smoke brightness     */
 
     /* ── Geometric warp of the hero (text + image) ── */
     WARP:            true,
     WARP_SELECTOR:   '.studio-hero',   /* element rasterized + displaced */
-    WARP_SCALE:      0.0030,  /* how hard the velocity field bends pixels */
+    WARP_SCALE:      0.0005,  /* how hard the velocity field bends pixels */
     HERO_GAIN:       1.7,     /* boost the rasterized hero's coverage     */
-    SMOKE_ALPHA:     0.85,    /* haze opacity of smoke over live DOM      */
+    SMOKE_ALPHA:     0.30,    /* haze opacity of smoke over live DOM      */
     SNAPSHOT_DELAY:  900,     /* ms after hero entrance before snapshot   */
     HTML2CANVAS_SRC: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
   };
