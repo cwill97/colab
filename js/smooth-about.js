@@ -21,24 +21,28 @@
     destroy();
     if (typeof Lenis === 'undefined') return;
 
-    /* On mobile, native touch scroll + ScrollTrigger work best without
-       Lenis in the loop — Lenis RAF conflicts with pinned ScrollTriggers
-       and causes jumpy/glitchy behaviour on touch devices. Set a sentinel
-       so waitForDeps in scroll-about.js still proceeds. */
-    if (window.innerWidth < 768) {
-      window.colabLenis = { on: function () {} };
-      return;
-    }
+    var isMobile = window.innerWidth < 768;
 
-    lenis = new Lenis({
-      duration: 2.0,
-      easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-      smoothWheel: true,
-      smoothTouch: false,
-      wheelMultiplier: 0.45,
-      touchMultiplier: 2.0,
-      lerp: 0.038
-    });
+    if (isMobile) {
+      /* Mobile: enable smooth touch scroll. No pinned ScrollTriggers exist
+         on mobile so there's no RAF conflict. */
+      lenis = new Lenis({
+        duration: 1.4,
+        smoothTouch: true,
+        touchMultiplier: 1.5,
+        lerp: 0.08
+      });
+    } else {
+      lenis = new Lenis({
+        duration: 2.0,
+        easing: function (t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
+        smoothWheel: true,
+        smoothTouch: false,
+        wheelMultiplier: 0.45,
+        touchMultiplier: 2.0,
+        lerp: 0.038
+      });
+    }
 
     rafId = requestAnimationFrame(loop);
     window.colabLenis = lenis;
