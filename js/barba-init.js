@@ -156,6 +156,9 @@
           }
         });
       }
+
+      /* Mount the desktop fluid-simulation overlay. */
+      if (window.colabFluidAbout) window.colabFluidAbout.init();
     }
 
     function leaveProject() {
@@ -166,6 +169,7 @@
     function leaveAbout() {
       if (window.colabScrollAbout) window.colabScrollAbout.destroy();
       if (window.colabLocoAbout) window.colabLocoAbout.destroy();
+      if (window.colabFluidAbout) window.colabFluidAbout.destroy();
     }
 
     /* ── Barba init ── */
