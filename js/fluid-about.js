@@ -61,10 +61,13 @@
   var heroEl = null;
   var heroTexture = null;
   var heroReady = false;
-  var heroRect = [0, 0, 1, 1];   /* x0, y0, x1, y1 in vUv (bottom-origin) space */
+  var heroRect = [0, 0, 1, 1];
   var snapshotTimer = null;
   var resnapTimer = null;
-  var hiddenHeroNodes = [];
+
+  /* Canvas opacity — fades in on pointer activity, out when idle */
+  var canvasAlpha = 0;
+  var lastMoveTime = 0;
 
   /* ── Pointer prototype ───────────────────────────────────── */
   function Pointer() {
@@ -740,23 +743,8 @@
     }).then(function (snap) {
       if (!gl) return;
       uploadHeroTexture(snap);
-      hideHeroDom();
-      updateHeroRect();
       heroReady = true;
-    }).catch(function () { /* DOM fallback — canvas stays transparent */ });
-  }
-
-  /* Hide all page content — the fixed canvas now renders the full-page snapshot. */
-  function hideHeroDom() {
-    restoreHeroDom();
-    if (!heroEl) return;
-    hiddenHeroNodes.push([heroEl, heroEl.style.visibility]);
-    heroEl.style.visibility = 'hidden';
-  }
-
-  function restoreHeroDom() {
-    hiddenHeroNodes.forEach(function (pair) { pair[0].style.visibility = pair[1] || ''; });
-    hiddenHeroNodes = [];
+    }).catch(function () { /* canvas stays transparent */ });
   }
 
   function scheduleSnapshot() {
@@ -778,10 +766,9 @@
 
   /* Re-rasterize on resize (layout shifts invalidate the snapshot). */
   function scheduleResnapshot() {
-    if (!CONFIG.WARP || !heroReady) return;
+    if (!CONFIG.WARP) return;
     if (resnapTimer) clearTimeout(resnapTimer);
     resnapTimer = setTimeout(function () {
-      restoreHeroDom();
       heroReady = false;
       snapshotHero();
     }, 250);
@@ -841,6 +828,7 @@
   }
 
   function onPointerMove(e) {
+    lastMoveTime = Date.now();
     var pointer = pointers[0];
     updatePointerMoveData(pointer, e.clientX, e.clientY);
     if (pointer.moved) {
@@ -871,6 +859,12 @@
     if (resizeCanvas()) initFramebuffers();
     step(dt);
     render();
+    /* Fade canvas in when pointer is active + snapshot ready; fade out when idle.
+       This means scrolling always shows the live DOM (canvas transparent). */
+    var targetAlpha = (heroReady && (now - lastMoveTime) < 1500) ? 1.0 : 0.0;
+    canvasAlpha += (targetAlpha - canvasAlpha) * Math.min(1, dt * 6);
+    if (Math.abs(canvasAlpha - targetAlpha) < 0.002) canvasAlpha = targetAlpha;
+    canvas.style.opacity = canvasAlpha.toFixed(3);
     rafId = requestAnimationFrame(frame);
   }
 
@@ -888,7 +882,7 @@
     canvas.style.cssText =
       'position:fixed;top:0;left:0;width:100vw;height:100vh;' +
       'pointer-events:none;z-index:' + CONFIG.Z_INDEX + ';' +
-      'mix-blend-mode:' + BLEND_MODE + ';';
+      'mix-blend-mode:' + BLEND_MODE + ';opacity:0;';
     document.body.appendChild(canvas);
 
     var context = getWebGLContext(canvas);
@@ -934,13 +928,13 @@
       scheduleResnapshot();
     };
     boundHandlers.scroll = function () {
-      /* On scroll: restore DOM and re-snapshot 400ms after scrolling stops. */
-      if (heroReady) {
-        restoreHeroDom();
-        heroReady = false;
-      }
+      /* Queue a re-snapshot after scrolling stops — canvas is already transparent
+         (no mouse movement) so the stale texture is never visible during scroll. */
       if (boundHandlers.scrollTimer) clearTimeout(boundHandlers.scrollTimer);
-      boundHandlers.scrollTimer = setTimeout(snapshotHero, 400);
+      boundHandlers.scrollTimer = setTimeout(function () {
+        heroReady = false;
+        snapshotHero();
+      }, 400);
     };
     window.addEventListener('mousemove', boundHandlers.move);
     window.addEventListener('resize', boundHandlers.resize);
@@ -964,7 +958,8 @@
     if (boundHandlers.scroll) window.removeEventListener('scroll', boundHandlers.scroll);
     if (boundHandlers.scrollTimer) clearTimeout(boundHandlers.scrollTimer);
     boundHandlers = {};
-    restoreHeroDom();
+    canvasAlpha = 0;
+    lastMoveTime = 0;
     if (gl) {
       if (heroTexture) { gl.deleteTexture(heroTexture); heroTexture = null; }
       var loseCtx = gl.getExtension('WEBGL_lose_context');
