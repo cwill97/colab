@@ -32,10 +32,10 @@
 
     /* ── Geometric warp of the hero (text + image) ── */
     WARP:            true,
-    WARP_SELECTOR:   '.studio-hero',   /* element rasterized + displaced */
+    WARP_SELECTOR:   '[data-studio]',  /* full page content container */
     WARP_SCALE:      0.0005,  /* how hard the velocity field bends pixels */
-    HERO_GAIN:       1.7,     /* boost the rasterized hero's coverage     */
-    SMOKE_ALPHA:     0.30,    /* haze opacity of smoke over live DOM      */
+    HERO_GAIN:       1.7,     /* boost the rasterized page's coverage     */
+    SMOKE_ALPHA:     0.0,     /* smoke disabled                           */
     SNAPSHOT_DELAY:  900,     /* ms after hero entrance before snapshot   */
     HTML2CANVAS_SRC: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
   };
@@ -677,20 +677,10 @@
 
   /* ── Hero rasterization + warp plumbing ──────────────────── */
 
-  /* Map the hero element's screen rect into vUv (bottom-origin) space. */
+  /* Snapshot covers the full viewport — rect is always the entire canvas. */
   function updateHeroRect() {
-    if (!heroEl) return;
-    var r = heroEl.getBoundingClientRect();
-    var vw = window.innerWidth;
-    var vh = window.innerHeight;
-    var x0 = r.left / vw;
-    var x1 = r.right / vw;
-    var yTop = 1.0 - r.top / vh;     /* element top  → high v */
-    var yBot = 1.0 - r.bottom / vh;  /* element bot  → low  v */
-    heroRect[0] = x0;
-    heroRect[1] = yBot;
-    heroRect[2] = x1;
-    heroRect[3] = yTop;
+    heroRect[0] = 0; heroRect[1] = 0;
+    heroRect[2] = 1; heroRect[3] = 1;
   }
 
   function loadHtml2Canvas() {
@@ -728,52 +718,40 @@
   }
 
   function snapshotHero() {
-    if (!heroEl || !window.html2canvas) return;
-    window.html2canvas(heroEl, {
+    if (!window.html2canvas) return;
+    var scrollY = window.scrollY || 0;
+    window.html2canvas(document.body, {
+      x: 0,
+      y: scrollY,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      windowWidth: window.innerWidth,
+      windowHeight: window.innerHeight,
       backgroundColor: null,
       scale: Math.min(window.devicePixelRatio || 1, 2),
       logging: false,
       useCORS: true,
       removeContainer: true,
-      /* Force the cloned hero into its final, fully-revealed state so the
-         capture is independent of the live GSAP entrance (opacity / blur /
-         clip-path / transform would otherwise blank or distort it). */
       onclone: function (doc) {
-        var h = doc.querySelector(CONFIG.WARP_SELECTOR);
-        if (!h) return;
-        h.style.visibility = 'visible';
-        var all = h.querySelectorAll('*');
-        for (var i = 0; i < all.length; i++) {
-          var s = all[i].style;
-          s.opacity = '1';
-          s.visibility = 'visible';
-          s.filter = 'none';
-          s.webkitFilter = 'none';
-          s.clipPath = 'none';
-          s.webkitClipPath = 'none';
-          s.transform = 'none';
-          s.willChange = 'auto';
-        }
+        /* Exclude the fluid canvas itself from the capture. */
+        var oc = doc.querySelector('.fluid-overlay');
+        if (oc) oc.style.display = 'none';
       }
     }).then(function (snap) {
-      if (!gl || !heroEl) return;
+      if (!gl) return;
       uploadHeroTexture(snap);
       hideHeroDom();
       updateHeroRect();
       heroReady = true;
-    }).catch(function () { /* keep plain smoke on failure */ });
+    }).catch(function () { /* DOM fallback — canvas stays transparent */ });
   }
 
-  /* Hide the live hero visuals — the warped canvas now renders them.
-     Keep layout intact so getBoundingClientRect still tracks position. */
+  /* Hide all page content — the fixed canvas now renders the full-page snapshot. */
   function hideHeroDom() {
     restoreHeroDom();
     if (!heroEl) return;
-    var nodes = heroEl.querySelectorAll('.studio-lead, .studio-intro, .studio-hero-images');
-    nodes.forEach(function (n) {
-      hiddenHeroNodes.push([n, n.style.visibility]);
-      n.style.visibility = 'hidden';
-    });
+    hiddenHeroNodes.push([heroEl, heroEl.style.visibility]);
+    heroEl.style.visibility = 'hidden';
   }
 
   function restoreHeroDom() {
@@ -810,7 +788,7 @@
   }
 
   /* ── Splats ──────────────────────────────────────────────── */
-  function splat(x, y, dx, dy, color) {
+  function splat(x, y, dx, dy) {
     programs.splat.bind();
     gl.uniform1i(programs.splat.uniforms.uTarget, velocity.read.attach(0));
     gl.uniform1f(programs.splat.uniforms.aspectRatio, canvas.width / canvas.height);
@@ -819,17 +797,13 @@
     gl.uniform1f(programs.splat.uniforms.radius, correctRadius(CONFIG.SPLAT_RADIUS / 100.0));
     blit(velocity.write);
     velocity.swap();
-
-    gl.uniform1i(programs.splat.uniforms.uTarget, dye.read.attach(0));
-    gl.uniform3f(programs.splat.uniforms.color, color.r, color.g, color.b);
-    blit(dye.write);
-    dye.swap();
+    /* Smoke disabled — velocity-only splat. */
   }
 
   function splatPointer(pointer) {
     var dx = pointer.deltaX * CONFIG.SPLAT_FORCE;
     var dy = pointer.deltaY * CONFIG.SPLAT_FORCE;
-    splat(pointer.texcoordX, pointer.texcoordY, dx, dy, monochromeColor());
+    splat(pointer.texcoordX, pointer.texcoordY, dx, dy);
   }
 
   function correctRadius(radius) {
@@ -959,8 +933,18 @@
       if (resizeCanvas()) initFramebuffers();
       scheduleResnapshot();
     };
+    boundHandlers.scroll = function () {
+      /* On scroll: restore DOM and re-snapshot 400ms after scrolling stops. */
+      if (heroReady) {
+        restoreHeroDom();
+        heroReady = false;
+      }
+      if (boundHandlers.scrollTimer) clearTimeout(boundHandlers.scrollTimer);
+      boundHandlers.scrollTimer = setTimeout(snapshotHero, 400);
+    };
     window.addEventListener('mousemove', boundHandlers.move);
     window.addEventListener('resize', boundHandlers.resize);
+    window.addEventListener('scroll', boundHandlers.scroll, { passive: true });
 
     running = true;
     lastUpdateTime = Date.now();
@@ -977,6 +961,8 @@
     if (resnapTimer) { clearTimeout(resnapTimer); resnapTimer = null; }
     if (boundHandlers.move) window.removeEventListener('mousemove', boundHandlers.move);
     if (boundHandlers.resize) window.removeEventListener('resize', boundHandlers.resize);
+    if (boundHandlers.scroll) window.removeEventListener('scroll', boundHandlers.scroll);
+    if (boundHandlers.scrollTimer) clearTimeout(boundHandlers.scrollTimer);
     boundHandlers = {};
     restoreHeroDom();
     if (gl) {
