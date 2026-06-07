@@ -28,9 +28,20 @@
     SPLAT_FORCE:         6000,
     SHADING:             true,
     Z_INDEX:             60,     /* above content (<=50), below nav (100) */
-    BLEND:               'screen',
-    INTENSITY:           0.9     /* white smoke brightness     */
+    INTENSITY:           0.9,    /* white smoke brightness     */
+
+    /* ── Geometric warp of the hero (text + image) ── */
+    WARP:            true,
+    WARP_SELECTOR:   '.studio-hero',   /* element rasterized + displaced */
+    WARP_SCALE:      0.0030,  /* how hard the velocity field bends pixels */
+    HERO_GAIN:       1.7,     /* boost the rasterized hero's coverage     */
+    SMOKE_ALPHA:     0.85,    /* haze opacity of smoke over live DOM      */
+    SNAPSHOT_DELAY:  900,     /* ms after hero entrance before snapshot   */
+    HTML2CANVAS_SRC: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
   };
+  /* Blend mode depends on warp: warp draws opaque hero pixels (normal),
+     plain smoke uses screen so white lightens the dark page. */
+  var BLEND_MODE = CONFIG.WARP ? 'normal' : 'screen';
 
   var canvas = null;
   var gl = null;
@@ -41,9 +52,19 @@
   var pointers = [];
   var programs = {};
   var displayMaterial = null;
+  var warpMaterial = null;
   var blit = null;
   var dye, velocity, divergenceFBO, curlFBO, pressureFBO;
   var boundHandlers = {};
+
+  /* Warp state */
+  var heroEl = null;
+  var heroTexture = null;
+  var heroReady = false;
+  var heroRect = [0, 0, 1, 1];   /* x0, y0, x1, y1 in vUv (bottom-origin) space */
+  var snapshotTimer = null;
+  var resnapTimer = null;
+  var hiddenHeroNodes = [];
 
   /* ── Pointer prototype ───────────────────────────────────── */
   function Pointer() {
@@ -267,6 +288,44 @@
     '#endif\n' +
     '  float a = max(c.r, max(c.g, c.b));' +
     '  gl_FragColor = vec4(c, a);' +
+    '}';
+
+  /* Warp composite: displaces the rasterized hero (text + image) by the
+     fluid velocity field, then lays the white smoke over it. Outside the
+     hero rect the canvas is transparent (live DOM shows through) save for
+     a soft smoke haze. */
+  var warpShaderSource =
+    'precision highp float;' +
+    'precision highp sampler2D;' +
+    'varying vec2 vUv;' +
+    'uniform sampler2D uDye;' +
+    'uniform sampler2D uVelocity;' +
+    'uniform sampler2D uHero;' +
+    'uniform vec4 uHeroRect;' +    /* x0, y0, x1, y1 in vUv (bottom-origin) */
+    'uniform float uScale;' +
+    'uniform float uGain;' +
+    'uniform float uSmokeAlpha;' +
+    'void main () {' +
+    '  vec2 vel = texture2D(uVelocity, vUv).xy;' +
+    '  vec2 disp = vUv + vel * uScale;' +
+    '  vec4 hero = vec4(0.0);' +
+    '  if (disp.x >= uHeroRect.x && disp.x <= uHeroRect.z &&' +
+    '      disp.y >= uHeroRect.y && disp.y <= uHeroRect.w) {' +
+    '    vec2 huv = vec2((disp.x - uHeroRect.x) / (uHeroRect.z - uHeroRect.x),' +
+    '                    (disp.y - uHeroRect.y) / (uHeroRect.w - uHeroRect.y));' +
+    '    hero = texture2D(uHero, huv);' +
+    '  }' +
+    /* hero is premultiplied — recover true colour, then boost coverage so
+       thin rasterized text reads at full brightness. */
+    '  vec3 hrgb = hero.a > 0.003 ? hero.rgb / hero.a : hero.rgb;' +
+    '  float ha = clamp(hero.a * uGain, 0.0, 1.0);' +
+    '  vec3 smoke = texture2D(uDye, vUv).rgb;' +
+    '  float smokeA = clamp(max(smoke.r, max(smoke.g, smoke.b)), 0.0, 1.0);' +
+    /* Premultiplied composite: hero over page, smoke filling the gaps and
+       screen-blended over the hero pixels. */
+    '  vec3 col = hrgb * ha + smoke * (1.0 - ha);' +
+    '  float a = clamp(ha + smokeA * uSmokeAlpha * (1.0 - ha), 0.0, 1.0);' +
+    '  gl_FragColor = vec4(col, a);' +
     '}';
 
   var splatShader =
@@ -591,12 +650,163 @@
 
   function render() {
     gl.disable(gl.BLEND);
+
+    if (CONFIG.WARP && heroReady && heroTexture) {
+      updateHeroRect();
+      warpMaterial.bind();
+      gl.uniform1i(warpMaterial.uniforms.uDye, dye.read.attach(0));
+      gl.uniform1i(warpMaterial.uniforms.uVelocity, velocity.read.attach(1));
+      gl.activeTexture(gl.TEXTURE2);
+      gl.bindTexture(gl.TEXTURE_2D, heroTexture);
+      gl.uniform1i(warpMaterial.uniforms.uHero, 2);
+      gl.uniform4f(warpMaterial.uniforms.uHeroRect, heroRect[0], heroRect[1], heroRect[2], heroRect[3]);
+      gl.uniform1f(warpMaterial.uniforms.uScale, CONFIG.WARP_SCALE);
+      gl.uniform1f(warpMaterial.uniforms.uGain, CONFIG.HERO_GAIN);
+      gl.uniform1f(warpMaterial.uniforms.uSmokeAlpha, CONFIG.SMOKE_ALPHA);
+      blit(null);
+      return;
+    }
+
     var width = gl.drawingBufferWidth;
     var height = gl.drawingBufferHeight;
     displayMaterial.bind();
     gl.uniform2f(displayMaterial.uniforms.texelSize, 1.0 / width, 1.0 / height);
     gl.uniform1i(displayMaterial.uniforms.uTexture, dye.read.attach(0));
     blit(null);
+  }
+
+  /* ── Hero rasterization + warp plumbing ──────────────────── */
+
+  /* Map the hero element's screen rect into vUv (bottom-origin) space. */
+  function updateHeroRect() {
+    if (!heroEl) return;
+    var r = heroEl.getBoundingClientRect();
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var x0 = r.left / vw;
+    var x1 = r.right / vw;
+    var yTop = 1.0 - r.top / vh;     /* element top  → high v */
+    var yBot = 1.0 - r.bottom / vh;  /* element bot  → low  v */
+    heroRect[0] = x0;
+    heroRect[1] = yBot;
+    heroRect[2] = x1;
+    heroRect[3] = yTop;
+  }
+
+  function loadHtml2Canvas() {
+    return new Promise(function (resolve, reject) {
+      if (window.html2canvas) return resolve(window.html2canvas);
+      var existing = document.querySelector('script[data-html2canvas]');
+      if (existing) {
+        existing.addEventListener('load', function () { resolve(window.html2canvas); });
+        existing.addEventListener('error', reject);
+        return;
+      }
+      var s = document.createElement('script');
+      s.src = CONFIG.HTML2CANVAS_SRC;
+      s.async = true;
+      s.setAttribute('data-html2canvas', '');
+      s.onload = function () { resolve(window.html2canvas); };
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  function uploadHeroTexture(source) {
+    if (!gl) return;
+    if (!heroTexture) heroTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, heroTexture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+  }
+
+  function snapshotHero() {
+    if (!heroEl || !window.html2canvas) return;
+    window.html2canvas(heroEl, {
+      backgroundColor: null,
+      scale: Math.min(window.devicePixelRatio || 1, 2),
+      logging: false,
+      useCORS: true,
+      removeContainer: true,
+      /* Force the cloned hero into its final, fully-revealed state so the
+         capture is independent of the live GSAP entrance (opacity / blur /
+         clip-path / transform would otherwise blank or distort it). */
+      onclone: function (doc) {
+        var h = doc.querySelector(CONFIG.WARP_SELECTOR);
+        if (!h) return;
+        h.style.visibility = 'visible';
+        var all = h.querySelectorAll('*');
+        for (var i = 0; i < all.length; i++) {
+          var s = all[i].style;
+          s.opacity = '1';
+          s.visibility = 'visible';
+          s.filter = 'none';
+          s.webkitFilter = 'none';
+          s.clipPath = 'none';
+          s.webkitClipPath = 'none';
+          s.transform = 'none';
+          s.willChange = 'auto';
+        }
+      }
+    }).then(function (snap) {
+      if (!gl || !heroEl) return;
+      uploadHeroTexture(snap);
+      hideHeroDom();
+      updateHeroRect();
+      heroReady = true;
+    }).catch(function () { /* keep plain smoke on failure */ });
+  }
+
+  /* Hide the live hero visuals — the warped canvas now renders them.
+     Keep layout intact so getBoundingClientRect still tracks position. */
+  function hideHeroDom() {
+    restoreHeroDom();
+    if (!heroEl) return;
+    var nodes = heroEl.querySelectorAll('.studio-lead, .studio-intro, .studio-hero-images');
+    nodes.forEach(function (n) {
+      hiddenHeroNodes.push([n, n.style.visibility]);
+      n.style.visibility = 'hidden';
+    });
+  }
+
+  function restoreHeroDom() {
+    hiddenHeroNodes.forEach(function (pair) { pair[0].style.visibility = pair[1] || ''; });
+    hiddenHeroNodes = [];
+  }
+
+  function scheduleSnapshot() {
+    if (!CONFIG.WARP) return;
+    heroEl = document.querySelector(CONFIG.WARP_SELECTOR);
+    if (!heroEl) return;
+
+    loadHtml2Canvas().then(function () {
+      /* Snapshot after the hero entrance animation has settled. */
+      function fire() {
+        if (snapshotTimer) clearTimeout(snapshotTimer);
+        snapshotTimer = setTimeout(snapshotHero, CONFIG.SNAPSHOT_DELAY);
+      }
+      document.addEventListener('colab:shader-revealed', fire, { once: true });
+      /* Fallback if the reveal event never fires. */
+      snapshotTimer = setTimeout(snapshotHero, 3800);
+    }).catch(function () { /* plain smoke fallback */ });
+  }
+
+  /* Re-rasterize on resize (layout shifts invalidate the snapshot). */
+  function scheduleResnapshot() {
+    if (!CONFIG.WARP || !heroReady) return;
+    if (resnapTimer) clearTimeout(resnapTimer);
+    resnapTimer = setTimeout(function () {
+      restoreHeroDom();
+      heroReady = false;
+      snapshotHero();
+    }, 250);
   }
 
   /* ── Splats ──────────────────────────────────────────────── */
@@ -704,7 +914,7 @@
     canvas.style.cssText =
       'position:fixed;top:0;left:0;width:100vw;height:100vh;' +
       'pointer-events:none;z-index:' + CONFIG.Z_INDEX + ';' +
-      'mix-blend-mode:' + CONFIG.BLEND + ';';
+      'mix-blend-mode:' + BLEND_MODE + ';';
     document.body.appendChild(canvas);
 
     var context = getWebGLContext(canvas);
@@ -735,6 +945,8 @@
     displayMaterial = new Material(baseVertex, displayShaderSource);
     displayMaterial.setKeywords(CONFIG.SHADING ? ['SHADING'] : []);
 
+    warpMaterial = new Program(baseVertex, compileShader(gl.FRAGMENT_SHADER, warpShaderSource));
+
     blit = setupBlit();
     initFramebuffers();
 
@@ -743,28 +955,41 @@
     /* Window-level listeners — canvas is pointer-events:none so the
        page stays fully interactive; we read the cursor globally. */
     boundHandlers.move = onPointerMove;
-    boundHandlers.resize = function () { if (resizeCanvas()) initFramebuffers(); };
+    boundHandlers.resize = function () {
+      if (resizeCanvas()) initFramebuffers();
+      scheduleResnapshot();
+    };
     window.addEventListener('mousemove', boundHandlers.move);
     window.addEventListener('resize', boundHandlers.resize);
 
     running = true;
     lastUpdateTime = Date.now();
     rafId = requestAnimationFrame(frame);
+
+    /* Rasterize the hero and switch on the geometric warp. */
+    scheduleSnapshot();
   }
 
   function destroy() {
     running = false;
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+    if (snapshotTimer) { clearTimeout(snapshotTimer); snapshotTimer = null; }
+    if (resnapTimer) { clearTimeout(resnapTimer); resnapTimer = null; }
     if (boundHandlers.move) window.removeEventListener('mousemove', boundHandlers.move);
     if (boundHandlers.resize) window.removeEventListener('resize', boundHandlers.resize);
     boundHandlers = {};
+    restoreHeroDom();
     if (gl) {
+      if (heroTexture) { gl.deleteTexture(heroTexture); heroTexture = null; }
       var loseCtx = gl.getExtension('WEBGL_lose_context');
       if (loseCtx) loseCtx.loseContext();
     }
+    heroTexture = null;
+    heroReady = false;
+    heroEl = null;
     if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
     canvas = null; gl = null; ext = null;
-    programs = {}; displayMaterial = null; blit = null;
+    programs = {}; displayMaterial = null; warpMaterial = null; blit = null;
     dye = velocity = divergenceFBO = curlFBO = pressureFBO = null;
   }
 
