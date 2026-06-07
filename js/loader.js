@@ -369,11 +369,9 @@
 
     if (withAudio) {
       var viz = document.querySelector('[data-visualizer]');
-      if (viz) {
-        setTimeout(function () {
-          viz.click();
-        }, 400);
-      }
+      /* Click synchronously — a setTimeout would break iOS's gesture context
+         chain and AudioContext.resume() / play() would be silently blocked. */
+      if (viz) viz.click();
     }
   }
 

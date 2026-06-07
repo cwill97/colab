@@ -137,7 +137,17 @@
   function handleActivate(container) {
     if (!started) { setupAudio(); started = true; setMuted(container, false); startPlayback(); return; }
     setMuted(container, !muted);
-    if (!muted && audioCtx.state === 'suspended') audioCtx.resume();
+    /* When unmuting: resume a suspended context AND restart the audio element
+       if it stalled (e.g. first play() was blocked on iOS due to gesture loss). */
+    if (!muted) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().then(function () {
+          if (audioEl && audioEl.paused) audioEl.play().catch(function () {});
+        });
+      } else if (audioEl && audioEl.paused) {
+        audioEl.play().catch(function () {});
+      }
+    }
   }
 
   /* ── Bind audio triggers ──
