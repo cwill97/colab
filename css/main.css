@@ -2848,5 +2848,5 @@ body.about-page {
     margin-block-start: calc(var(--u) * 80);
     margin-block-end: 12vh;
   }
-  .studio-lockup-img { max-width: 50%; display: block; margin-inline: auto; }
+  .studio-lockup-img { max-width: 60%; display: block; margin-inline: auto; }
 }
