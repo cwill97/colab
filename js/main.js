@@ -21,12 +21,16 @@
     var AMBIENT_TRACK = '/sanity/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
     function pageTrack() { return AMBIENT_TRACK; }
 
+    var label = toggle.querySelector('.nav-toggle-label');
+
     function showMenu() {
       /* Re-resolve the active page right before the menu paints, so the
          flashing square always lands on the correct row even if the
          page changed without main.js's boot re-running. */
       if (window.colabSyncMenuCurrent) window.colabSyncMenuCurrent();
       toggle.setAttribute('aria-expanded', 'true');
+      toggle.setAttribute('aria-label', 'Close navigation menu');
+      if (label) label.textContent = 'Close';
       menu.setAttribute('aria-hidden', 'false');
       document.body.setAttribute('data-menu-open', '');
       if (window.colabAudio) {
@@ -37,6 +41,8 @@
 
     function hideMenu() {
       toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Open navigation menu');
+      if (label) label.textContent = 'Menu';
       menu.setAttribute('aria-hidden', 'true');
       document.body.removeAttribute('data-menu-open');
       /* Restore the page's track, then surface — but stay submerged on project page */
@@ -127,6 +133,8 @@
        fight Barba's submerge call. */
     window.colabHideMenuChrome = function () {
       toggle.setAttribute('aria-expanded', 'false');
+      toggle.setAttribute('aria-label', 'Open navigation menu');
+      if (label) label.textContent = 'Menu';
       menu.setAttribute('aria-hidden', 'true');
       document.body.removeAttribute('data-menu-open');
     };
