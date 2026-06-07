@@ -27,10 +27,10 @@
       /* Mobile: enable smooth touch scroll. No pinned ScrollTriggers exist
          on mobile so there's no RAF conflict. */
       lenis = new Lenis({
-        duration: 2.8,
+        duration: 4.2,
         smoothTouch: true,
-        touchMultiplier: 2.2,
-        lerp: 0.03
+        touchMultiplier: 3.2,
+        lerp: 0.018
       });
     } else {
       lenis = new Lenis({
