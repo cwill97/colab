@@ -2741,7 +2741,7 @@ body.about-page {
     border: none;
     color: var(--color-fg);
     font-family: var(--font-mono);
-    font-size: calc(var(--u) * 12);
+    font-size: calc(var(--u) * 11);
     letter-spacing: 0.1em;
     text-transform: uppercase;
     opacity: 0.3;
