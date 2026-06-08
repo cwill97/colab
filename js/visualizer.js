@@ -83,13 +83,28 @@
       var d = dur || 0.6;
       gsap.to(lpFilter.frequency, { duration: d, value: 22000, ease: 'power2.out' });
       gsap.to(lpFilter.Q, { duration: d, value: 0.7, ease: 'power2.out' });
+    },
+    /* Called directly from loader.js touch/click handler so audio starts
+       inside the original gesture context — bypasses the synthetic
+       element.click() path which can drop iOS user-activation on older
+       Safari.  No-op if audio has already been started. */
+    startWithGesture: function () {
+      if (started) return;
+      var container = document.querySelector('[data-visualizer]');
+      setupAudio();
+      started = true;
+      setMuted(container, false);
+      startPlayback();
     }
   };
 
   function startPlayback() {
-    audioCtx.resume().then(function () {
-      audioEl.play().catch(function (err) { console.warn('audio play failed', err); });
-    });
+    /* Both resume() and play() must be called synchronously within the
+       user gesture context. Chaining play() inside resume().then() loses
+       iOS Safari's user-activation token on older versions (< iOS 15),
+       causing audioEl.play() to be silently rejected. */
+    audioCtx.resume().catch(function () {});
+    audioEl.play().catch(function (err) { console.warn('audio play failed', err); });
   }
 
   /* ── Audio toggle element (bottom-right on project page) ── */
@@ -138,15 +153,11 @@
     if (!started) { setupAudio(); started = true; setMuted(container, false); startPlayback(); return; }
     setMuted(container, !muted);
     /* When unmuting: resume a suspended context AND restart the audio element
-       if it stalled (e.g. first play() was blocked on iOS due to gesture loss). */
+       if it stalled. Both calls made synchronously to stay within the iOS
+       user-activation context — .then() callbacks lose the gesture token. */
     if (!muted) {
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume().then(function () {
-          if (audioEl && audioEl.paused) audioEl.play().catch(function () {});
-        });
-      } else if (audioEl && audioEl.paused) {
-        audioEl.play().catch(function () {});
-      }
+      if (audioCtx.state === 'suspended') audioCtx.resume().catch(function () {});
+      if (audioEl && audioEl.paused) audioEl.play().catch(function () {});
     }
   }
 

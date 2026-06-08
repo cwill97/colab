@@ -368,10 +368,18 @@
     }, 2000);
 
     if (withAudio) {
-      var viz = document.querySelector('[data-visualizer]');
-      /* Click synchronously — a setTimeout would break iOS's gesture context
-         chain and AudioContext.resume() / play() would be silently blocked. */
-      if (viz) viz.click();
+      /* Call startWithGesture() directly — this runs inside the original
+         touchend/click handler so iOS Safari grants the user-activation
+         token to AudioContext.resume() and audioEl.play().
+         Routing via element.click() creates a synthetic event that can
+         drop the activation token on older iOS (< 15). */
+      if (window.colabAudio && typeof window.colabAudio.startWithGesture === 'function') {
+        window.colabAudio.startWithGesture();
+      } else {
+        /* Fallback — visualizer.js not loaded yet (shouldn't happen with defer) */
+        var viz = document.querySelector('[data-visualizer]');
+        if (viz) viz.click();
+      }
     }
   }
 
