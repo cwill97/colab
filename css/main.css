@@ -1581,22 +1581,29 @@ body.is-dragging-tesseract {
   gap: calc(var(--u) * 30);
 }
 
-/* Progress bar — 450×1px, split: left white / right black */
+/* Progress bar — segmented blocks: filled = white, remainder = dim */
 .loader-bar-wrap {
   width: calc(var(--u) * 420);
-  height: calc(var(--u) * 1);
-  border: 0,calc(var(--u) * 4) solid var(--color-fg);
+  height: calc(var(--u) * 7);
   position: relative;
-  overflow: hidden;
 }
 
-.loader-bar-fill {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: 0%;
+.loader-bar-segments {
+  display: flex;
+  gap: calc(var(--u) * 2);
+  width: 100%;
+  height: 100%;
+}
+
+.loader-seg {
+  flex: 1 1 0;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.16);
+  transition: background-color 0.25s ease;
+}
+
+.loader-seg.is-filled {
   background-color: var(--color-fg);
-  transition: width 0.4s ease-out;
 }
 
 /* CTA button */
@@ -2276,7 +2283,7 @@ body:not(.loader-active):not(.page-entering) [data-tesseract].tesseract-glitch-r
   /* Progress bar — cols 2–4: 3 col widths + 2 gutters */
   .loader-bar-wrap {
     width: calc(3 * var(--cw) + 2 * var(--g));
-    height: calc(var(--u) * 1);
+    height: calc(var(--u) * 6);
   }
 
   .loader-cta {

@@ -111,8 +111,27 @@
   var progressTarget  = 0;
   var progressCurrent = 0;
 
+  /* Build segmented blocks once */
+  var SEG_COUNT = 52;
+  var segEls = [];
+  (function buildSegments() {
+    if (!fillEl) return;
+    for (var s = 0; s < SEG_COUNT; s++) {
+      var seg = document.createElement('span');
+      seg.className = 'loader-seg';
+      fillEl.appendChild(seg);
+      segEls.push(seg);
+    }
+  }());
+
   function setProgress(pct) {
-    fillEl.style.width = pct + '%';
+    var filled = Math.round((pct / 100) * SEG_COUNT);
+    for (var i = 0; i < segEls.length; i++) {
+      var on = i < filled;
+      if (on !== segEls[i].classList.contains('is-filled')) {
+        segEls[i].classList.toggle('is-filled', on);
+      }
+    }
     barEl.setAttribute('aria-valuenow', Math.round(pct));
   }
 
