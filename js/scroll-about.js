@@ -182,6 +182,16 @@
       blurScrollEffect(studioLeadMobile);
     }
 
+    /* Mobile services + industries — same blur-scroll reveal */
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      var servicesMobile = document.querySelector('.studio-services-mobile');
+      if (servicesMobile) {
+        servicesMobile.querySelectorAll('.studio-services-label, .studio-services-list li').forEach(function (el) {
+          blurScrollEffect(el);
+        });
+      }
+    }
+
     /* ═══════════════════════════════════════════════════════════
        HERO — text + images hidden until shader reveal completes
        ═══════════════════════════════════════════════════════════ */

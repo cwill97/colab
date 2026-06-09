@@ -2794,7 +2794,7 @@ body.about-page {
     display: block;
     font-size: calc(var(--u) * 42);
     line-height: 1.08;
-    font-weight: 500;
+    font-weight: 400;
     font-family: var(--font-sans);
     text-indent: 0;
     padding-inline: var(--m);
