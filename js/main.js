@@ -392,18 +392,38 @@
       if (e) { e.cbs.push(cb); return; }
       e = texCache[src] = { ready: false, tex: null, w: 1, h: 1, cbs: [cb] };
       var im = new Image();
-      im.crossOrigin = 'anonymous';
+      /* No crossOrigin: the /sanity/* images are served same-origin via the
+         Vercel proxy (same as the plain <img> default-video). Forcing CORS
+         mode makes the proxied load fail → the dissolve would sit on static
+         forever. Same-origin textures upload to WebGL without tainting. */
       im.onload = function () {
-        var tex = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
-        texParams();
-        e.tex = tex; e.w = im.naturalWidth || 1; e.h = im.naturalHeight || 1; e.ready = true;
+        try {
+          var tex = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, tex);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
+          texParams();
+          e.tex = tex; e.w = im.naturalWidth || 1; e.h = im.naturalHeight || 1; e.ready = true;
+        } catch (err) {
+          console.warn('[dissolve] texImage2D failed:', err && err.message);
+          recoverFromTextureFailure();
+          return;
+        }
         var cbs = e.cbs; e.cbs = [];
         for (var i = 0; i < cbs.length; i++) cbs[i](e);
       };
-      im.onerror = function () { /* unready — stays as static */ };
+      im.onerror = function () {
+        delete texCache[src];           /* allow a future retry */
+        recoverFromTextureFailure();    /* don't sit on perpetual static */
+      };
       im.src = src;
+    }
+
+    /* If a texture can't load/upload, dissolve back out instead of holding
+       animated static indefinitely — reveals the idle video. */
+    function recoverFromTextureFailure() {
+      holdStatic = false;
+      target = 0;
+      run();
     }
 
     /* ---- animation loop ---- */
