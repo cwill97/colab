@@ -255,172 +255,260 @@
   }
 
   /* ----------------------------------------------------------
-     Project image — vertical column strip burst
-     Image is split into N narrow vertical strips. On hover they
-     fire left→right with a small random Y offset, snapping into
-     place. On leave they scatter back the same direction.
+     Project image — WebGL noise dissolve
+     On hover the preview locks in from animated TV static (like a
+     signal finding its picture); on leave it decays back to static
+     and the idle video re-emerges. Falls back to a plain crossfade
+     where WebGL is unavailable.
      ---------------------------------------------------------- */
   function initProjectImageReveal() {
     var wrap  = document.querySelector('[data-project-image-wrap]');
-    var imgA  = document.querySelector('[data-image-current]');
-    var imgB  = document.querySelector('[data-image-incoming]');
     var items = document.querySelectorAll('[data-preview-image]');
+    if (!wrap || !items.length) return;
+    if (wrap.hasAttribute('data-dissolve-init')) return;
+    wrap.setAttribute('data-dissolve-init', 'true');
 
-    if (!wrap || !imgA || !imgB || !items.length) return;
-    if (wrap.hasAttribute('data-strips-init')) return;
-    wrap.setAttribute('data-strips-init', 'true');
+    /* The legacy current/incoming imgs are replaced by the canvas.
+       The default-video img (z-index 0) stays as the idle backdrop. */
+    var legacyA = wrap.querySelector('[data-image-current]');
+    var legacyB = wrap.querySelector('[data-image-incoming]');
+    if (legacyA) legacyA.style.display = 'none';
+    if (legacyB) legacyB.style.display = 'none';
 
-    var N        = 48;    /* strip count                            */
-    var STAG_IN  = 9;     /* ms between strips firing in            */
-    var DUR_IN   = 240;   /* ms per strip settle in                 */
-    var STAG_OUT = 5;     /* ms between strips firing out           */
-    var DUR_OUT  = 160;   /* ms per strip retract                   */
-    var Y_RANGE  = 18;    /* ±px random Y jitter                    */
+    var canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.style.cssText =
+      'position:absolute;inset:0;width:100%;height:100%;display:block;' +
+      'z-index:5;opacity:0;pointer-events:none;transition:opacity 0.2s ease;';
+    wrap.appendChild(canvas);
 
-    /* Hide the original imgs — kept around for src preloading */
-    imgA.style.display = 'none';
-    imgB.style.display = 'none';
+    var gl = null;
+    try {
+      gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false }) ||
+           canvas.getContext('experimental-webgl');
+    } catch (e) { gl = null; }
 
-    function buildStrips() {
-      var ctn = document.createElement('div');
-      ctn.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
-      var pct = 100 / N;
-      for (var i = 0; i < N; i++) {
-        var s = document.createElement('div');
-        s.style.cssText =
-          'position:absolute;top:0;bottom:auto;right:auto;height:100%;overflow:hidden;' +
-          'left:' + (i * pct) + '%;width:' + pct + '%;' +
-          'opacity:0;will-change:transform,opacity;';
-        var img = document.createElement('img');
-        img.alt = '';
-        img.setAttribute('aria-hidden', 'true');
-        img.style.cssText =
-          'position:absolute;top:0;bottom:auto;right:auto;' +
-          'height:100%;width:' + (N * 100) + '%;' +
-          'left:' + (-i * 100) + '%;' +
-          'object-fit:cover;object-position:center;display:block;';
-        s.appendChild(img);
-        ctn.appendChild(s);
+    if (!gl) { initImageFallback(wrap, items); return; }
+
+    var VERT =
+      'attribute vec2 aPos; varying vec2 vUv;' +
+      'void main(){ vUv = aPos*0.5+0.5; gl_Position = vec4(aPos,0.0,1.0); }';
+
+    var FRAG = [
+      'precision highp float;',
+      'varying vec2 vUv;',
+      'uniform sampler2D uImage;',
+      'uniform vec2  uCanvas;',
+      'uniform vec2  uImageSize;',
+      'uniform float uProgress;',
+      'uniform float uTime;',
+      'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453123); }',
+      'void main(){',
+      '  float ca = uCanvas.x / max(uCanvas.y, 1.0);',
+      '  float ia = uImageSize.x / max(uImageSize.y, 1.0);',
+      '  vec2 uv = vec2(vUv.x, 1.0 - vUv.y);',          /* flip Y: tex vs image */
+      '  if (ca > ia){ float s = ia/ca; uv.y = (uv.y-0.5)*s + 0.5; }',
+      '  else        { float s = ca/ia; uv.x = (uv.x-0.5)*s + 0.5; }',
+      '  vec3 img = texture2D(uImage, uv).rgb;',
+      '  float st = hash(floor(vUv*uCanvas*0.5) + floor(uTime*60.0));',  /* animated static */
+      '  vec3 noiseCol = vec3(st);',
+      '  float thr  = hash(floor(vUv*vec2(120.0,90.0)));',               /* blocky decode order */
+      '  float edge = 0.14;',
+      '  float p    = uProgress*(1.0+2.0*edge) - edge;',                 /* ensure full 0..1 cover */
+      '  float reveal = smoothstep(thr-edge, thr+edge, p);',
+      '  float band = 1.0 - abs(reveal*2.0-1.0);',                       /* bright resolving edge */
+      '  float gate = step(0.01,uProgress)*step(uProgress,0.99);',
+      '  vec3 col = mix(noiseCol, img, reveal) + vec3(band*0.45*gate);',
+      '  gl_FragColor = vec4(col, 1.0);',
+      '}'
+    ].join('\n');
+
+    function compile(type, src) {
+      var sh = gl.createShader(type);
+      gl.shaderSource(sh, src); gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+        console.warn('[dissolve] shader:', gl.getShaderInfoLog(sh));
+        return null;
       }
-      return ctn;
+      return sh;
     }
 
-    var contA = buildStrips();
-    var contB = buildStrips();
-    contA.style.zIndex = '1';
-    contB.style.zIndex = '2';
-    wrap.appendChild(contA);
-    wrap.appendChild(contB);
+    var vs = compile(gl.VERTEX_SHADER, VERT);
+    var fs = compile(gl.FRAGMENT_SHADER, FRAG);
+    if (!vs || !fs) { initImageFallback(wrap, items); return; }
 
-    function setSrc(container, src) {
-      var kids = container.children;
-      for (var i = 0; i < kids.length; i++) {
-        var img = kids[i].firstChild;
-        if (img.getAttribute('src') !== src) img.src = src;
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      console.warn('[dissolve] link:', gl.getProgramInfoLog(prog));
+      initImageFallback(wrap, items); return;
+    }
+    gl.useProgram(prog);
+
+    var quad = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    var aPos = gl.getAttribLocation(prog, 'aPos');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    var uImage    = gl.getUniformLocation(prog, 'uImage');
+    var uCanvas   = gl.getUniformLocation(prog, 'uCanvas');
+    var uImgSize  = gl.getUniformLocation(prog, 'uImageSize');
+    var uProgress = gl.getUniformLocation(prog, 'uProgress');
+    var uTime     = gl.getUniformLocation(prog, 'uTime');
+    gl.uniform1i(uImage, 0);
+    gl.activeTexture(gl.TEXTURE0);
+
+    /* 1×1 black placeholder so the sampler is always valid */
+    var placeholder = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, placeholder);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0,0,0,255]));
+    function texParams() {
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    }
+    texParams();
+
+    var curTex = placeholder, curW = 1, curH = 1;
+    var texCache = {};
+
+    function sizeCanvas() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var r = wrap.getBoundingClientRect();
+      var w = Math.max(1, Math.round(r.width  * dpr));
+      var h = Math.max(1, Math.round(r.height * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w; canvas.height = h;
+        gl.viewport(0, 0, w, h);
       }
     }
 
-    function instantHide(container) {
-      var kids = container.children;
-      for (var i = 0; i < kids.length; i++) {
-        kids[i].style.transition = 'none';
-        kids[i].style.opacity = '0';
-        kids[i].style.transform = 'translateY(0)';
-      }
+    function loadTexture(src, cb) {
+      var e = texCache[src];
+      if (e && e.ready) { cb(e); return; }
+      if (e) { e.cbs.push(cb); return; }
+      e = texCache[src] = { ready: false, tex: null, w: 1, h: 1, cbs: [cb] };
+      var im = new Image();
+      im.crossOrigin = 'anonymous';
+      im.onload = function () {
+        var tex = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, im);
+        texParams();
+        e.tex = tex; e.w = im.naturalWidth || 1; e.h = im.naturalHeight || 1; e.ready = true;
+        var cbs = e.cbs; e.cbs = [];
+        for (var i = 0; i < cbs.length; i++) cbs[i](e);
+      };
+      im.onerror = function () { /* unready — stays as static */ };
+      im.src = src;
     }
 
-    function instantShow(container) {
-      var kids = container.children;
-      for (var i = 0; i < kids.length; i++) {
-        kids[i].style.transition = 'none';
-        kids[i].style.opacity = '1';
-        kids[i].style.transform = 'translateY(0)';
+    /* ---- animation loop ---- */
+    var DUR_IN  = 0.7;   /* s, static → image */
+    var DUR_OUT = 0.5;   /* s, image → static */
+    var progress = 0;    /* 0 = static, 1 = image */
+    var target   = 0;
+    var holdStatic = false; /* true while waiting for the texture to load */
+    var running  = false;
+    var lastT    = 0;
+    var t0       = performance.now();
+
+    function frame(now) {
+      if (!running) return;
+      var dt = Math.min((now - lastT) / 1000, 0.05);
+      lastT = now;
+
+      if (!holdStatic) {
+        var dir = target > progress ? 1 : -1;
+        var dur = dir > 0 ? DUR_IN : DUR_OUT;
+        progress += dir * (dt / dur);
+        if (progress > 1) progress = 1;
+        if (progress < 0) progress = 0;
       }
+
+      sizeCanvas();
+      gl.uniform2f(uCanvas, canvas.width, canvas.height);
+      gl.uniform2f(uImgSize, curW, curH);
+      gl.uniform1f(uProgress, progress);
+      gl.uniform1f(uTime, (now - t0) / 1000);
+      gl.bindTexture(gl.TEXTURE_2D, curTex);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+      if (!holdStatic && progress >= 1 && target >= 1) { running = false; return; } /* hold image */
+      if (!holdStatic && progress <= 0 && target <= 0) {                            /* back to idle */
+        canvas.style.opacity = '0';
+        running = false; return;
+      }
+      requestAnimationFrame(frame);
+    }
+
+    function run() {
+      if (running) return;
+      running = true;
+      lastT = performance.now();
+      requestAnimationFrame(frame);
     }
 
     var hovered = null;
-    var gen     = 0;
-
-    function scanIn(container, myGen, onDone) {
-      var kids = container.children;
-      var n    = kids.length;
-      /* Set scatter state with no transition */
-      for (var i = 0; i < n; i++) {
-        var dy = ((Math.random() * 2 - 1) * Y_RANGE).toFixed(2);
-        kids[i].style.transition = 'none';
-        kids[i].style.transform  = 'translateY(' + dy + 'px)';
-        kids[i].style.opacity    = '0';
-      }
-      /* Force reflow to commit the scatter state, then switch to the
-         settled state with a transition set — triggers the animation
-         synchronously without depending on rAF (which is paused in
-         hidden/throttled tabs). */
-      void container.offsetWidth;
-      for (var j = 0; j < n; j++) {
-        var d = j * STAG_IN;
-        kids[j].style.transition =
-          'transform ' + DUR_IN + 'ms cubic-bezier(0.2,0.7,0.2,1) ' + d + 'ms,' +
-          'opacity '   + DUR_IN + 'ms ease ' + d + 'ms';
-        kids[j].style.transform = 'translateY(0)';
-        kids[j].style.opacity   = '1';
-      }
-      if (onDone) {
-        var totalMs = (n - 1) * STAG_IN + DUR_IN + 20;
-        setTimeout(function () {
-          if (gen === myGen) onDone();
-        }, totalMs);
-      }
-    }
-
-    function scanOut(container, myGen) {
-      var kids = container.children;
-      var n    = kids.length;
-      for (var i = 0; i < n; i++) {
-        var dy = ((Math.random() * 2 - 1) * Y_RANGE).toFixed(2);
-        var d  = i * STAG_OUT;
-        kids[i].style.transition =
-          'transform ' + DUR_OUT + 'ms ease-in ' + d + 'ms,' +
-          'opacity '   + DUR_OUT + 'ms ease-in ' + d + 'ms';
-        kids[i].style.transform = 'translateY(' + dy + 'px)';
-        kids[i].style.opacity   = '0';
-      }
-      void container.offsetWidth;
-    }
 
     function onEnter(item) {
       var src = item.getAttribute('data-preview-image');
       if (!src) return;
       hovered = item;
-      gen++;
-      var myGen = gen;
-
-      /* Leave contA in place — it acts as the "last image" under
-         the incoming burst, so we don't briefly flash the video. */
-      setSrc(contB, src);
-      scanIn(contB, myGen, function () {
-        if (gen !== myGen) return;
-        /* Promote B → A silently */
-        setSrc(contA, src);
-        instantShow(contA);
-        instantHide(contB);
+      sizeCanvas();
+      canvas.style.opacity = '1';
+      progress = 0;          /* always restart from static */
+      holdStatic = true;     /* show animated static until the image is ready */
+      run();
+      loadTexture(src, function (e) {
+        if (hovered !== item) return;
+        curTex = e.tex; curW = e.w; curH = e.h;
+        holdStatic = false;  /* begin the lock-in */
+        target = 1;
+        run();
       });
     }
 
     function onLeave(item) {
-      if (item !== hovered) return;
+      if (hovered !== item) return;
       hovered = null;
-      gen++;
-      var myGen = gen;
-      /* Cancel any in-flight B scan */
-      instantHide(contB);
-      /* Retract A — if it was never promoted (opacity 0) the
-         transitions are no-ops; otherwise it bursts back out. */
-      scanOut(contA, myGen);
+      holdStatic = false;
+      target = 0;            /* decay back to static, then hide */
+      run();
     }
+
+    window.addEventListener('resize', sizeCanvas);
 
     items.forEach(function (item) {
       item.addEventListener('mouseenter', function () { onEnter(item); });
       item.addEventListener('mouseleave', function () { onLeave(item); });
+    });
+  }
+
+  /* Plain crossfade fallback for browsers without WebGL. */
+  function initImageFallback(wrap, items) {
+    var img = document.createElement('img');
+    img.setAttribute('aria-hidden', 'true');
+    img.alt = '';
+    img.style.cssText =
+      'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;' +
+      'object-position:center;z-index:5;opacity:0;pointer-events:none;' +
+      'transition:opacity 0.4s ease;';
+    wrap.appendChild(img);
+    var hovered = null;
+    items.forEach(function (item) {
+      item.addEventListener('mouseenter', function () {
+        var src = item.getAttribute('data-preview-image');
+        if (!src) return;
+        hovered = item; img.src = src; img.style.opacity = '1';
+      });
+      item.addEventListener('mouseleave', function () {
+        if (hovered !== item) return;
+        hovered = null; img.style.opacity = '0';
+      });
     });
   }
 
