@@ -255,7 +255,9 @@
   }
 
   /* ----------------------------------------------------------
-     Project image mask reveal
+     Project image — horizontal scanline reveal
+     Image builds top→bottom through N thin strips (CRT scan feel).
+     Retracts bottom→top on leave.
      ---------------------------------------------------------- */
   function initProjectImageReveal() {
     var imgA  = document.querySelector('[data-image-current]');
@@ -264,93 +266,114 @@
 
     if (!imgA || !imgB || !items.length) return;
 
-    var OPEN   = 'inset(0 0% 0 0)';
-    var CLOSED = 'inset(0 100% 0 0)';
-    var EASE   = 'clip-path 0.65s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    var N   = 28;   /* strip count                        */
+    var MS  = 18;   /* ms per strip on reveal  (~504ms)   */
+    var RMS = 11;   /* ms per strip on retract (~308ms)   */
 
-    /* Set initial states — imgA hidden (video shows through), imgB hidden */
-    imgA.style.transition = 'none';
-    imgA.style.clipPath   = CLOSED;
-    imgB.style.transition = 'none';
-    imgB.style.clipPath   = CLOSED;
+    /* Build a hard-stop linear-gradient mask showing `count` strips */
+    function buildMask(count) {
+      var p = 100 / N;
+      var s = [];
+      for (var i = 0; i < N; i++) {
+        var a = (i * p).toFixed(3) + '%';
+        var b = ((i + 1) * p).toFixed(3) + '%';
+        var c = i < count ? '#000' : 'transparent';
+        s.push(c + ' ' + a, c + ' ' + b);
+      }
+      return 'linear-gradient(to bottom,' + s.join(',') + ')';
+    }
+
+    function applyMask(el, count) {
+      var m = count <= 0 ? 'none' : count >= N ? '' : buildMask(count);
+      el.style.webkitMaskImage = m;
+      el.style.maskImage       = m;
+    }
+
+    /* Clear old clip-path state from any previous init */
+    imgA.style.transition = imgA.style.clipPath = '';
+    imgB.style.transition = imgB.style.clipPath = '';
+    applyMask(imgA, 0);
+    applyMask(imgB, 0);
+
     var hovered    = null;
-    var currentSrc = ''; /* nothing showing yet — video is default */
+    var currentSrc = '';
+    var gen        = 0;   /* incremented to cancel in-flight animations */
+    var cntA       = 0;
+    var cntB       = 0;
 
-    /* Hard-set clip with no animation — two rAF frames to guarantee
-       the browser paints the no-transition state before re-enabling */
-    function snapClip(el, clip, thenAnimate) {
-      el.style.transition = 'none';
-      el.style.clipPath   = clip;
-      requestAnimationFrame(function () {
-        requestAnimationFrame(function () {
-          el.style.transition = EASE;
-          if (thenAnimate) thenAnimate();
-        });
-      });
+    function scanIn(el, myGen, onDone) {
+      var n      = 0;
+      var isBImg = (el === imgB);
+      var t0     = null;
+      applyMask(el, 0);
+      if (isBImg) cntB = 0; else cntA = 0;
+      function tick(now) {
+        if (gen !== myGen) return;
+        if (t0 === null) t0 = now;
+        var target = Math.min(Math.floor((now - t0) / MS) + 1, N);
+        if (target > n) {
+          n = target;
+          if (isBImg) cntB = n; else cntA = n;
+          applyMask(el, n);
+        }
+        if (n < N) { requestAnimationFrame(tick); }
+        else if (onDone) { onDone(); }
+      }
+      requestAnimationFrame(tick);
+    }
+
+    function scanOut(el, myGen) {
+      var isBImg = (el === imgB);
+      var nStart = isBImg ? cntB : cntA;
+      if (nStart <= 0) return;
+      var n  = nStart;
+      var t0 = null;
+      function tick(now) {
+        if (gen !== myGen) return;
+        if (t0 === null) t0 = now;
+        var target = Math.max(nStart - Math.floor((now - t0) / RMS) - 1, 0);
+        if (target < n) {
+          n = target;
+          if (isBImg) cntB = n; else cntA = n;
+          applyMask(el, n);
+        }
+        if (n > 0) { requestAnimationFrame(tick); }
+      }
+      requestAnimationFrame(tick);
     }
 
     function onEnter(item) {
       var src = item.getAttribute('data-preview-image');
       if (!src) return;
+      hovered = item;
+      gen++;
+      var myGen = gen;
 
-      var isNew = (item !== hovered);
-      hovered   = item;
+      /* Hide imgA so the video shows through during the scan */
+      cntA = 0; applyMask(imgA, 0);
+      imgB.src = src;
 
-      /* Cancel any in-progress imgA retract — snap it open so imgB
-         can wipe in over the last project image (not over the video) */
-      imgA.style.transition = 'none';
-      imgA.style.clipPath   = OPEN;
-
-      /* Resolve to absolute URL the same way the browser does,
-         so we can compare against currentSrc */
-      var tmpA = document.createElement('a');
-      tmpA.href = src;
-      var absSrc = tmpA.href;
-
-      if (isNew) {
-        /* If imgA is already showing this image, hide it so
-           imgB can animate over the video from scratch */
-        if (absSrc === currentSrc) {
-          imgA.style.clipPath = CLOSED;
-        }
-
-        imgB.src = src;
-        snapClip(imgB, CLOSED, function () {
-          if (hovered === item) {
-            imgB.style.clipPath = OPEN;
-          }
-        });
-      } else {
-        /* Same item re-entered mid-retract — just open imgB */
-        imgB.style.transition = EASE;
-        imgB.style.clipPath   = OPEN;
-      }
+      scanIn(imgB, myGen, function () {
+        if (gen !== myGen) return;
+        /* Promote imgB → imgA silently */
+        imgA.src   = imgB.src;
+        currentSrc = imgA.src;
+        cntA = N; applyMask(imgA, N);
+        cntB = 0; applyMask(imgB, 0);
+      });
     }
 
     function onLeave(item) {
       if (item !== hovered) return;
       hovered = null;
-      /* Retract imgB, then retract imgA to reveal the idle video */
-      imgB.style.transition = EASE;
-      imgB.style.clipPath   = CLOSED;
-      imgA.style.transition = EASE;
-      imgA.style.clipPath   = CLOSED;
+      gen++;
+      var myGen = gen;
+      /* Cancel any imgB in-flight scan */
+      cntB = 0; applyMask(imgB, 0);
+      /* Retract imgA from wherever it is (0 = nothing to do) */
+      scanOut(imgA, myGen);
+      currentSrc = '';
     }
-
-    /* Promote imgB → imgA when fully open */
-    imgB.addEventListener('transitionend', function (e) {
-      if (e.propertyName !== 'clip-path') return;
-      if (imgB.style.clipPath !== OPEN || !hovered) return;
-
-      /* Swap silently */
-      imgA.style.transition = 'none';
-      imgA.src = imgB.src;
-      imgA.style.clipPath = OPEN;
-      currentSrc = imgA.src; /* keep our tracker in sync */
-
-      imgB.style.transition = 'none';
-      imgB.style.clipPath   = CLOSED;
-    });
 
     items.forEach(function (item) {
       item.addEventListener('mouseenter', function () { onEnter(item); });
