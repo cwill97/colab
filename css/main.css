@@ -2680,6 +2680,11 @@ body.about-page {
   height: auto;
 }
 
+/* About page contact/socials footer — desktop hidden, mobile shown */
+.about-contact-footer {
+  display: none;
+}
+
 /* ============ Mobile about page ============ */
 
 /* [ SCROLL MORE ] hidden on desktop */
@@ -2851,6 +2856,14 @@ body.about-page {
     margin-block-end: 12vh;
   }
   .studio-lockup-img { max-width: 60%; display: block; margin-inline: auto; }
+
+  /* ── Contact/Socials footer ── */
+  .about-contact-footer {
+    display: flex;
+    justify-content: space-between;
+    padding-inline: var(--m);
+    padding-block-end: calc(var(--u) * 60);
+  }
 
   /* ── Services + Industries ── */
   .studio-services-mobile {
