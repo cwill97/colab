@@ -255,91 +255,136 @@
   }
 
   /* ----------------------------------------------------------
-     Project image — horizontal scanline reveal
-     Image builds top→bottom through N thin strips (CRT scan feel).
-     Retracts bottom→top on leave.
+     Project image — vertical column strip burst
+     Image is split into N narrow vertical strips. On hover they
+     fire left→right with a small random Y offset, snapping into
+     place. On leave they scatter back the same direction.
      ---------------------------------------------------------- */
   function initProjectImageReveal() {
+    var wrap  = document.querySelector('[data-project-image-wrap]');
     var imgA  = document.querySelector('[data-image-current]');
     var imgB  = document.querySelector('[data-image-incoming]');
     var items = document.querySelectorAll('[data-preview-image]');
 
-    if (!imgA || !imgB || !items.length) return;
+    if (!wrap || !imgA || !imgB || !items.length) return;
+    if (wrap.hasAttribute('data-strips-init')) return;
+    wrap.setAttribute('data-strips-init', 'true');
 
-    var N   = 28;   /* strip count                        */
-    var MS  = 18;   /* ms per strip on reveal  (~504ms)   */
-    var RMS = 11;   /* ms per strip on retract (~308ms)   */
+    var N        = 48;    /* strip count                            */
+    var STAG_IN  = 9;     /* ms between strips firing in            */
+    var DUR_IN   = 240;   /* ms per strip settle in                 */
+    var STAG_OUT = 5;     /* ms between strips firing out           */
+    var DUR_OUT  = 160;   /* ms per strip retract                   */
+    var Y_RANGE  = 18;    /* ±px random Y jitter                    */
 
-    /* Build a hard-stop linear-gradient mask showing `count` strips */
-    function buildMask(count) {
-      var p = 100 / N;
-      var s = [];
+    /* Hide the original imgs — kept around for src preloading */
+    imgA.style.display = 'none';
+    imgB.style.display = 'none';
+
+    function buildStrips() {
+      var ctn = document.createElement('div');
+      ctn.style.cssText = 'position:absolute;inset:0;pointer-events:none;';
+      var pct = 100 / N;
       for (var i = 0; i < N; i++) {
-        var a = (i * p).toFixed(3) + '%';
-        var b = ((i + 1) * p).toFixed(3) + '%';
-        var c = i < count ? '#000' : 'transparent';
-        s.push(c + ' ' + a, c + ' ' + b);
+        var s = document.createElement('div');
+        s.style.cssText =
+          'position:absolute;top:0;bottom:auto;right:auto;height:100%;overflow:hidden;' +
+          'left:' + (i * pct) + '%;width:' + pct + '%;' +
+          'opacity:0;will-change:transform,opacity;';
+        var img = document.createElement('img');
+        img.alt = '';
+        img.setAttribute('aria-hidden', 'true');
+        img.style.cssText =
+          'position:absolute;top:0;bottom:auto;right:auto;' +
+          'height:100%;width:' + (N * 100) + '%;' +
+          'left:' + (-i * 100) + '%;' +
+          'object-fit:cover;object-position:center;display:block;';
+        s.appendChild(img);
+        ctn.appendChild(s);
       }
-      return 'linear-gradient(to bottom,' + s.join(',') + ')';
+      return ctn;
     }
 
-    function applyMask(el, count) {
-      var m = count <= 0 ? 'none' : count >= N ? '' : buildMask(count);
-      el.style.webkitMaskImage = m;
-      el.style.maskImage       = m;
+    var contA = buildStrips();
+    var contB = buildStrips();
+    contA.style.zIndex = '1';
+    contB.style.zIndex = '2';
+    wrap.appendChild(contA);
+    wrap.appendChild(contB);
+
+    function setSrc(container, src) {
+      var kids = container.children;
+      for (var i = 0; i < kids.length; i++) {
+        var img = kids[i].firstChild;
+        if (img.getAttribute('src') !== src) img.src = src;
+      }
     }
 
-    /* Clear old clip-path state from any previous init */
-    imgA.style.transition = imgA.style.clipPath = '';
-    imgB.style.transition = imgB.style.clipPath = '';
-    applyMask(imgA, 0);
-    applyMask(imgB, 0);
+    function instantHide(container) {
+      var kids = container.children;
+      for (var i = 0; i < kids.length; i++) {
+        kids[i].style.transition = 'none';
+        kids[i].style.opacity = '0';
+        kids[i].style.transform = 'translateY(0)';
+      }
+    }
 
-    var hovered    = null;
-    var currentSrc = '';
-    var gen        = 0;   /* incremented to cancel in-flight animations */
-    var cntA       = 0;
-    var cntB       = 0;
+    function instantShow(container) {
+      var kids = container.children;
+      for (var i = 0; i < kids.length; i++) {
+        kids[i].style.transition = 'none';
+        kids[i].style.opacity = '1';
+        kids[i].style.transform = 'translateY(0)';
+      }
+    }
 
-    function scanIn(el, myGen, onDone) {
-      var n      = 0;
-      var isBImg = (el === imgB);
-      var t0     = null;
-      applyMask(el, 0);
-      if (isBImg) cntB = 0; else cntA = 0;
-      function tick(now) {
+    var hovered = null;
+    var gen     = 0;
+
+    function scanIn(container, myGen, onDone) {
+      var kids = container.children;
+      var n    = kids.length;
+      /* Set scatter state with no transition */
+      for (var i = 0; i < n; i++) {
+        var dy = ((Math.random() * 2 - 1) * Y_RANGE).toFixed(2);
+        kids[i].style.transition = 'none';
+        kids[i].style.transform  = 'translateY(' + dy + 'px)';
+        kids[i].style.opacity    = '0';
+      }
+      /* Force reflow */
+      void container.offsetWidth;
+      requestAnimationFrame(function () {
         if (gen !== myGen) return;
-        if (t0 === null) t0 = now;
-        var target = Math.min(Math.floor((now - t0) / MS) + 1, N);
-        if (target > n) {
-          n = target;
-          if (isBImg) cntB = n; else cntA = n;
-          applyMask(el, n);
+        for (var i = 0; i < n; i++) {
+          var d = i * STAG_IN;
+          kids[i].style.transition =
+            'transform ' + DUR_IN + 'ms cubic-bezier(0.2,0.7,0.2,1) ' + d + 'ms,' +
+            'opacity '   + DUR_IN + 'ms ease ' + d + 'ms';
+          kids[i].style.transform = 'translateY(0)';
+          kids[i].style.opacity   = '1';
         }
-        if (n < N) { requestAnimationFrame(tick); }
-        else if (onDone) { onDone(); }
-      }
-      requestAnimationFrame(tick);
+        if (onDone) {
+          var totalMs = (n - 1) * STAG_IN + DUR_IN + 20;
+          setTimeout(function () {
+            if (gen === myGen) onDone();
+          }, totalMs);
+        }
+      });
     }
 
-    function scanOut(el, myGen) {
-      var isBImg = (el === imgB);
-      var nStart = isBImg ? cntB : cntA;
-      if (nStart <= 0) return;
-      var n  = nStart;
-      var t0 = null;
-      function tick(now) {
-        if (gen !== myGen) return;
-        if (t0 === null) t0 = now;
-        var target = Math.max(nStart - Math.floor((now - t0) / RMS) - 1, 0);
-        if (target < n) {
-          n = target;
-          if (isBImg) cntB = n; else cntA = n;
-          applyMask(el, n);
-        }
-        if (n > 0) { requestAnimationFrame(tick); }
+    function scanOut(container, myGen) {
+      var kids = container.children;
+      var n    = kids.length;
+      for (var i = 0; i < n; i++) {
+        var dy = ((Math.random() * 2 - 1) * Y_RANGE).toFixed(2);
+        var d  = i * STAG_OUT;
+        kids[i].style.transition =
+          'transform ' + DUR_OUT + 'ms ease-in ' + d + 'ms,' +
+          'opacity '   + DUR_OUT + 'ms ease-in ' + d + 'ms';
+        kids[i].style.transform = 'translateY(' + dy + 'px)';
+        kids[i].style.opacity   = '0';
       }
-      requestAnimationFrame(tick);
+      void container.offsetWidth;
     }
 
     function onEnter(item) {
@@ -349,17 +394,15 @@
       gen++;
       var myGen = gen;
 
-      /* Hide imgA so the video shows through during the scan */
-      cntA = 0; applyMask(imgA, 0);
-      imgB.src = src;
-
-      scanIn(imgB, myGen, function () {
+      /* Leave contA in place — it acts as the "last image" under
+         the incoming burst, so we don't briefly flash the video. */
+      setSrc(contB, src);
+      scanIn(contB, myGen, function () {
         if (gen !== myGen) return;
-        /* Promote imgB → imgA silently */
-        imgA.src   = imgB.src;
-        currentSrc = imgA.src;
-        cntA = N; applyMask(imgA, N);
-        cntB = 0; applyMask(imgB, 0);
+        /* Promote B → A silently */
+        setSrc(contA, src);
+        instantShow(contA);
+        instantHide(contB);
       });
     }
 
@@ -368,11 +411,11 @@
       hovered = null;
       gen++;
       var myGen = gen;
-      /* Cancel any imgB in-flight scan */
-      cntB = 0; applyMask(imgB, 0);
-      /* Retract imgA from wherever it is (0 = nothing to do) */
-      scanOut(imgA, myGen);
-      currentSrc = '';
+      /* Cancel any in-flight B scan */
+      instantHide(contB);
+      /* Retract A — if it was never promoted (opacity 0) the
+         transitions are no-ops; otherwise it bursts back out. */
+      scanOut(contA, myGen);
     }
 
     items.forEach(function (item) {
