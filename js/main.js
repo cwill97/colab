@@ -427,8 +427,8 @@
     }
 
     /* ---- animation loop ---- */
-    var DUR_IN  = 0.35;  /* s, static → image */
-    var DUR_OUT = 0.25;  /* s, image → static */
+    var DUR_IN  = 0.233; /* s, static → image */
+    var DUR_OUT = 0.167; /* s, image → static */
     var progress = 0;    /* 0 = static, 1 = image */
     var target   = 0;
     var holdStatic = false; /* true while waiting for the texture to load */
