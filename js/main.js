@@ -351,25 +351,25 @@
         kids[i].style.transform  = 'translateY(' + dy + 'px)';
         kids[i].style.opacity    = '0';
       }
-      /* Force reflow */
+      /* Force reflow to commit the scatter state, then switch to the
+         settled state with a transition set — triggers the animation
+         synchronously without depending on rAF (which is paused in
+         hidden/throttled tabs). */
       void container.offsetWidth;
-      requestAnimationFrame(function () {
-        if (gen !== myGen) return;
-        for (var i = 0; i < n; i++) {
-          var d = i * STAG_IN;
-          kids[i].style.transition =
-            'transform ' + DUR_IN + 'ms cubic-bezier(0.2,0.7,0.2,1) ' + d + 'ms,' +
-            'opacity '   + DUR_IN + 'ms ease ' + d + 'ms';
-          kids[i].style.transform = 'translateY(0)';
-          kids[i].style.opacity   = '1';
-        }
-        if (onDone) {
-          var totalMs = (n - 1) * STAG_IN + DUR_IN + 20;
-          setTimeout(function () {
-            if (gen === myGen) onDone();
-          }, totalMs);
-        }
-      });
+      for (var j = 0; j < n; j++) {
+        var d = j * STAG_IN;
+        kids[j].style.transition =
+          'transform ' + DUR_IN + 'ms cubic-bezier(0.2,0.7,0.2,1) ' + d + 'ms,' +
+          'opacity '   + DUR_IN + 'ms ease ' + d + 'ms';
+        kids[j].style.transform = 'translateY(0)';
+        kids[j].style.opacity   = '1';
+      }
+      if (onDone) {
+        var totalMs = (n - 1) * STAG_IN + DUR_IN + 20;
+        setTimeout(function () {
+          if (gen === myGen) onDone();
+        }, totalMs);
+      }
     }
 
     function scanOut(container, myGen) {
