@@ -494,6 +494,7 @@ button {
 }
 
 .menu-nav-link {
+  font-family: var(--font-display);
   color: var(--color-muted);
   text-decoration: none;
   transition: color 0.2s ease;
