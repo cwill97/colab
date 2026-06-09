@@ -2687,6 +2687,7 @@ body.about-page {
 /* Mobile-only elements — hidden on desktop */
 .mobile-br { display: none; }
 .studio-lead-mobile { display: none; }
+.studio-services-mobile { display: none; }
 
 @media (max-width: 767px) {
 
@@ -2849,4 +2850,41 @@ body.about-page {
     margin-block-end: 12vh;
   }
   .studio-lockup-img { max-width: 60%; display: block; margin-inline: auto; }
+
+  /* ── Services + Industries ── */
+  .studio-services-mobile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(var(--u) * 20);
+    padding-inline: var(--m);
+    padding-block-start: calc(var(--u) * 60);
+    padding-block-end: calc(var(--u) * 60);
+  }
+
+  .studio-services-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: calc(var(--u) * 10);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.4;
+    margin-block-end: calc(var(--u) * 20);
+  }
+
+  .studio-services-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 10);
+  }
+
+  .studio-services-list li {
+    font-family: var(--font-mono);
+    font-size: calc(var(--u) * 11);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.3;
+  }
 }
