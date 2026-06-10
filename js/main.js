@@ -311,7 +311,7 @@
       '  else        { float s = ca/ia; uv.x = (uv.x-0.5)*s + 0.5; }',
       '  vec3 img = texture2D(uImage, uv).rgb;',
       '  float st = hash(floor(vUv*uCanvas*0.5) + floor(uTime*60.0));',  /* animated static */
-      '  vec3 noiseCol = vec3(st);',
+      '  vec3 noiseCol = vec3(0.0);',
       '  float thr  = hash(floor(vUv*vec2(120.0,90.0)));',               /* blocky decode order */
       '  float edge = 0.14;',
       '  float p    = uProgress*(1.0+2.0*edge) - edge;',                 /* ensure full 0..1 cover */
