@@ -98,7 +98,7 @@
     /* Left-offset design frame: sliver of card 1 on left, empty space right */
     var startX = -(totalW - vw + emptyR);
     var endX   = 0;
-    var movePx = Math.round(vw * 2.0);
+    var movePx = Math.round(vw * 1.2);
 
     gsap.set(track, { x: startX });
 
