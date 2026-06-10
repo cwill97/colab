@@ -4,7 +4,10 @@
   'use strict';
 
   // ── Config ─────────────────────────────────────────────────────────
-  var SFX_SRC       = '/sanity/files/7to0u5h2/production/331f365e328f2a0bd8c0eed13fec01b344a09d38.mp3';
+  // Two ticks: hover_2.mp3 for the on-page lists (projects / services /
+  // contact), the original hover.mp3 kept for the menu overlay nav.
+  var BODY_SRC      = '/sanity/files/7to0u5h2/production/5ef273f98522c7cf8f7418b13419b8427253dd77.mp3';
+  var MENU_SRC      = '/sanity/files/7to0u5h2/production/331f365e328f2a0bd8c0eed13fec01b344a09d38.mp3';
   var SFX_VOLUME    = 0.55;   // background UI tick — sits under the ambient bed
   var MIN_INTERVAL  = 35;     // ms between plays — kills fast-drag stacking
 
@@ -13,10 +16,10 @@
   function canHover() { return hoverMQ.matches; }
 
   // ── Web Audio ──────────────────────────────────────────────────────
-  var ctx          = null;
-  var buffer       = null;   // decoded AudioBuffer
-  var bufferPromise = null;  // in-flight fetch/decode (dedup)
-  var lastPlayAt   = 0;
+  var ctx            = null;
+  var buffers        = {};   // src → decoded AudioBuffer
+  var bufferPromises = {};   // src → in-flight fetch/decode (dedup)
+  var lastPlayAt     = 0;
 
   function getCtx() {
     if (ctx) return ctx;
@@ -26,13 +29,13 @@
     return ctx;
   }
 
-  function loadBuffer() {
-    if (buffer) return Promise.resolve(buffer);
-    if (bufferPromise) return bufferPromise;
+  function loadBuffer(src) {
+    if (buffers[src]) return Promise.resolve(buffers[src]);
+    if (bufferPromises[src]) return bufferPromises[src];
     var c = getCtx();
     if (!c) return Promise.reject(new Error('no AudioContext'));
 
-    bufferPromise = fetch(SFX_SRC)
+    bufferPromises[src] = fetch(src)
       .then(function (res) {
         if (!res.ok) throw new Error('fetch failed: ' + res.status);
         return res.arrayBuffer();
@@ -48,16 +51,16 @@
         });
       })
       .then(function (decoded) {
-        buffer = decoded;
-        return buffer;
+        buffers[src] = decoded;
+        return decoded;
       })
       .catch(function (err) {
         // Reset so a later hover can retry
-        bufferPromise = null;
+        bufferPromises[src] = null;
         throw err;
       });
 
-    return bufferPromise;
+    return bufferPromises[src];
   }
 
   // ── Gate: is site audio currently on? ──────────────────────────────
@@ -76,7 +79,7 @@
   // ── Play one tick ──────────────────────────────────────────────────
   // playOpts.allowDuringMenu — when true (set by menu-list items),
   //   skip the menu-open gate so the overlay's own nav rows can chirp.
-  function play(playOpts) {
+  function play(src, playOpts) {
     if (!canHover())    return;
     if (!audioEnabled()) return;
     if (menuOpen() && !(playOpts && playOpts.allowDuringMenu)) return;
@@ -88,7 +91,7 @@
     var c = getCtx();
     if (!c) return;
 
-    loadBuffer().then(function (buf) {
+    loadBuffer(src).then(function (buf) {
       // AudioContext may be suspended even after a gesture on some
       // browsers (iOS Safari in particular). Resume opportunistically.
       var start = function () {
@@ -114,7 +117,8 @@
     li.setAttribute('data-hover-sfx-init', '');
     var fromMenu = !!(opts && opts.fromMenu);
     li.addEventListener('mouseenter', function () {
-      play(fromMenu ? { allowDuringMenu: true } : null);
+      play(fromMenu ? MENU_SRC : BODY_SRC,
+           fromMenu ? { allowDuringMenu: true } : null);
     });
   }
 
