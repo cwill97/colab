@@ -45,11 +45,12 @@
       if (label) label.textContent = 'Menu';
       menu.setAttribute('aria-hidden', 'true');
       document.body.removeAttribute('data-menu-open');
-      /* Restore the page's track, then surface — but stay submerged on project page */
+      /* Restore the page's track, then surface — stay submerged on project and about pages */
       if (window.colabAudio) {
         if (window.colabAudio.setTrack) window.colabAudio.setTrack(pageTrack());
-        if (document.body.classList.contains('project-page')) {
-          window.colabAudio.submerge(0.6);
+        if (document.body.classList.contains('project-page') ||
+            document.body.classList.contains('about-page')) {
+          window.colabAudio.submerge();
         } else {
           window.colabAudio.surface();
         }

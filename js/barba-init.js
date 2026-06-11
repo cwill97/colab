@@ -257,10 +257,14 @@
               ST.revealIn(0.0);
             }
 
-            /* Surface audio after reveal — both pages get full audio */
+            /* Surface audio after reveal — submerge on about/project, surface elsewhere */
             setTimeout(function () {
               if (window.colabAudio) {
-                window.colabAudio.surface(0.6);
+                if (entering === 'about' || entering === 'project') {
+                  window.colabAudio.submerge();
+                } else {
+                  window.colabAudio.surface(0.6);
+                }
               }
             }, 150);
 
