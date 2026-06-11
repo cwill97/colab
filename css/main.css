@@ -2798,7 +2798,7 @@ body.about-page {
   /* ── Mobile h1 between carousels ── */
   .studio-lead-mobile {
     display: block;
-    font-size: calc(var(--u) * 42);
+    font-size: calc(var(--u) * 40);
     line-height: 1.08;
     font-weight: 400;
     font-family: var(--font-sans);
