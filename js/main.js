@@ -303,24 +303,39 @@
       'uniform vec2  uImageSize;',
       'uniform float uProgress;',
       'uniform float uTime;',
-      'float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453123); }',
+      'float hash(vec2 p){',
+      '  vec3 p3 = fract(vec3(p.xyx)*0.1031);',
+      '  p3 += dot(p3, p3.yzx+33.33);',
+      '  return fract((p3.x+p3.y)*p3.z);',
+      '}',
+      'float noise(vec2 p){',
+      '  vec2 i = floor(p); vec2 f = fract(p);',
+      '  f = f*f*(3.0-2.0*f);',
+      '  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),',
+      '             mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);',
+      '}',
+      'float fbm(vec2 p){',
+      '  float v=0.0,a=0.5;',
+      '  for(int i=0;i<4;i++){ v+=a*noise(p); p*=2.0; a*=0.5; }',
+      '  return v;',
+      '}',
       'void main(){',
       '  float ca = uCanvas.x / max(uCanvas.y, 1.0);',
       '  float ia = uImageSize.x / max(uImageSize.y, 1.0);',
-      '  vec2 uv = vec2(vUv.x, 1.0 - vUv.y);',          /* flip Y: tex vs image */
-      '  if (ca > ia){ float s = ia/ca; uv.y = (uv.y-0.5)*s + 0.5; }',
-      '  else        { float s = ca/ia; uv.x = (uv.x-0.5)*s + 0.5; }',
-      '  vec3 img = texture2D(uImage, uv).rgb;',
-      '  float st = hash(floor(vUv*uCanvas*0.5) + floor(uTime*60.0));',  /* animated static */
-      '  vec3 noiseCol = vec3(0.0);',
-      '  float thr  = hash(floor(vUv*vec2(240.0,180.0)));',               /* blocky decode order */
-      '  float edge = 0.14;',
-      '  float p    = uProgress*(1.0+2.0*edge) - edge;',                 /* ensure full 0..1 cover */
-      '  float reveal = smoothstep(thr-edge, thr+edge, p);',
-      '  float band = 1.0 - abs(reveal*2.0-1.0);',                       /* bright resolving edge */
-      '  float gate = step(0.01,uProgress)*step(uProgress,0.99);',
-      '  vec3 col = mix(noiseCol, img, reveal) + vec3(band*0.45*gate);',
-      '  gl_FragColor = vec4(col, 1.0);',
+      '  vec2 uv = vec2(vUv.x, 1.0 - vUv.y);',
+      '  if (ca > ia){ float s = ia/ca; uv.y = (uv.y-0.5)*s+0.5; }',
+      '  else        { float s = ca/ia; uv.x = (uv.x-0.5)*s+0.5; }',
+      '  vec4 tex = texture2D(uImage, uv);',
+      '  float n = fbm(vUv*5.0 + uTime*0.03);',
+      '  float threshold = uProgress*1.35 - 0.15;',
+      '  float edgeW = 0.08 + 0.04*(1.0-uProgress);',
+      '  float mask = 1.0 - smoothstep(threshold-edgeW, threshold+edgeW, n);',
+      '  float edge = smoothstep(threshold-edgeW*0.3, threshold, n)',
+      '             * smoothstep(threshold+edgeW*0.6, threshold, n);',
+      '  vec3 col = mix(tex.rgb, vec3(0.0), edge);',
+      '  mask *= smoothstep(0.0, 0.05, uProgress);',
+      '  mask  = mix(mask, 1.0, smoothstep(0.9, 1.0, uProgress));',
+      '  gl_FragColor = vec4(col, mask);',
       '}'
     ].join('\n');
 
@@ -419,20 +434,17 @@
       im.src = src;
     }
 
-    /* If a texture can't load/upload, dissolve back out instead of holding
-       animated static indefinitely — reveals the idle video. */
+    /* If a texture can't load/upload, burn back out — reveals the idle video. */
     function recoverFromTextureFailure() {
-      holdStatic = false;
       target = 0;
       run();
     }
 
     /* ---- animation loop ---- */
-    var DUR_IN  = 0.233; /* s, static → image */
-    var DUR_OUT = 0.167; /* s, image → static */
-    var progress = 0;    /* 0 = static, 1 = image */
+    var DUR_IN  = 0.55; /* s, burn in  */
+    var DUR_OUT = 0.35; /* s, burn out */
+    var progress = 0;   /* 0 = transparent, 1 = fully revealed */
     var target   = 0;
-    var holdStatic = false; /* true while waiting for the texture to load */
     var running  = false;
     var lastT    = 0;
     var t0       = performance.now();
@@ -442,13 +454,11 @@
       var dt = Math.min((now - lastT) / 1000, 0.05);
       lastT = now;
 
-      if (!holdStatic) {
-        var dir = target > progress ? 1 : -1;
-        var dur = dir > 0 ? DUR_IN : DUR_OUT;
-        progress += dir * (dt / dur);
-        if (progress > 1) progress = 1;
-        if (progress < 0) progress = 0;
-      }
+      var dir = target > progress ? 1 : -1;
+      var dur = dir > 0 ? DUR_IN : DUR_OUT;
+      progress += dir * (dt / dur);
+      if (progress > 1) progress = 1;
+      if (progress < 0) progress = 0;
 
       sizeCanvas();
       gl.uniform2f(uCanvas, canvas.width, canvas.height);
@@ -458,8 +468,8 @@
       gl.bindTexture(gl.TEXTURE_2D, curTex);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-      if (!holdStatic && progress >= 1 && target >= 1) { running = false; return; } /* hold image */
-      if (!holdStatic && progress <= 0 && target <= 0) {                            /* back to idle */
+      if (progress >= 1 && target >= 1) { running = false; return; } /* hold revealed */
+      if (progress <= 0 && target <= 0) {                            /* back to idle  */
         canvas.style.opacity = '0';
         running = false; return;
       }
@@ -481,14 +491,12 @@
       hovered = item;
       sizeCanvas();
       canvas.style.opacity = '1';
-      progress = 0;          /* always restart from static */
-      holdStatic = true;     /* show animated static until the image is ready */
-      run();
+      progress = 0;
+      target = 0;
       loadTexture(src, function (e) {
         if (hovered !== item) return;
         curTex = e.tex; curW = e.w; curH = e.h;
-        holdStatic = false;  /* begin the lock-in */
-        target = 1;
+        target = 1;  /* begin burn-in once texture is ready */
         run();
       });
     }
@@ -496,8 +504,7 @@
     function onLeave(item) {
       if (hovered !== item) return;
       hovered = null;
-      holdStatic = false;
-      target = 0;            /* decay back to static, then hide */
+      target = 0;  /* burn back out */
       run();
     }
 
