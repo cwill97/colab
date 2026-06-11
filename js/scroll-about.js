@@ -11,6 +11,7 @@
   var triggers = [];
   var heroTL = null;
   var shaderFallback = null;
+  var burnReveals = [];
 
   /* ── Word-split utility ────────────────────────────────────
      Wraps every word in <span class="word"> for per-word
@@ -202,31 +203,31 @@
     if (heroLead)  gsap.set(heroLead, { opacity: 0 });
     if (heroIntro) gsap.set(heroIntro, { opacity: 0 });
 
-    // Hide hero images until reveal
-    heroImages.forEach(function (fig) {
-      gsap.set(fig, { clipPath: 'inset(100% 0 0 0)' });
-      var img = fig.querySelector('img');
-      if (img) gsap.set(img, { scale: 1.2 });
-    });
+    // Hide hero images until reveal — burn dissolve if available, clip-path fallback
+    var heroBurns = [];
+    if (typeof BurnReveal !== 'undefined') {
+      heroImages.forEach(function (fig) {
+        /* Skip figures with no rendered size (e.g. hero-pair is display:none on mobile) */
+        if (fig.offsetWidth === 0 && fig.offsetHeight === 0) return;
+        var br = new BurnReveal(fig);
+        br.init();
+        heroBurns.push(br);
+        burnReveals.push(br);
+      });
+    } else {
+      heroImages.forEach(function (fig) {
+        gsap.set(fig, { clipPath: 'inset(100% 0 0 0)' });
+        var img = fig.querySelector('img');
+        if (img) gsap.set(img, { scale: 1.2 });
+      });
 
-    heroTL = gsap.timeline({ paused: true });
-
-    heroImages.forEach(function (fig) {
-      heroTL.to(fig, {
-        clipPath: 'inset(0% 0 0 0)',
-        duration: 1.0,
-        ease: 'power3.inOut'
-      }, 0);
-
-      var img = fig.querySelector('img');
-      if (img) {
-        heroTL.to(img, {
-          scale: 1,
-          duration: 1.3,
-          ease: 'power2.out'
-        }, 0);
-      }
-    });
+      heroTL = gsap.timeline({ paused: true });
+      heroImages.forEach(function (fig) {
+        heroTL.to(fig, { clipPath: 'inset(0% 0 0 0)', duration: 1.0, ease: 'power3.inOut' }, 0);
+        var img = fig.querySelector('img');
+        if (img) heroTL.to(img, { scale: 1, duration: 1.3, ease: 'power2.out' }, 0);
+      });
+    }
 
     var heroPlayed = false;
     function playHero() {
@@ -253,7 +254,13 @@
       }
 
       // Play image reveal
-      heroTL.play();
+      if (heroBurns.length) {
+        heroBurns.forEach(function (br, i) {
+          gsap.delayedCall(i * 0.15, function () { br.reveal(1.2); });
+        });
+      } else if (heroTL) {
+        heroTL.play();
+      }
 
       // Ensure any video elements inside hero figures start playing
       // (browsers may suspend autoplay on elements with clip-path hidden)
@@ -278,26 +285,42 @@
     // Grid cells — desktop: clip reveal cascade / mobile: pinned horizontal carousel
     if (gridCells.length) {
       if (window.matchMedia('(min-width: 768px)').matches) {
-        gridCells.forEach(function (cell) {
-          gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
-          var img = cell.querySelector('img');
-          if (img) gsap.set(img, { scale: 1.15 });
-        });
+        var gridBurns = [];
+        if (typeof BurnReveal !== 'undefined') {
+          gridCells.forEach(function (cell) {
+            var br = new BurnReveal(cell);
+            br.init();
+            gridBurns.push(br);
+            burnReveals.push(br);
+          });
+        } else {
+          gridCells.forEach(function (cell) {
+            gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
+            var img = cell.querySelector('img');
+            if (img) gsap.set(img, { scale: 1.15 });
+          });
+        }
 
         triggers.push(ScrollTrigger.create({
           trigger: '.studio-grid--a',
           start: 'top 85%',
           onEnter: function () {
-            gsap.to(gridCells, {
-              clipPath: 'inset(0% 0 0 0)',
-              duration: 1.0,
-              ease: 'power3.inOut',
-              stagger: 0.1
-            });
-            gridCells.forEach(function (cell) {
-              var img = cell.querySelector('img');
-              if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
-            });
+            if (gridBurns.length) {
+              gridBurns.forEach(function (br, i) {
+                gsap.delayedCall(i * 0.1, function () { br.reveal(1.0); });
+              });
+            } else {
+              gsap.to(gridCells, {
+                clipPath: 'inset(0% 0 0 0)',
+                duration: 1.0,
+                ease: 'power3.inOut',
+                stagger: 0.1
+              });
+              gridCells.forEach(function (cell) {
+                var img = cell.querySelector('img');
+                if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
+              });
+            }
           },
           once: true
         }));
@@ -306,29 +329,47 @@
         document.querySelectorAll('.studio-grid').forEach(function (g) {
           var cells = g.querySelectorAll('.studio-grid-cell-tall');
 
-          /* Same clip-path wipe as desktop — start hidden */
-          cells.forEach(function (cell) {
-            gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
-            var img = cell.querySelector('img');
-            if (img) gsap.set(img, { scale: 1.15 });
-          });
+          /* Burn reveal per card — clip-path fallback */
+          var mobileCellBurns = [];
+          if (typeof BurnReveal !== 'undefined') {
+            cells.forEach(function (cell) {
+              var br = new BurnReveal(cell);
+              br.init();
+              mobileCellBurns.push(br);
+              burnReveals.push(br);
+            });
+          } else {
+            cells.forEach(function (cell) {
+              gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
+              var img = cell.querySelector('img');
+              if (img) gsap.set(img, { scale: 1.15 });
+            });
+          }
 
           /* Reveal cards when carousel scrolls into view */
           triggers.push(ScrollTrigger.create({
             trigger: g,
             start: 'top 85%',
-            onEnter: function () {
-              gsap.to(cells, {
-                clipPath: 'inset(0% 0 0 0)',
-                duration: 1.0,
-                ease: 'power3.inOut',
-                stagger: 0.1
-              });
-              cells.forEach(function (cell) {
-                var img = cell.querySelector('img');
-                if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
-              });
-            },
+            onEnter: (function (burns, fallbackCells) {
+              return function () {
+                if (burns.length) {
+                  burns.forEach(function (br, i) {
+                    gsap.delayedCall(i * 0.1, function () { br.reveal(1.0); });
+                  });
+                } else {
+                  gsap.to(fallbackCells, {
+                    clipPath: 'inset(0% 0 0 0)',
+                    duration: 1.0,
+                    ease: 'power3.inOut',
+                    stagger: 0.1
+                  });
+                  fallbackCells.forEach(function (cell) {
+                    var img = cell.querySelector('img');
+                    if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
+                  });
+                }
+              };
+            }(mobileCellBurns, cells)),
             once: true
           }));
 
@@ -338,36 +379,38 @@
       }
     }
 
-    // Wide image — clip reveal + parallax scrub
+    // Wide image — burn reveal + parallax scrub
     var isMobileWide = window.matchMedia('(max-width: 767px)').matches;
     if (wideImage) {
-      /* Mobile: skip scale (causes glitch when pin releases); desktop: scale 0.60→1 */
-      if (isMobileWide) {
-        gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)' });
-      } else {
-        gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)', scale: 0.60, transformOrigin: 'center bottom' });
-      }
       var wideImg = wideImage.querySelector('img');
-      if (wideImg && !isMobileWide) gsap.set(wideImg, { scale: 1.12 });
+      var wideBurn = null;
+
+      if (typeof BurnReveal !== 'undefined') {
+        wideBurn = new BurnReveal(wideImage);
+        wideBurn.init();
+        burnReveals.push(wideBurn);
+      } else {
+        if (isMobileWide) {
+          gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)' });
+        } else {
+          gsap.set(wideImage, { clipPath: 'inset(100% 0 0 0)', scale: 0.60, transformOrigin: 'center bottom' });
+          if (wideImg) gsap.set(wideImg, { scale: 1.12 });
+        }
+      }
 
       triggers.push(ScrollTrigger.create({
         trigger: '.studio-wide-row',
         start: 'top 85%',
         onEnter: function () {
-          if (isMobileWide) {
-            gsap.to(wideImage, {
-              clipPath: 'inset(0% 0 0 0)',
-              duration: 1.4,
-              ease: 'power3.inOut'
-            });
+          if (wideBurn) {
+            wideBurn.reveal(isMobileWide ? 1.4 : 1.8);
           } else {
-            gsap.to(wideImage, {
-              clipPath: 'inset(0% 0 0 0)',
-              scale: 1,
-              duration: 1.8,
-              ease: 'power3.inOut'
-            });
-            if (wideImg) gsap.to(wideImg, { scale: 1.05, duration: 2.0, ease: 'power2.out' });
+            if (isMobileWide) {
+              gsap.to(wideImage, { clipPath: 'inset(0% 0 0 0)', duration: 1.4, ease: 'power3.inOut' });
+            } else {
+              gsap.to(wideImage, { clipPath: 'inset(0% 0 0 0)', scale: 1, duration: 1.8, ease: 'power3.inOut' });
+              if (wideImg) gsap.to(wideImg, { scale: 1.05, duration: 2.0, ease: 'power2.out' });
+            }
           }
         },
         once: true
@@ -413,6 +456,8 @@
   function destroy() {
     if (shaderFallback) { clearTimeout(shaderFallback); shaderFallback = null; }
     if (heroTL) { heroTL.kill(); heroTL = null; }
+    burnReveals.forEach(function (br) { br.destroy(); });
+    burnReveals = [];
     triggers.forEach(function (st) { if (st && st.kill) st.kill(); });
     triggers = [];
     ScrollTrigger.getAll().forEach(function (st) { st.kill(); });
