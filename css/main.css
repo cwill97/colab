@@ -167,6 +167,16 @@
   padding: 0;
 }
 
+/* Inverted text selection */
+::selection      { background: #ffffff; color: #000000; }
+::-moz-selection { background: #ffffff; color: #000000; }
+
+/* Prevent long-press save callout on iOS and drag-to-desktop on WebKit */
+img, video {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+
 /* Enable fast-tap on all interactive elements (disables 300ms delay
    and double-tap-to-zoom on buttons/links without blocking scroll) */
 a, button, [role="button"], input, select, textarea, label,

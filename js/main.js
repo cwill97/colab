@@ -633,6 +633,13 @@
   /* Expose for Barba re-init after content swap */
   window.colabSyncMenuCurrent = syncMenuCurrent;
 
+  /* Block right-click and long-press save on images and videos */
+  document.addEventListener('contextmenu', function (e) {
+    if (e.target.tagName === 'IMG' || e.target.tagName === 'VIDEO') {
+      e.preventDefault();
+    }
+  });
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else {
