@@ -6,7 +6,7 @@
   // ── Config ─────────────────────────────────────────────────────────
   // Two ticks: hover_2.mp3 for the on-page lists (projects / services /
   // contact), the original hover.mp3 kept for the menu overlay nav.
-  var BODY_SRC      = '/sanity/files/7to0u5h2/production/f644d88c6f4c9552b5fd0c04f930573881111cd5.mp3';
+  var BODY_SRC      = '/sanity/files/7to0u5h2/production/e665a47f686260096cfd62683ed4a543c8f2777a.mp3';
   var MENU_SRC      = '/sanity/files/7to0u5h2/production/331f365e328f2a0bd8c0eed13fec01b344a09d38.mp3';
   var SFX_VOLUME    = 0.55;   // background UI tick — sits under the ambient bed
   var MIN_INTERVAL  = 35;     // ms between plays — kills fast-drag stacking
