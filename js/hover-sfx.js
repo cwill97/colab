@@ -123,10 +123,11 @@
   }
 
   function init() {
-    var bodyItems = document.querySelectorAll(
-      '.services-block li, .contact-block li, .project-list li'
-    );
-    Array.prototype.forEach.call(bodyItems, function (li) { bindItem(li); });
+    var projectItems = document.querySelectorAll('.project-list li');
+    Array.prototype.forEach.call(projectItems, function (li) { bindItem(li); });
+
+    var menuSoundItems = document.querySelectorAll('.services-block li, .contact-block li');
+    Array.prototype.forEach.call(menuSoundItems, function (li) { bindItem(li, { fromMenu: true }); });
 
     // Menu nav <li>s stretch to the full menu column width, so binding
     // mouseenter on the <li> fires the tick on empty space to the right
