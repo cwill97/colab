@@ -2802,7 +2802,7 @@ body.about-page {
     line-height: 1.08;
     font-weight: 400;
     font-family: var(--font-sans);
-    text-indent: 0;
+    text-indent: calc(var(--u) * 80);
     padding-inline: var(--m);
     padding-block: calc(var(--u) * 138) calc(var(--u) * 40);
     margin: 0;
