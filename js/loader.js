@@ -33,8 +33,8 @@
   /* ----------------------------------------------------------
      Stagger timing
   ---------------------------------------------------------- */
-  var LINE_STAGGER = 110;  /* ms between each line fading in */
-  var LINE_START   = 400;  /* delay before first log line (after intro fades) */
+  var LINE_STAGGER = 73;   /* ms between each line fading in */
+  var LINE_START   = 267;  /* delay before first log line (after intro fades) */
 
   /* ----------------------------------------------------------
      DOM refs
@@ -126,7 +126,7 @@
     'rgba(255,255,255,0.50)',
   ];
 
-  var TICK_MS           = 600 / 35;
+  var TICK_MS           = 400 / 35;
   var RESOLVES_PER_TICK = 3;
 
   function randomGlyph() {
@@ -151,7 +151,7 @@
     /* Intro line — fades in first */
     var introEl = loader.querySelector('.loader-terminal-intro');
     if (introEl) {
-      setTimeout(function () { introEl.classList.add('is-visible'); }, 100);
+      setTimeout(function () { introEl.classList.add('is-visible'); }, 67);
     }
 
     /* Log lines — each fades in LINE_STAGGER ms after the previous */
@@ -303,7 +303,7 @@
         prompt.innerHTML = '> <span class="loader-cursor"></span>';
         footerEl.appendChild(prompt);
 
-        setTimeout(enableCta, 300);
+        setTimeout(enableCta, 200);
       }
     }, TICK_MS);
   }
@@ -316,14 +316,14 @@
   function enableCta() {
     setProgress(100);
     ctaEl.disabled = false;
-    ctaEl.setAttribute('aria-label', 'Enter site with audio enabled');
+    ctaEl.setAttribute('aria-label', 'Enter with audio enabled');
 
     document.addEventListener('keydown', handleKeyEnter);
     loader.addEventListener('touchend', handleTouchEnter);
 
     autoEnterTimer = setTimeout(function () {
       if (!dismissed) dismissLoader(false);
-    }, 2400);
+    }, 1600);
   }
 
   function handleKeyEnter() {
@@ -402,6 +402,6 @@
   setTimeout(function () {
     buildTerminal();
     startGlobalShuffle();
-  }, 300);
+  }, 200);
 
 }());
