@@ -112,19 +112,21 @@
   }
 
   // ── Per-item binding ───────────────────────────────────────────────
+  // opts.src          — explicit audio source (overrides fromMenu logic)
+  // opts.fromMenu     — use MENU_SRC + allowDuringMenu flag
   function bindItem(li, opts) {
     if (li.hasAttribute('data-hover-sfx-init')) return;
     li.setAttribute('data-hover-sfx-init', '');
     var fromMenu = !!(opts && opts.fromMenu);
+    var src = (opts && opts.src) || (fromMenu ? MENU_SRC : BODY_SRC);
     li.addEventListener('mouseenter', function () {
-      play(fromMenu ? MENU_SRC : BODY_SRC,
-           fromMenu ? { allowDuringMenu: true } : null);
+      play(src, fromMenu ? { allowDuringMenu: true } : null);
     });
   }
 
   function init() {
-    var projectItems = document.querySelectorAll('.project-list li');
-    Array.prototype.forEach.call(projectItems, function (li) { bindItem(li); });
+    var projectNavLinks = document.querySelectorAll('[data-next-project], [data-prev-project]');
+    Array.prototype.forEach.call(projectNavLinks, function (el) { bindItem(el, { src: MENU_SRC }); });
 
     var menuSoundItems = document.querySelectorAll('.services-block li, .contact-block li');
     Array.prototype.forEach.call(menuSoundItems, function (li) { bindItem(li, { fromMenu: true }); });
