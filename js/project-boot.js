@@ -26,8 +26,6 @@
         '/sanity/images/7to0u5h2/production/eadb61b70dd8c60ee776e9043d783660b9ff80b0-2364x1815.webp',
         '/sanity/images/7to0u5h2/production/61c57c01702e37fd57b5b18e61aae924cbc0dd36-1576x1210.webp',
         '/sanity/images/7to0u5h2/production/9774288db110115e0c6406e172e5ba0de68d5106-2364x1815.webp',
-        '/sanity/images/7to0u5h2/production/4b908dedf1aea925906a810e32b8142700f7105f-2364x1815.webp',
-        '/sanity/images/7to0u5h2/production/19ce538f7f3b75a58db5ddddccbd1040d3cc6771-2364x1815.webp',
         '/sanity/images/7to0u5h2/production/eb3e823a0a01fdd83f7bb1bb1298f7a2cd7919c6-2364x1815.webp',
         '/sanity/images/7to0u5h2/production/bd22a31a9ad6d58b2f091fe94f99db659ba3adef-2364x1815.webp',
         '/sanity/images/7to0u5h2/production/e7797bebe1504eb8ea9ae56322720db3bec2b001-2364x1815.webp',
