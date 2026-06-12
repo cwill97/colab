@@ -20,12 +20,11 @@
       metaDescription: 'Brand development, web design, e-commerce, 3D and animation for Viking Gear — primal training tools reimagined as modern rituals of discipline and mastery.',
       description: 'Viking Gear forges strength through primal movement. Rooted in the warrior spirit, it reimagines ancient training tools such as maces, clubs, and hammers as modern extensions of discipline, flow, and mastery. Every piece honours resilience, balance, and raw power, turning training into ritual.\n\nWe built the brand from the ground up. We shaped the strategy, art direction, and complete visual identity, creating a bold, purposeful world where ancient form meets contemporary performance.',
       images: [
-        '/sanity/files/7to0u5h2/production/2f4e357a5e4ec99a4f3e5c766697ff29bc1898f9.mp4',
         '/sanity/images/7to0u5h2/production/c863a0e039eba63344f26f74446d208a954dc739-2364x1815.webp',
+        '/sanity/files/7to0u5h2/production/2f4e357a5e4ec99a4f3e5c766697ff29bc1898f9.mp4',
         '/sanity/files/7to0u5h2/production/1573ec88c2716a1a3f2c9d72d29ed964ad5112d3.mp4',
         '/sanity/images/7to0u5h2/production/eadb61b70dd8c60ee776e9043d783660b9ff80b0-2364x1815.webp',
         '/sanity/images/7to0u5h2/production/61c57c01702e37fd57b5b18e61aae924cbc0dd36-1576x1210.webp',
-        '/sanity/images/7to0u5h2/production/9774288db110115e0c6406e172e5ba0de68d5106-2364x1815.webp',
         '/sanity/images/7to0u5h2/production/eb3e823a0a01fdd83f7bb1bb1298f7a2cd7919c6-2364x1815.webp',
         '/sanity/images/7to0u5h2/production/bd22a31a9ad6d58b2f091fe94f99db659ba3adef-2364x1815.webp',
         '/sanity/images/7to0u5h2/production/e7797bebe1504eb8ea9ae56322720db3bec2b001-2364x1815.webp',
