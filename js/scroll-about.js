@@ -282,87 +282,11 @@
        BELOW-FOLD IMAGES — ScrollTrigger reveals
        ═══════════════════════════════════════════════════════════ */
 
-    // Grid cells — desktop: scrub per cell / mobile: scrub per cell + horizontal carousel
-    if (gridCells.length) {
-      if (window.matchMedia('(min-width: 768px)').matches) {
-        if (typeof BurnReveal !== 'undefined') {
-          gridCells.forEach(function (cell, i) {
-            var br = new BurnReveal(cell);
-            br.init();
-            burnReveals.push(br);
-            var startPct = 85 - i * 6;
-            var endPct   = 20 - i * 6;
-            br.scrub(cell, 'top ' + startPct + '%', 'top ' + endPct + '%');
-          });
-        } else {
-          gridCells.forEach(function (cell) {
-            gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
-            var img = cell.querySelector('img');
-            if (img) gsap.set(img, { scale: 1.15 });
-          });
-          triggers.push(ScrollTrigger.create({
-            trigger: '.studio-grid--a',
-            start: 'top 85%',
-            onEnter: function () {
-              gsap.to(gridCells, {
-                clipPath: 'inset(0% 0 0 0)',
-                duration: 1.0,
-                ease: 'power3.inOut',
-                stagger: 0.1
-              });
-              gridCells.forEach(function (cell) {
-                var img = cell.querySelector('img');
-                if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
-              });
-            },
-            once: true
-          }));
-        }
-      } else {
-        /* Mobile: scrub burn + horizontal carousel */
-        document.querySelectorAll('.studio-grid').forEach(function (g) {
-          var cells = g.querySelectorAll('.studio-grid-cell-tall');
-
-          if (typeof BurnReveal !== 'undefined') {
-            cells.forEach(function (cell, i) {
-              var br = new BurnReveal(cell);
-              br.init();
-              burnReveals.push(br);
-              var startPct = 85 - i * 6;
-              var endPct   = 20 - i * 6;
-              br.scrub(cell, 'top ' + startPct + '%', 'top ' + endPct + '%');
-            });
-          } else {
-            cells.forEach(function (cell) {
-              gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
-              var img = cell.querySelector('img');
-              if (img) gsap.set(img, { scale: 1.15 });
-            });
-            triggers.push(ScrollTrigger.create({
-              trigger: g,
-              start: 'top 85%',
-              onEnter: (function (fallbackCells) {
-                return function () {
-                  gsap.to(fallbackCells, {
-                    clipPath: 'inset(0% 0 0 0)',
-                    duration: 1.0,
-                    ease: 'power3.inOut',
-                    stagger: 0.1
-                  });
-                  fallbackCells.forEach(function (cell) {
-                    var img = cell.querySelector('img');
-                    if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
-                  });
-                };
-              }(cells)),
-              once: true
-            }));
-          }
-
-          /* Horizontal pan — runs independently on the track */
-          initMobileCarousel(g);
-        });
-      }
+    // Grid cells — mobile horizontal carousel only, no reveal animation
+    if (gridCells.length && window.matchMedia('(max-width: 767px)').matches) {
+      document.querySelectorAll('.studio-grid').forEach(function (g) {
+        initMobileCarousel(g);
+      });
     }
 
     // Wide image — burn reveal + parallax scrub
