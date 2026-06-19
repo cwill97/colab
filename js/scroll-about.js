@@ -377,14 +377,12 @@
       }
     }
 
-    // Desktop: grid-distort hover on grid cells
-    if (window.matchMedia('(min-width: 768px)').matches && typeof GridDistort !== 'undefined') {
+    // Desktop: burn-hole cursor hover on grid cells
+    if (window.matchMedia('(min-width: 768px)').matches && typeof BurnHover !== 'undefined') {
       gridCells.forEach(function (cell) {
-        var img = cell.querySelector('img');
-        if (!img) return;
-        var gd = new GridDistort(cell);
-        gd.init(img.src);
-        depthHovers.push(gd);
+        var bh = new BurnHover(cell);
+        bh.init();
+        depthHovers.push(bh);
       });
     }
 
