@@ -286,11 +286,13 @@
     if (gridCells.length) {
       if (window.matchMedia('(min-width: 768px)').matches) {
         if (typeof BurnReveal !== 'undefined') {
-          gridCells.forEach(function (cell) {
+          gridCells.forEach(function (cell, i) {
             var br = new BurnReveal(cell);
             br.init();
             burnReveals.push(br);
-            br.scrub(cell, 'top 85%', 'top 20%');
+            var startPct = 85 - i * 6;
+            var endPct   = 20 - i * 6;
+            br.scrub(cell, 'top ' + startPct + '%', 'top ' + endPct + '%');
           });
         } else {
           gridCells.forEach(function (cell) {
@@ -322,11 +324,13 @@
           var cells = g.querySelectorAll('.studio-grid-cell-tall');
 
           if (typeof BurnReveal !== 'undefined') {
-            cells.forEach(function (cell) {
+            cells.forEach(function (cell, i) {
               var br = new BurnReveal(cell);
               br.init();
               burnReveals.push(br);
-              br.scrub(cell, 'top 85%', 'top 20%');
+              var startPct = 85 - i * 6;
+              var endPct   = 20 - i * 6;
+              br.scrub(cell, 'top ' + startPct + '%', 'top ' + endPct + '%');
             });
           } else {
             cells.forEach(function (cell) {
