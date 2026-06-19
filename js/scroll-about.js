@@ -282,16 +282,15 @@
        BELOW-FOLD IMAGES — ScrollTrigger reveals
        ═══════════════════════════════════════════════════════════ */
 
-    // Grid cells — desktop: clip reveal cascade / mobile: pinned horizontal carousel
+    // Grid cells — desktop: scrub per cell / mobile: scrub per cell + horizontal carousel
     if (gridCells.length) {
       if (window.matchMedia('(min-width: 768px)').matches) {
-        var gridBurns = [];
         if (typeof BurnReveal !== 'undefined') {
           gridCells.forEach(function (cell) {
             var br = new BurnReveal(cell);
             br.init();
-            gridBurns.push(br);
             burnReveals.push(br);
+            br.scrub(cell, 'top 85%', 'top 20%');
           });
         } else {
           gridCells.forEach(function (cell) {
@@ -299,17 +298,10 @@
             var img = cell.querySelector('img');
             if (img) gsap.set(img, { scale: 1.15 });
           });
-        }
-
-        triggers.push(ScrollTrigger.create({
-          trigger: '.studio-grid--a',
-          start: 'top 85%',
-          onEnter: function () {
-            if (gridBurns.length) {
-              gridBurns.forEach(function (br, i) {
-                gsap.delayedCall(i * 0.1, function () { br.reveal(1.0); });
-              });
-            } else {
+          triggers.push(ScrollTrigger.create({
+            trigger: '.studio-grid--a',
+            start: 'top 85%',
+            onEnter: function () {
               gsap.to(gridCells, {
                 clipPath: 'inset(0% 0 0 0)',
                 duration: 1.0,
@@ -320,23 +312,21 @@
                 var img = cell.querySelector('img');
                 if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
               });
-            }
-          },
-          once: true
-        }));
+            },
+            once: true
+          }));
+        }
       } else {
-        /* Mobile: wipe reveal + horizontal carousel */
+        /* Mobile: scrub burn + horizontal carousel */
         document.querySelectorAll('.studio-grid').forEach(function (g) {
           var cells = g.querySelectorAll('.studio-grid-cell-tall');
 
-          /* Burn reveal per card — clip-path fallback */
-          var mobileCellBurns = [];
           if (typeof BurnReveal !== 'undefined') {
             cells.forEach(function (cell) {
               var br = new BurnReveal(cell);
               br.init();
-              mobileCellBurns.push(br);
               burnReveals.push(br);
+              br.scrub(cell, 'top 85%', 'top 20%');
             });
           } else {
             cells.forEach(function (cell) {
@@ -344,19 +334,11 @@
               var img = cell.querySelector('img');
               if (img) gsap.set(img, { scale: 1.15 });
             });
-          }
-
-          /* Reveal cards when carousel scrolls into view */
-          triggers.push(ScrollTrigger.create({
-            trigger: g,
-            start: 'top 85%',
-            onEnter: (function (burns, fallbackCells) {
-              return function () {
-                if (burns.length) {
-                  burns.forEach(function (br, i) {
-                    gsap.delayedCall(i * 0.1, function () { br.reveal(1.0); });
-                  });
-                } else {
+            triggers.push(ScrollTrigger.create({
+              trigger: g,
+              start: 'top 85%',
+              onEnter: (function (fallbackCells) {
+                return function () {
                   gsap.to(fallbackCells, {
                     clipPath: 'inset(0% 0 0 0)',
                     duration: 1.0,
@@ -367,11 +349,11 @@
                     var img = cell.querySelector('img');
                     if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
                   });
-                }
-              };
-            }(mobileCellBurns, cells)),
-            once: true
-          }));
+                };
+              }(cells)),
+              once: true
+            }));
+          }
 
           /* Horizontal pan — runs independently on the track */
           initMobileCarousel(g);

@@ -96,18 +96,20 @@
     this.camera        = null;
     this.mesh          = null;
     this.uniforms      = null;
-    this.rafId         = null;
-    this.running       = false;
-    this._textureReady = false;
+    this.rafId          = null;
+    this.running        = false;
+    this._textureReady  = false;
     this._pendingReveal = null;  /* { duration, onComplete } set when reveal() called before texture */
-    this._tick         = this._tick.bind(this);
+    this._pendingScrub  = null;  /* { trigger, start, end } set when scrub() called before texture */
+    this._scrubTrigger  = null;
+    this._tick          = this._tick.bind(this);
   }
 
   BurnReveal.prototype.init = function () {
     if (typeof THREE === 'undefined') return;
 
-    var self = this;
-    var img  = this.fig.querySelector('img, video');
+    var self  = this;
+    var img   = this.fig.querySelector('img, video');
     this._img = img;
 
     /* Ensure figure is a positioning ancestor for the canvas overlay */
@@ -172,19 +174,25 @@
           self.uniforms.uUvOffset.value = p.offset;
         }
         self._textureReady = true;
-        /* Fire any reveal() call that arrived before the texture loaded */
         if (self._pendingReveal) {
           var pending = self._pendingReveal;
           self._pendingReveal = null;
           self._doReveal(pending.duration, pending.onComplete);
+        } else if (self._pendingScrub) {
+          var ps = self._pendingScrub;
+          self._pendingScrub = null;
+          self._doScrub(ps.trigger, ps.start, ps.end);
         }
       }, undefined, function () {
-        /* Texture error — mark ready so a pending reveal still fires */
         self._textureReady = true;
         if (self._pendingReveal) {
           var pending = self._pendingReveal;
           self._pendingReveal = null;
           self._doReveal(pending.duration, pending.onComplete);
+        } else if (self._pendingScrub) {
+          var ps = self._pendingScrub;
+          self._pendingScrub = null;
+          self._doScrub(ps.trigger, ps.start, ps.end);
         }
       });
     } else {
@@ -236,6 +244,31 @@
     });
   };
 
+  /* Tie uProgress directly to scroll position — canvas lives on forever.
+     Call instead of reveal() when scroll-scrub behaviour is wanted. */
+  BurnReveal.prototype.scrub = function (trigger, start, end) {
+    if (!this._textureReady) {
+      this._pendingScrub = { trigger: trigger, start: start, end: end };
+      return;
+    }
+    this._doScrub(trigger, start, end);
+  };
+
+  BurnReveal.prototype._doScrub = function (trigger, start, end) {
+    if (typeof gsap === 'undefined' || !this.uniforms) return;
+    var tween = gsap.to(this.uniforms.uProgress, {
+      value: 1.0,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: trigger,
+        start:   start || 'top 85%',
+        end:     end   || 'top 20%',
+        scrub:   1
+      }
+    });
+    if (tween && tween.scrollTrigger) this._scrubTrigger = tween.scrollTrigger;
+  };
+
   /* Remove canvas overlay, restore real image */
   BurnReveal.prototype._finish = function () {
     this.running = false;
@@ -267,6 +300,7 @@
   BurnReveal.prototype.destroy = function () {
     this.running = false;
     if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; }
+    if (this._scrubTrigger) { this._scrubTrigger.kill(); this._scrubTrigger = null; }
     if (this._img) { this._img.style.visibility = ''; }
     if (this.canvas && this.canvas.parentNode) {
       this.canvas.parentNode.removeChild(this.canvas);
