@@ -12,7 +12,6 @@
   var heroTL = null;
   var shaderFallback = null;
   var burnReveals = [];
-  var depthHovers = [];
 
   /* ── Word-split utility ────────────────────────────────────
      Wraps every word in <span class="word"> for per-word
@@ -377,15 +376,6 @@
       }
     }
 
-    // Desktop: burn-hole cursor hover on grid cells
-    if (window.matchMedia('(min-width: 768px)').matches && typeof BurnHover !== 'undefined') {
-      gridCells.forEach(function (cell) {
-        var bh = new BurnHover(cell);
-        bh.init();
-        depthHovers.push(bh);
-      });
-    }
-
     // Wide image — burn reveal + parallax scrub
     var isMobileWide = window.matchMedia('(max-width: 767px)').matches;
     if (wideImage) {
@@ -465,8 +455,6 @@
     if (heroTL) { heroTL.kill(); heroTL = null; }
     burnReveals.forEach(function (br) { br.destroy(); });
     burnReveals = [];
-    depthHovers.forEach(function (dh) { dh.destroy(); });
-    depthHovers = [];
     triggers.forEach(function (st) { if (st && st.kill) st.kill(); });
     triggers = [];
     ScrollTrigger.getAll().forEach(function (st) { st.kill(); });
