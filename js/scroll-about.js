@@ -96,9 +96,9 @@
     var totalW = (cardW + gapPx) * cards.length - gapPx;
     var emptyR = vw * 0.22;
 
-    /* Card 1 starts fully visible on left; scroll pulls track left revealing cards 3 & 4 */
-    var startX = 0;
-    var endX   = -(totalW - vw + emptyR);
+    /* Empty space on left at start; card 4 ends flush right */
+    var startX = emptyR;
+    var endX   = -(totalW - vw);
     var movePx = Math.round(vw * 1.2);
 
     gsap.set(track, { x: startX });
