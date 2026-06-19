@@ -230,7 +230,10 @@
       duration: duration || 1.2,
       ease:     'power2.inOut',
       onComplete: function () {
-        self._finish();
+        /* Stop RAF to save CPU/GPU but leave canvas frozen at uProgress=1 —
+           swapping to the native <img> causes a one-frame flash so we skip it. */
+        self.running = false;
+        if (self.rafId) { cancelAnimationFrame(self.rafId); self.rafId = null; }
         if (onComplete) onComplete();
       }
     });
