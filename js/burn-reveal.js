@@ -230,10 +230,7 @@
       duration: duration || 1.2,
       ease:     'power2.inOut',
       onComplete: function () {
-        /* Stop RAF to save CPU/GPU but leave canvas frozen at uProgress=1 —
-           swapping to the native <img> causes a one-frame flash so we skip it. */
-        self.running = false;
-        if (self.rafId) { cancelAnimationFrame(self.rafId); self.rafId = null; }
+        self._finish();
         if (onComplete) onComplete();
       }
     });
@@ -243,12 +240,17 @@
   BurnReveal.prototype._finish = function () {
     this.running = false;
     if (this.rafId) { cancelAnimationFrame(this.rafId); this.rafId = null; }
+    /* Restore img visibility while canvas is still covering it — browser
+       rasterizes the native img underneath for one frame so there is no
+       blank gap when the canvas is removed on the next rAF. */
     if (this._img) { this._img.style.visibility = ''; }
-    if (this.canvas && this.canvas.parentNode) {
-      this.canvas.parentNode.removeChild(this.canvas);
-      this.canvas = null;
-    }
-    this._disposeGL();
+    var canvas = this.canvas;
+    var self   = this;
+    this.canvas = null;
+    requestAnimationFrame(function () {
+      if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+      self._disposeGL();
+    });
   };
 
   BurnReveal.prototype._disposeGL = function () {
