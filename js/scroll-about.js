@@ -282,11 +282,98 @@
        BELOW-FOLD IMAGES — ScrollTrigger reveals
        ═══════════════════════════════════════════════════════════ */
 
-    // Grid cells — mobile horizontal carousel only, no reveal animation
-    if (gridCells.length && window.matchMedia('(max-width: 767px)').matches) {
-      document.querySelectorAll('.studio-grid').forEach(function (g) {
-        initMobileCarousel(g);
-      });
+    // Grid cells — desktop: burn cascade / mobile: burn + horizontal carousel
+    if (gridCells.length) {
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        var gridBurns = [];
+        if (typeof BurnReveal !== 'undefined') {
+          gridCells.forEach(function (cell) {
+            var br = new BurnReveal(cell);
+            br.init();
+            gridBurns.push(br);
+            burnReveals.push(br);
+          });
+        } else {
+          gridCells.forEach(function (cell) {
+            gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
+            var img = cell.querySelector('img');
+            if (img) gsap.set(img, { scale: 1.15 });
+          });
+        }
+
+        triggers.push(ScrollTrigger.create({
+          trigger: '.studio-grid--a',
+          start: 'top 85%',
+          onEnter: function () {
+            if (gridBurns.length) {
+              gridBurns.forEach(function (br, i) {
+                gsap.delayedCall(i * 0.1, function () { br.reveal(1.0); });
+              });
+            } else {
+              gsap.to(gridCells, {
+                clipPath: 'inset(0% 0 0 0)',
+                duration: 1.0,
+                ease: 'power3.inOut',
+                stagger: 0.1
+              });
+              gridCells.forEach(function (cell) {
+                var img = cell.querySelector('img');
+                if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
+              });
+            }
+          },
+          once: true
+        }));
+      } else {
+        /* Mobile: burn reveal + horizontal carousel */
+        document.querySelectorAll('.studio-grid').forEach(function (g) {
+          var cells = g.querySelectorAll('.studio-grid-cell-tall');
+
+          var mobileCellBurns = [];
+          if (typeof BurnReveal !== 'undefined') {
+            cells.forEach(function (cell) {
+              var br = new BurnReveal(cell);
+              br.init();
+              mobileCellBurns.push(br);
+              burnReveals.push(br);
+            });
+          } else {
+            cells.forEach(function (cell) {
+              gsap.set(cell, { clipPath: 'inset(100% 0 0 0)' });
+              var img = cell.querySelector('img');
+              if (img) gsap.set(img, { scale: 1.15 });
+            });
+          }
+
+          triggers.push(ScrollTrigger.create({
+            trigger: g,
+            start: 'top 85%',
+            onEnter: (function (burns, fallbackCells) {
+              return function () {
+                if (burns.length) {
+                  burns.forEach(function (br, i) {
+                    gsap.delayedCall(i * 0.1, function () { br.reveal(1.0); });
+                  });
+                } else {
+                  gsap.to(fallbackCells, {
+                    clipPath: 'inset(0% 0 0 0)',
+                    duration: 1.0,
+                    ease: 'power3.inOut',
+                    stagger: 0.1
+                  });
+                  fallbackCells.forEach(function (cell) {
+                    var img = cell.querySelector('img');
+                    if (img) gsap.to(img, { scale: 1, duration: 1.2, ease: 'power2.out' });
+                  });
+                }
+              };
+            }(mobileCellBurns, cells)),
+            once: true
+          }));
+
+          initMobileCarousel(g);
+        });
+      }
     }
 
     // Wide image — burn reveal + parallax scrub
