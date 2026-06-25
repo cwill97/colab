@@ -408,10 +408,7 @@
       if (e) { e.cbs.push(cb); return; }
       e = texCache[src] = { ready: false, tex: null, w: 1, h: 1, cbs: [cb] };
       var im = new Image();
-      /* No crossOrigin: the /sanity/* images are served same-origin via the
-         Vercel proxy (same as the plain <img> default-video). Forcing CORS
-         mode makes the proxied load fail → the dissolve would sit on static
-         forever. Same-origin textures upload to WebGL without tainting. */
+      im.crossOrigin = 'anonymous'; /* required for WebGL texture upload on cross-origin Bunny CDN URLs */
       im.onload = function () {
         try {
           var tex = gl.createTexture();
