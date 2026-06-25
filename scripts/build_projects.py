@@ -21,6 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SITE_ORIGIN = "https://colab47.com"
+CDN_BASE = "https://colab-site.b-cdn.net"
 
 PROJECTS = [
     {
@@ -28,7 +29,7 @@ PROJECTS = [
         "index": "001",
         "title": "Viking Gear",
         "services": "Brand Development · Web Design · E-Commerce · 3D · Animation",
-        "logoSrc": "/assets/Project_Logo_Viking.svg",
+        "logoSrc": f"{CDN_BASE}/viking/Project_Logo_Viking.svg",
         "timeline": "October 2025 — May 2026",
         "credits": "Creative Direction, Design & Development — co:lab",
         "metaDescription": (
@@ -45,14 +46,14 @@ PROJECTS = [
             "and complete visual identity, creating a bold, purposeful world where ancient "
             "form meets contemporary performance."
         ),
-        "heroImage": "/assets/Project_Img_01.webp",
+        "heroImage": f"{CDN_BASE}/viking/Project_Img_Viking_01.webp",
     },
     {
         "slug": "rebel-kids-club",
         "index": "002",
         "title": "Rebel Kids Club",
         "services": "Brand Development · Photography · E-Commerce · Web Design",
-        "logoSrc": "",
+        "logoSrc": f"{CDN_BASE}/rebel-kids/Project_Logo_Rebel.svg",
         "timeline": "TBD",
         "credits": "Creative Direction, Design & Development — co:lab",
         "metaDescription": (
@@ -69,14 +70,14 @@ PROJECTS = [
             "from name and positioning to visual language and guidelines, crafting a "
             "distinctive voice that feels confident, inclusive, and unmistakably its own."
         ),
-        "heroImage": "/assets/Project_Img_02.webp",
+        "heroImage": f"{CDN_BASE}/rebel-kids/Project_Img_Rebel_01.webp",
     },
     {
         "slug": "mannequin-films",
         "index": "003",
         "title": "Mannequin Films",
         "services": "Brand Development · Web Design · Motion",
-        "logoSrc": "",
+        "logoSrc": f"{CDN_BASE}/mannequin/Project_Logo_Mannequin.svg",
         "timeline": "TBD",
         "credits": "Creative Direction, Design & Development — co:lab",
         "metaDescription": (
@@ -94,14 +95,14 @@ PROJECTS = [
             "the complete visual system, we distilled their essence into a cohesive language "
             "that feels both timeless and alive."
         ),
-        "heroImage": "/assets/Project_Img_03.webp",
+        "heroImage": f"{CDN_BASE}/mannequin/Project_Img_Mannequin_01.webp",
     },
     {
         "slug": "hyde-park-ventures",
         "index": "004",
         "title": "Hyde Park Ventures (Five Guys)",
         "services": "Web Design · Web Development · Brand Consolidation",
-        "logoSrc": "/assets/Project_Logo_Hydepark.svg",
+        "logoSrc": f"{CDN_BASE}/hyde-park/Project_Logo_Hydepark.svg",
         "timeline": "TBD",
         "credits": "Creative Direction, Design & Development — co:lab",
         "metaDescription": (
@@ -114,7 +115,7 @@ PROJECTS = [
             "Delivered a streamlined, future-ready experience that improves navigation, "
             "strengthens brand consistency, and supports ongoing growth."
         ),
-        "heroImage": "/assets/Project_Img_04.webp",
+        "heroImage": f"{CDN_BASE}/hyde-park/Project_Img_HydePark_01.webp",
     },
 ]
 
@@ -154,11 +155,17 @@ def write_file(rel: str, contents: str) -> None:
 # ─────────────────────────────────────────── shells ──
 
 def site_head(title: str, description: str, canonical: str, og_image: str) -> str:
-    og_url = SITE_ORIGIN + og_image
+    # og_image may already be a full URL (Bunny CDN) or a site-relative path
+    og_url = og_image if og_image.startswith("http") else SITE_ORIGIN + og_image
     return f"""  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="{esc(description)}" />
   <title>{esc(title)}</title>
+
+  <!-- favicon -->
+  <link rel="icon" href="{CDN_BASE}/favicon.svg" type="image/svg+xml"/>
+  <link rel="icon" type="image/svg+xml" href="{CDN_BASE}/favicon.svg"/>
+  <link rel="apple-touch-icon" sizes="192x192" href="{CDN_BASE}/favicon.svg" type="image/svg+xml"/>
 
   <link rel="canonical" href="{esc(canonical)}" />
 
@@ -174,22 +181,17 @@ def site_head(title: str, description: str, canonical: str, og_image: str) -> st
   <meta name="twitter:description" content="{esc(description)}" />
   <meta name="twitter:image" content="{esc(og_url)}" />
 
-  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono&display=swap" rel="stylesheet" />
   <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
   <link href="https://fonts.cdnfonts.com/css/helvetica-neue-5?styles=15273,15271,15270,17624" rel="stylesheet" />
 
-  <link rel="stylesheet" href="/css/main.css?v=4" />
-  <link rel="stylesheet" href="/css/project.css?v=4" />
-
-  <script src="/js/scale.js?v=3"></script>"""
+  <link rel="stylesheet" href="/css/main.css?v=31" />
+  <link rel="stylesheet" href="/css/project.css?v=8" />"""
 
 
-PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
-
-  <div class="grid-overlay" aria-hidden="true">
+PERSISTENT_CHROME = f"""  <div class="grid-overlay" aria-hidden="true">
     <div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div>
     <div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div><div class="grid-overlay-col"></div>
   </div>
@@ -198,9 +200,10 @@ PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
     <nav class="site-nav" aria-label="Primary navigation">
       <div class="nav-inner">
         <a class="nav-logo" href="/" aria-label="co:lab — go to homepage">
-          <img src="/assets/logo.svg" alt="co:lab" width="102" height="25" />
+          <img src="{CDN_BASE}/logo.svg" alt="co:lab" width="102" height="25" decoding="async" />
         </a>
         <button class="nav-toggle" type="button" aria-controls="site-menu" aria-expanded="false" aria-label="Open navigation menu" data-nav-toggle>
+          <span class="nav-toggle-label" aria-hidden="true">Menu</span>
           <span class="nav-toggle-icon" aria-hidden="true"></span>
         </button>
       </div>
@@ -224,7 +227,6 @@ PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
   </div>
 
   <div id="site-menu" class="site-menu" role="dialog" aria-modal="true" aria-label="Navigation menu" aria-hidden="true" data-nav-menu>
-    <div class="bg-hover-layer" aria-hidden="true"></div>
     <nav class="menu-nav" aria-label="Primary menu">
       <ul class="menu-nav-list">
         <li class="menu-nav-item" data-nav="home">
@@ -234,42 +236,48 @@ PERSISTENT_CHROME = """  <div class="bg-hover-layer" aria-hidden="true"></div>
           <span class="menu-active-square" aria-hidden="true"></span><a href="/about" class="menu-nav-link" data-menu-about data-nav="about">Studio</a>
         </li>
         <li class="menu-nav-item" data-nav="research">
-          <span class="menu-active-square" aria-hidden="true"></span><a href="/research" class="menu-nav-link" data-nav="research">Research/</a>
+          <span class="menu-active-square" aria-hidden="true"></span><a href="https://colab47.substack.com/" class="menu-nav-link" data-nav="research" target="_blank" rel="noopener noreferrer">Research/</a>
         </li>
-        <li class="menu-nav-item" data-nav="experiment">
-          <span class="menu-active-square" aria-hidden="true"></span><a href="/experiment" class="menu-nav-link" data-nav="experiment">Experiment</a>
+        <li class="menu-nav-item menu-nav-item--has-sub" data-nav="experiment">
+          <span class="menu-active-square" aria-hidden="true"></span><span class="menu-nav-link menu-nav-link--label" data-nav="experiment">Experiment</span>
+          <ul class="menu-sub-list" aria-label="Experiments">
+            <li class="menu-sub-item"><a class="menu-sub-link" href="/particle/" target="_blank" rel="noopener noreferrer"><span class="menu-sub-index">[01]</span><span class="menu-sub-label">Volumetric Cube / Hand Tracking</span></a></li>
+            <li class="menu-sub-item is-inactive"><a class="menu-sub-link" href="#" target="_blank" rel="noopener noreferrer"><span class="menu-sub-index">[02]</span><span class="menu-sub-label">Experiment 02 (TBD)</span></a></li>
+          </ul>
         </li>
       </ul>
     </nav>
     <div class="menu-footer">
       <div class="menu-footer-col">
         <span class="menu-footer-label">Contact</span>
-        <ul><li><a href="mailto:info@colab47.com">Info@colab47.com</a></li><li>+27 71 672 3610</li><li>South Africa</li><li><a href="/assets/colab47_RateCard.pdf" target="_blank" rel="noopener noreferrer">Rate Card</a></li></ul>
+        <ul><li><a href="mailto:info@colab47.com">Info@colab47.com</a></li><li>+27 71 672 3610</li><li>South Africa</li><li><a href="{CDN_BASE}/colab47_RateCard.pdf" target="_blank" rel="noopener noreferrer">Rate Card</a></li></ul>
       </div>
       <div class="menu-footer-col">
         <span class="menu-footer-label">Socials</span>
         <ul><li><a href="https://www.awwwards.com/colab47/" target="_blank" rel="noopener noreferrer">Awwwards</a></li><li><a href="https://www.instagram.com/colab.47/" target="_blank" rel="noopener noreferrer">Instagram</a></li><li><a href="https://www.linkedin.com/company/co-lab47" target="_blank" rel="noopener noreferrer">LinkedIn</a></li><li>Youtube</li></ul>
       </div>
     </div>
-  </div>
-
-  <div class="tesseract-wrap" aria-hidden="true" data-tesseract></div>"""
+  </div>"""
 
 
-PROJECT_SCRIPTS = """  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="/js/shader-reveal.js?v=3"></script>
-  <script src="/js/barba.umd.js?v=3"></script>
-  <script src="/js/main.js?v=3" defer></script>
-  <script src="/js/visualizer.js?v=3" defer></script>
-  <script src="/js/tesseract.js?v=3" defer></script>
-  <script src="/js/bg-reveal.js?v=3" defer></script>
-  <script src="/js/menu-ripple.js?v=3" defer></script>
+PROJECT_SCRIPTS = """  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+  <script src="/js/shader-reveal.js?v=3" defer></script>
+  <script src="/js/barba.umd.js?v=3" defer></script>
+  <script src="/js/main.js?v=4" defer></script>
+  <script src="/js/visualizer.js?v=9" defer></script>
   <script src="/js/video-preview.js?v=3" defer></script>
   <script src="/js/depth-gallery.js?v=4" defer></script>
-  <script src="/js/project-boot.js?v=4" defer></script>
+  <script src="/js/project-boot.js?v=5" defer></script>
+  <script src="/js/about-boot.js?v=1" defer></script>
   <script src="/js/line-hover.js?v=3" defer></script>
-  <script src="/js/hover-sfx.js?v=3" defer></script>
+  <script src="/js/hover-sfx.js?v=5" defer></script>
+  <script src="/js/title-reveal.js?v=3" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.20/dist/lenis.min.js" defer></script>
+  <script src="/js/smooth-about.js" defer></script>
+  <script src="/js/burn-reveal.js" defer></script>
+  <script src="/js/scroll-about.js" defer></script>
   <script src="/js/barba-init.js?v=3" defer></script>"""
 
 
@@ -280,7 +288,7 @@ def project_logo_html(p: dict) -> str:
     if p.get("logoSrc"):
         return (
             '      <div class="project-logo" data-project-logo>\n'
-            f'        <img class="project-logo-img" src="{esc(p["logoSrc"])}" alt="{esc(p["title"])}" />\n'
+            f'        <img class="project-logo-img" src="{esc(p["logoSrc"])}" alt="{esc(p["title"])}" decoding="async" />\n'
             '      </div>'
         )
     # Fallback — title in display type until a logo SVG is supplied.
@@ -393,13 +401,15 @@ def project_overview_modal_html(p: dict) -> str:
 
 
 def project_jsonld(p: dict, canonical: str) -> str:
+    hero = p["heroImage"]
+    image_url = hero if hero.startswith("http") else SITE_ORIGIN + hero
     data = {
         "@context": "https://schema.org",
         "@type": "CreativeWork",
         "name": p["title"],
         "description": p["metaDescription"],
         "url": canonical,
-        "image": SITE_ORIGIN + p["heroImage"],
+        "image": image_url,
         "creator": {"@type": "Organization", "name": "co:lab", "url": SITE_ORIGIN + "/"},
         "keywords": p["services"],
     }
@@ -443,7 +453,9 @@ def project_html(p: dict, idx: int, total: int) -> str:
 {logo_block}
 
       <div class="project-mobile-info">
-        <h2 class="project-mobile-title" data-mobile-title>{esc(p['title'])}</h2>
+        <div class="project-mobile-logo" data-mobile-logo>
+          <img class="project-mobile-logo-img" src="{esc(p['logoSrc'])}" alt="{esc(p['title'])}" decoding="async" />
+        </div>
         <div class="project-mobile-meta">
           <div class="project-mobile-meta-row">
             <span class="project-mobile-meta-label">Role</span>
@@ -571,7 +583,6 @@ def sitemap_xml() -> str:
     urls = [
         {"loc": SITE_ORIGIN + "/", "priority": "1.0"},
         {"loc": SITE_ORIGIN + "/about", "priority": "0.7"},
-        {"loc": SITE_ORIGIN + "/project/", "priority": "0.9"},
     ]
     for p in PROJECTS:
         urls.append({
@@ -603,7 +614,6 @@ def main() -> int:
         rel = os.path.join("project", p["slug"], "index.html")
         write_file(rel, project_html(p, i, len(PROJECTS)))
 
-    write_file(os.path.join("project", "index.html"), projects_index_html())
     write_file("sitemap.xml", sitemap_xml())
 
     robots_path = ROOT / "robots.txt"

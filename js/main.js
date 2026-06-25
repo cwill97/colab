@@ -429,7 +429,6 @@
         recoverFromTextureFailure();    /* don't sit on perpetual static */
       };
       im.src = src;
-      console.log({im});
     }
 
     /* If a texture can't load/upload, burn back out — reveals the idle video. */
@@ -486,7 +485,6 @@
     function onEnter(item) {
       var src = item.getAttribute('data-preview-image');
 
-      console.log({ src });
       if (!src) return;
       hovered = item;
       sizeCanvas();
