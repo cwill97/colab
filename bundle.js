@@ -40,7 +40,7 @@ for (const file of globSync(`${DIST}/**/*.{js,css}`)) {
   if (extname(file) === '.css') {
     ({ code: content } = transform({ filename: file, code: content, minify: true }));
   } else {
-    ({ code: content } = await minifyJS(content.toString()));
+    ({ code: content } = await minifyJS(content.toString(), { format: { safari10: true } }));
   }
 
   const hash = createHash('md5').update(content).digest('hex').slice(0, 8);
