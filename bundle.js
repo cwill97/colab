@@ -89,6 +89,7 @@ for (const file of globSync(`${DIST}/**/*.html`)) {
 
   html = await minify(html, {
     collapseWhitespace: true,
+    conservativeCollapse: true,
     removeComments: true,
     minifyCSS: true,
     minifyJS: true,
