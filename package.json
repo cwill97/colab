@@ -1,12 +1,7 @@
 {
-  "name": "colab-asset-tools",
-  "version": "1.0.0",
+  "name": "colab-site",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
-    "upload": "node scripts/upload-assets.mjs",
-    "patch": "node scripts/patch-urls.mjs"
-  },
-  "dependencies": {
-    "@sanity/client": "^6.21.3"
   }
 }
