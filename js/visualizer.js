@@ -49,16 +49,9 @@
     lpFilter.Q.value = 0.7;
 
     audioEl = new Audio();
+    audioEl.crossOrigin = 'anonymous'; /* required for createMediaElementSource on cross-origin Bunny CDN URLs */
     audioEl.src = AUDIO_SRC;
     audioEl.loop = true;
-    /* No crossOrigin: the /sanity/* track is served same-origin via the
-       Vercel proxy. Setting crossOrigin='anonymous' forces the fetch into
-       CORS mode, so the browser sends an Origin header; the proxy forwards
-       it to cdn.sanity.io, whose CORS allowlist 403s it → the audio never
-       loads and play() is silently rejected (this is what broke mobile
-       audio). Same-origin media is never tainted, so the analyser still
-       reads real FFT data without it. Mirrors the image-texture fix in
-       commit 9f9bb32. */
     var source = audioCtx.createMediaElementSource(audioEl);
     source.connect(gainNode);
     gainNode.connect(lpFilter);
