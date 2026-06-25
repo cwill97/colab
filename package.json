@@ -3,5 +3,11 @@
   "version": "1.1.0",
   "type": "module",
   "scripts": {
+    "build": "node bundle.js",
+    "heroku-postbuild": "node bundle.js"
+  },
+  "devDependencies": {
+    "html-minifier-next": "^7.0.0",
+    "terser": "^5.48.0"
   }
 }

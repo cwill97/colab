@@ -1,0 +1,1 @@
+1. In browser with no WebGL, all project pages are broken/blank. 

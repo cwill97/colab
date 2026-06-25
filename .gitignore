@@ -6,3 +6,4 @@ js/.DS_Store
 .claude/
 scripts/asset-url-map.json
 .vercel
+dist/
