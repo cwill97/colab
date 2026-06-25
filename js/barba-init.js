@@ -12,7 +12,7 @@
     /* Per-page audio routing. About uses a dedicated track; every other
        view falls back to the site-wide ambient bed. setTrack() handles
        both pre- and post-activation states. */
-    var DEFAULT_TRACK = '/sanity/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
+    var DEFAULT_TRACK = '';
     function routeAudio() {
       if (!window.colabAudio || !window.colabAudio.setTrack) return;
       window.colabAudio.setTrack(DEFAULT_TRACK);

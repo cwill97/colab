@@ -11,7 +11,7 @@
   /* Default site-wide ambient bed; the about page swaps in its own track
      via colabAudio.setTrack() (see barba-init.js + cold-load resolver
      below). */
-  var AUDIO_SRC = '/sanity/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
+  var AUDIO_SRC = 'https://colab-site.b-cdn.net/audio/ambient.mp3';
   var FFT_SIZE  = 512;
   var NUM_BANDS = 32;
 

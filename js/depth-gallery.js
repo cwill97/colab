@@ -272,14 +272,6 @@
       return m ? parseInt(m[1], 10) / parseInt(m[2], 10) : 1;
     }
 
-    /* Request a capped width so Sanity transcodes to a lighter file on the fly. */
-    function sizedSrc(src) {
-      if (!isVideoSrc(src) && src.indexOf('?') === -1) {
-        return src + '?w=1400&auto=format&q=85';
-      }
-      return src;
-    }
-
     /* Pre-build every plane immediately with the correct aspect ratio and a null
        texture. The gallery is interactive from the first frame; textures pop in
        as each download completes rather than all-or-nothing. */
@@ -325,7 +317,8 @@
           function () {}
         );
       } else {
-        loader.load(sizedSrc(src),
+        // loader.load(sizedSrc(src),
+        loader.load(src,
           function (tex) {
             if (!mesh.parent) return;
             tex.colorSpace = THREE.SRGBColorSpace;

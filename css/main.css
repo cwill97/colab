@@ -194,7 +194,7 @@ html {
 
 body {
   background-color: var(--color-bg);
-  background-image: url('/sanity/images/7to0u5h2/production/4dccedc8b5cec70436a0f3d73cc08f7e0d294523-3840x2160.webp?w=2560&q=80');
+  background-image: url('https://colab-site.b-cdn.net/BG.webp');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -422,7 +422,7 @@ button {
   inset: 0;
   z-index: 90;
   background-color: var(--color-bg);
-  background-image: url('/sanity/images/7to0u5h2/production/4dccedc8b5cec70436a0f3d73cc08f7e0d294523-3840x2160.webp?w=2560&q=80');
+  background-image: url('https://colab-site.b-cdn.net/BG.webp');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;

@@ -18,7 +18,7 @@
 
     var menuTransitioning = false;
 
-    var AMBIENT_TRACK = '/sanity/files/7to0u5h2/production/4769413ecca28b29e51841e6ea8d9010af78cf76.mp3';
+    var AMBIENT_TRACK = 'https://colab-site.b-cdn.net/audio/ambient.mp3';
     function pageTrack() { return AMBIENT_TRACK; }
 
     var label = toggle.querySelector('.nav-toggle-label');
@@ -432,6 +432,7 @@
         recoverFromTextureFailure();    /* don't sit on perpetual static */
       };
       im.src = src;
+      console.log({im});
     }
 
     /* If a texture can't load/upload, burn back out — reveals the idle video. */
@@ -487,6 +488,8 @@
 
     function onEnter(item) {
       var src = item.getAttribute('data-preview-image');
+
+      console.log({ src });
       if (!src) return;
       hovered = item;
       sizeCanvas();
