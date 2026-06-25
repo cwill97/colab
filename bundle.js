@@ -40,7 +40,7 @@ for (const file of globSync(`${DIST}/**/*.{js,css}`)) {
   if (extname(file) === '.css') {
     ({ code: content } = transform({ filename: file, code: content, minify: true }));
   } else {
-    ({ code: content } = await minifyJS(content.toString(), { compress: { safari10: true }, format: { safari10: true } }));
+    ({ code: content } = await minifyJS(content.toString(), { format: { safari10: true } }));
   }
 
   const hash = createHash('md5').update(content).digest('hex').slice(0, 8);
@@ -61,8 +61,13 @@ for (const file of globSync(`${DIST}/**/*.js`)) {
   let changed = false;
   for (const [original, hashed] of sortedMapping) {
     if (js.includes(original)) {
-      js = js.replaceAll(original, hashed);
-      changed = true;
+      // Negative lookbehind: don't match when the filename is preceded by a dot
+      // or word character, which would mean it's embedded in an identifier
+      // (e.g. `.style.cssText` must not match when searching for `style.css`).
+      const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`(?<![.\\w])${escaped}`, 'g');
+      const next = js.replace(re, hashed);
+      if (next !== js) { js = next; changed = true; }
     }
   }
   if (changed) writeFileSync(file, js);
@@ -74,7 +79,9 @@ for (const file of globSync(`${DIST}/**/*.html`)) {
 
   // Swap hashed filenames
   for (const [original, hashed] of sortedMapping) {
-    html = html.replaceAll(original, hashed);
+    const escaped = original.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(?<![.\\w])${escaped}`, 'g');
+    html = html.replace(re, hashed);
   }
 
   // Strip ?v=N version params — redundant now that filenames are hashed
